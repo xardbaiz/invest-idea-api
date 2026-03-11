@@ -20,7 +20,6 @@
   "homepage": "https://github.com/xardbaiz/invest-idea-api#readme",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.27.1",
-    "axios": "^1.13.6",
     "better-sqlite3": "^12.6.2",
     "openai": "^6.27.0"
   },
