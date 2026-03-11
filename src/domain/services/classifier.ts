@@ -1,4 +1,7 @@
 import OpenAI from 'openai';
+import {InvestmentIdea} from "../models";
+
+const LLM_MODEL = "gemma-2-2b-it";
 
 export class IdeaClassifier {
     private openai: OpenAI;
@@ -7,9 +10,11 @@ export class IdeaClassifier {
         this.openai = new OpenAI({apiKey, baseURL});
     }
 
-    async classify(title: string, description: string): Promise<string[]> {
+    async classify(idea: InvestmentIdea): Promise<string[]> {
+        const title = idea.title;
+        const description = idea.description;
         const response = await this.openai.chat.completions.create({
-            model: "gpt-4o-mini",
+            model: LLM_MODEL,
             messages: [
                 {
                     role: "system",

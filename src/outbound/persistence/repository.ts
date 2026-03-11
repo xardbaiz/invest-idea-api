@@ -30,6 +30,7 @@ export class IdeaRepository {
             ON CONFLICT(id) DO UPDATE SET categories_json = excluded.categories_json
         `);
 
+        // TODO return result
         stmt.run(
             idea.id, idea.provider, idea.ticker, idea.companyName,
             idea.title, JSON.stringify(idea.categories),
@@ -37,6 +38,10 @@ export class IdeaRepository {
         );
     }
 
+    findCategoriesByIdeaId(id: string): string[] | undefined {
+        const row: any = this.db.prepare("SELECT categories_json FROM ideas WHERE id = ?").get(id);
+        return row ? JSON.parse(row.categories_json) : undefined;
+    }
     findByCategory(category: string): InvestmentIdea[] {
         // Используем SQL оператор LIKE для поиска в JSON массиве
         const rows = this.db.prepare("SELECT * FROM ideas WHERE categories_json LIKE ?")
