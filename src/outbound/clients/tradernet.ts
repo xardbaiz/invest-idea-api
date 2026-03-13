@@ -61,7 +61,7 @@ export class TradernetClient {
     }
 
     private sanitize(text?: any): string {
-        if (!text) return '';
+        if (!text || typeof text !== 'string') return '';
         return text.replaceAll(/<[^>]*>/g, '');
     }
 }

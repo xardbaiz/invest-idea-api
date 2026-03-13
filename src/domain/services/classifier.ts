@@ -1,8 +1,6 @@
 import OpenAI from 'openai';
 import {InvestmentIdea} from "../models";
 
-const LLM_MODEL = "gemma-2-2b-it";
-
 const predefinedCategories = ['Europe',
     'Healthcare', 'Insurance',
     'Energy', 'Electric', 'Vehicles', 'Batteries',
@@ -11,16 +9,18 @@ const predefinedCategories = ['Europe',
 
 export class IdeaClassifier {
     private readonly openai: OpenAI;
+    private readonly model: string;
 
-    constructor(apiKey: string, baseURL: string) {
+    constructor(apiKey: string, model: string, baseURL: string) {
         this.openai = new OpenAI({apiKey, baseURL});
+        this.model = model;
     }
 
     async classify(idea: InvestmentIdea): Promise<string[]> {
         const title = idea.title;
         const description = idea.description;
         const response = await this.openai.chat.completions.create({
-            model: LLM_MODEL,
+            model: this.model,
             messages: [
                 {
                     role: "system",

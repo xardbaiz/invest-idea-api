@@ -2,8 +2,9 @@ import {IdeaClassifier} from "./classifier";
 import {TradernetClient} from "../../outbound/clients/tradernet";
 import {IdeaRepository} from "../../outbound/persistence/repository";
 
-const OPENAI_BASE_URL = process.env.OPENAI_BASE_URL ?? "http://localhost:1234/v1"; // Or your compatible provider
+const OPENAI_BASE_URL = process.env.OPENAI_BASE_URL ?? "http://127.0.0.1:1234/v1"; // Or your compatible provider
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY ?? "lmstudio";
+const OPENAI_MODEL = process.env.OPENAI_MODEL ?? "gemma-2-2b-it";
 
 export class SyncScheduler {
     private isRunning = false;
@@ -11,7 +12,7 @@ export class SyncScheduler {
 
     constructor(
         private readonly repo: IdeaRepository,
-        private readonly classifier: IdeaClassifier = new IdeaClassifier(OPENAI_API_KEY, OPENAI_BASE_URL),
+        private readonly classifier: IdeaClassifier = new IdeaClassifier(OPENAI_API_KEY, OPENAI_MODEL, OPENAI_BASE_URL),
         private readonly tradernetClient: TradernetClient = new TradernetClient(),
     ) {
     }
