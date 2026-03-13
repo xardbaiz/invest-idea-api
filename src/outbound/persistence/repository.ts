@@ -38,6 +38,40 @@ export class IdeaRepository {
         );
     }
 
+    findById(id: string): InvestmentIdea | undefined {
+        const row: any = this.db.prepare(`
+            SELECT id,
+                   provider,
+                   ticker,
+                   company_name,
+                   title,
+                   categories_json,
+                   target_price,
+                   currency,
+                   description,
+                   publish_date
+            FROM ideas
+            WHERE id = ?
+        `).get(id);
+
+        if (!row) {
+            return undefined;
+        }
+
+        return {
+            id: row.id,
+            provider: row.provider,
+            ticker: row.ticker,
+            companyName: row.company_name,
+            title: row.title,
+            description: row.description,
+            targetPrice: row.target_price,
+            currency: row.currency,
+            categories: JSON.parse(row.categories_json),
+            publishDate: row.publish_date
+        };
+    }
+
     findCategoriesByIdeaId(id: string): string[] | undefined {
         const row: any = this.db.prepare("SELECT categories_json FROM ideas WHERE id = ?").get(id);
         return row ? JSON.parse(row.categories_json) : undefined;

@@ -4,7 +4,8 @@
   "description": "Collect, store and categorize invest ideas from broker news",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "debug": "npx tsx src/index.ts"
   },
   "repository": {
     "type": "git",

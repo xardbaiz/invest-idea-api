@@ -1,35 +1,21 @@
 import {Server} from "@modelcontextprotocol/sdk/server/index.js";
 import {StdioServerTransport} from "@modelcontextprotocol/sdk/server/stdio.js";
 import {CallToolRequestSchema, ListToolsRequestSchema} from "@modelcontextprotocol/sdk/types.js";
-import {IdeaClassifier} from "./domain/services/classifier";
-import {TradernetClient} from "./outbound/clients/tradernet";
 import {IdeaRepository} from "./outbound/persistence/repository";
+import {SyncScheduler} from "./domain/services/sync-scheduler";
 
 // --- Configuration ---
-const OPENAI_BASE_URL = "http://localhost:1234/v1"; // Or your compatible provider
-const OPENAI_API_KEY = "lmstudio";
-
 const repo = new IdeaRepository();
-const tradernetClient = new TradernetClient();
-const classifier = new IdeaClassifier(OPENAI_API_KEY, OPENAI_BASE_URL);
+const SYNC_INTERVAL_MS = Number(process.env.SYNC_INTERVAL_MS ?? 2 * 60 * 1000); // each two minutes
+const SYNC_BATCH_SIZE = Number(process.env.SYNC_BATCH_SIZE ?? 5);
+const syncScheduler = new SyncScheduler(repo);
+syncScheduler.start(SYNC_INTERVAL_MS, SYNC_BATCH_SIZE);
 
 // --- MCP Server Setup ---
 const server = new Server({name: "invest-idea-api", version: "1.0.0"}, {capabilities: {tools: {}}});
 
 server.setRequestHandler(ListToolsRequestSchema, async () => ({
     tools: [
-
-        // TODO should be scheduled background job
-        {
-            name: "sync_and_categorize",
-            description: "Fetches last ideas from broker(s), categorizes them, and stores in DB.",
-            inputSchema: {
-                type: "object",
-                properties: {
-                    size: {type: "number", description: "Number of ideas to fetch", default: 5}
-                }
-            }
-        },
         {
             name: "list_by_category",
             description: "Lists stored ideas for a specific category.",
@@ -47,25 +33,6 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
 
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
     const {name, arguments: args} = request.params;
-
-    // TODO should be scheduled background job
-    if (name === "sync_and_categorize") {
-        const size = (args?.size as number) || 5;
-        const ideas = await tradernetClient.fetchIdeas(0, size);
-
-        for (const idea of ideas) {
-            // Step 1: Check if it's already categorized to save LLM tokens
-            repo.upsert(idea);
-            let categories = repo.findCategoriesByIdeaId(idea.id);
-            if (!categories) {
-                // Step 2: Use LLM for new ideas
-                idea.categories = await classifier.classify(idea);
-                repo.upsert(idea);
-            }
-        }
-
-        return {content: [{type: "text", text: `Processed ${ideas.length} ideas with AI categorization.`}]};
-    }
 
     if (name === "list_by_category") {
         const ideas = repo.findByCategory(args?.category as string)

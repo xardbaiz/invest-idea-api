@@ -3,8 +3,14 @@ import {InvestmentIdea} from "../models";
 
 const LLM_MODEL = "gemma-2-2b-it";
 
+const predefinedCategories = ['Europe',
+    'Healthcare', 'Insurance',
+    'Energy', 'Electric', 'Vehicles', 'Batteries',
+    'Financial', 'Estate',
+];
+
 export class IdeaClassifier {
-    private openai: OpenAI;
+    private readonly openai: OpenAI;
 
     constructor(apiKey: string, baseURL: string) {
         this.openai = new OpenAI({apiKey, baseURL});
@@ -18,14 +24,24 @@ export class IdeaClassifier {
             messages: [
                 {
                     role: "system",
-                    content: "Analyze the investment idea. Return a JSON array of applicable categories (e.g. ['Aviation', 'Low-cost', 'Europe']). Return ONLY the array."
+                    content: "Analyze the investment idea. Return a JSON array of applicable categories (e.g. " + JSON.stringify(predefinedCategories) + ")"
                 },
                 {role: "user", content: `Title: ${title}\nDescription: ${description}`}
             ],
-            response_format: {type: "json_object"}
+            response_format: {
+                type: "json_schema",
+                json_schema: {
+                    name: "invest categories",
+                    schema: {
+                        type: "object",
+                        properties: {categories: {type: "array", items: {type: "string"}}},
+                        required: ["categories"]
+                    },
+                }
+            }
         });
 
-        const content = response?.choices ? [0].message?.content || '{"categories": ["General"]}';
+        const content: string = response?.choices?.[0]?.message?.content || '{"categories" :["General"]}';
         return JSON.parse(content).categories;
     }
 }

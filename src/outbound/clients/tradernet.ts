@@ -4,15 +4,13 @@ export class TradernetClient {
     private readonly url = 'https://tradernet.com/api';
 
     async fetchIdeas(skip: number, take: number): Promise<InvestmentIdea[]> {
-        const query = {
-            cmd: "getInvestIdeas",
-            params: {page: {skip, take}}
-        };
-
         const response = await fetch(this.url, {
             method: "POST",
             headers: {"Content-Type": "application/x-www-form-urlencoded"},
-            body: `q=${encodeURIComponent(JSON.stringify(query))}`
+            body: `q=${encodeURIComponent(JSON.stringify({
+                cmd: "getInvestIdeas",
+                params: {page: {skip, take}}
+            }))}`
         });
 
         if (!response.ok) {
@@ -21,18 +19,49 @@ export class TradernetClient {
 
         const data = await response.json() as { list?: any[] };
 
-        // Маппинг внешних данных в доменную модель
         return (data.list || []).map((item: any): InvestmentIdea => ({
-            id: `tradernet_${item.id}`,
+            id: `${item.id}`,
             provider: 'tradernet',
             ticker: item.ticker,
             companyName: item.company,
             title: item.title,
-            description: item.about.replace(/<[^>]*>/g, ''), // Чистим HTML
+            description: this.sanitize(item.about),
             targetPrice: parseFloat(item.targetPrice.replace(/\s/g, '')),
             currency: item.currency,
-            categories: [], // Категории заполнит AI позже
+            categories: [],
             publishDate: item.rawDate
         }));
+    }
+
+    async getDetails(id: string): Promise<string | undefined> {
+        const response = await fetch(this.url, {
+            method: "POST",
+            headers: {"Content-Type": "application/x-www-form-urlencoded"},
+            body: `q=${encodeURIComponent(JSON.stringify({
+                cmd: "getInvestIdeaDetails",
+                params: {id: id},
+            }))}`
+        });
+
+        if (!response.ok) {
+            throw new Error(`Tradernet request failed: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json()
+        const details: string = [
+            this.sanitize(data.about),
+            this.sanitize(data.idea),
+            this.sanitize(data.likeReason)
+        ]
+            .filter(Boolean)
+            .join('\n')
+            .trim();
+
+        return details || undefined;
+    }
+
+    private sanitize(text?: any): string {
+        if (!text) return '';
+        return text.replaceAll(/<[^>]*>/g, '');
     }
 }
