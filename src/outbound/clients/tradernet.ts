@@ -49,9 +49,9 @@ export class TradernetClient {
 
         const data = await response.json()
         const details: string = [
-            this.sanitize(data.about),
-            this.sanitize(data.idea),
-            this.sanitize(data.likeReason)
+            this.sanitize(data.details.about),
+            this.sanitize(data.details.idea),
+            //this.sanitize(data.details.likeReason) // It's too detailed, including sources and links
         ]
             .filter(Boolean)
             .join('\n')
@@ -60,8 +60,10 @@ export class TradernetClient {
         return details || undefined;
     }
 
-    private sanitize(text?: any): string {
-        if (!text) return '';
-        return text.replaceAll(/<[^>]*>/g, '');
+    private sanitize(data?: any): string {
+        if (!data) return '';
+        if (typeof data === 'object') data = JSON.stringify(data);
+        if (typeof data !== 'string') data = data.toString();
+        return data.replaceAll(/<[^>]*>/g, '');
     }
 }

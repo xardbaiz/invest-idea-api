@@ -1,11 +1,12 @@
 import {Server} from "@modelcontextprotocol/sdk/server/index.js";
 import {StdioServerTransport} from "@modelcontextprotocol/sdk/server/stdio.js";
 import {CallToolRequestSchema, ListToolsRequestSchema} from "@modelcontextprotocol/sdk/types.js";
-import {IdeaRepository} from "./outbound/persistence/repository";
+import {IdeaRepository} from "./outbound/persistence/sqlite.repository";
 import {SyncScheduler} from "./domain/services/sync-scheduler";
+import {Repository} from "./outbound/persistence/repository";
 
 // --- Configuration ---
-const repo = new IdeaRepository();
+const repo: Repository = new IdeaRepository();
 const SYNC_INTERVAL_MS = Number(process.env.SYNC_INTERVAL_MS ?? 2 * 60 * 1000); // each two minutes
 const SYNC_BATCH_SIZE = Number(process.env.SYNC_BATCH_SIZE ?? 5);
 const syncScheduler = new SyncScheduler(repo);

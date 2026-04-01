@@ -41,7 +41,12 @@ export class IdeaClassifier {
             }
         });
 
-        const content: string = response?.choices?.[0]?.message?.content || '{"categories" :["General"]}';
-        return JSON.parse(content).categories;
+        const content: string = response?.choices?.[0]?.message?.content || '{"categories" :[]}';
+        const categories = JSON.parse(content).categories;
+        if (!Array.isArray(categories)) {
+            console.error('Expected categories to be an array, got:', typeof categories, categories);
+            return [];
+        }
+        return categories.filter(Boolean);
     }
 }
