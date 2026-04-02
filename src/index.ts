@@ -4,6 +4,7 @@ import {CallToolRequestSchema, ListToolsRequestSchema} from "@modelcontextprotoc
 import {IdeaRepository} from "./outbound/persistence/sqlite.repository";
 import {SyncScheduler} from "./domain/services/sync-scheduler";
 import {Repository} from "./outbound/persistence/repository";
+import 'dotenv/config';
 
 // --- Configuration ---
 const repo: Repository = new IdeaRepository();

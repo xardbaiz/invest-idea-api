@@ -59,6 +59,14 @@ export class IdeaRepository implements Repository {
             return undefined;
         }
 
+        let categories: string[];
+        try {
+            categories = JSON.parse(row.categories_json)
+        } catch (e) {
+            console.error('Failed to parse categories from DB of idea:', row.id, e);
+            categories = [];
+        }
+
         return {
             id: row.id,
             provider: row.provider,
@@ -68,7 +76,7 @@ export class IdeaRepository implements Repository {
             description: row.description,
             targetPrice: row.target_price,
             currency: row.currency,
-            categories: JSON.parse(row.categories_json),
+            categories: categories,
             publishDate: row.publish_date
         };
     }
