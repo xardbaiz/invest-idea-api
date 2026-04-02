@@ -7,5 +7,5 @@ export interface Repository {
 
     findCategoriesByIdeaId(id: string): string[] | undefined
 
-    findByCategory(category: string): InvestmentIdea[]
+    findByCategory(category: string, from?: string, to?: string): InvestmentIdea[]
 }

@@ -86,12 +86,20 @@ export class IdeaRepository implements Repository {
         return row ? JSON.parse(row.categories_json) : undefined;
     }
 
-    findByCategory(category: string): InvestmentIdea[] {
-        // Используем SQL оператор LIKE для поиска в JSON массиве
-        const rows = this.db.prepare("SELECT * FROM ideas WHERE categories_json LIKE ?")
-            .all(`%${category}%`);
+    findByCategory(category: string, from?: string, to?: string): InvestmentIdea[] {
+        let sql = "SELECT * FROM ideas WHERE LOWER(categories_json) LIKE LOWER(?)";
+        const params: any[] = [`%${category}%`];
 
-        return (rows as any[]).map(row => ({
+        if (from) {
+            sql += " AND publish_date >= ?";
+            params.push(from);
+        }
+        if (to) {
+            sql += " AND publish_date <= ?";
+            params.push(to);
+        }
+
+        return (this.db.prepare(sql).all(...params) as any[]).map(row => ({
             ...row,
             categories: JSON.parse(row.categories_json)
         }));

@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "debug": "npx tsx src/index.ts"
+    "debug": "npx tsx src/index.ts",
+    "build": "npx tsc"
   },
   "repository": {
     "type": "git",

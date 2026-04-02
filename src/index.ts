@@ -24,8 +24,19 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
             inputSchema: {
                 type: "object",
                 properties: {
-                    // TODO period - filter should be optional period of time
-                    category: {type: "string"}
+                    category: {type: "string"},
+                    from: {
+                        type: "string",
+                        description: "Start date (inclusive)",
+                        example: "2025-01-01",
+                        format: "date"
+                    },
+                    to: {
+                        type: "string",
+                        description: "End date (inclusive)",
+                        example: "2025-01-30",
+                        format: "date"
+                    }
                 },
                 required: ["category"]
             }
@@ -37,7 +48,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     const {name, arguments: args} = request.params;
 
     if (name === "list_by_category") {
-        const ideas = repo.findByCategory(args?.category as string)
+        const ideas = repo.findByCategory(args?.category as string, args?.from as string | undefined, args?.to as string | undefined)
         return {content: [{type: "text", text: JSON.stringify(ideas, null, 2)}]};
     }
 
