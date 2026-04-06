@@ -1,13 +1,22 @@
 import {Server} from "@modelcontextprotocol/sdk/server/index.js";
 import {StdioServerTransport} from "@modelcontextprotocol/sdk/server/stdio.js";
 import {CallToolRequestSchema, ListToolsRequestSchema} from "@modelcontextprotocol/sdk/types.js";
-import {IdeaRepository} from "./outbound/persistence/sqlite.repository";
+import {SqlLiteIdeaRepository} from "./outbound/persistence/sqlite.repository";
 import {SyncScheduler} from "./domain/services/sync-scheduler";
 import {Repository} from "./outbound/persistence/repository";
 import 'dotenv/config';
+import {SupabaseIdeaRepository} from "./outbound/persistence/supabase.repository";
 
 // --- Configuration ---
-const repo: Repository = new IdeaRepository();
+let repo: Repository;
+const supabaseUrl = process.env.SUPABASE_PUBLIC_URL;
+const supabaseKey = process.env.SUPABASE_PUBLIC_PUBLISHABLE_KEY;
+if (supabaseUrl && supabaseKey) {
+    repo = new SupabaseIdeaRepository(supabaseUrl, supabaseKey)
+} else {
+    repo = new SqlLiteIdeaRepository();
+}
+
 const SYNC_INTERVAL_MS = Number(process.env.SYNC_INTERVAL_MS ?? 2 * 60 * 1000); // each two minutes
 const SYNC_BATCH_SIZE = Number(process.env.SYNC_BATCH_SIZE ?? 5);
 const syncScheduler = new SyncScheduler(repo);
@@ -48,7 +57,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     const {name, arguments: args} = request.params;
 
     if (name === "list_by_category") {
-        const ideas = repo.findByCategory(args?.category as string, args?.from as string | undefined, args?.to as string | undefined)
+        const ideas = await repo.findByCategory(args?.category as string, args?.from as string | undefined, args?.to as string | undefined)
         return {content: [{type: "text", text: JSON.stringify(ideas, null, 2)}]};
     }
 

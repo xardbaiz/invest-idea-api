@@ -1,11 +1,11 @@
 import {InvestmentIdea} from "../../domain/models";
 
 export interface Repository {
-    upsert(idea: InvestmentIdea): void;
+    upsert(idea: InvestmentIdea): Promise<void>;
 
-    findById(id: string): InvestmentIdea | undefined
+    findById(id: string): Promise<InvestmentIdea | undefined>
 
-    findCategoriesByIdeaId(id: string): string[] | undefined
+    findCategoriesByIdeaId(id: string): Promise<string[] | undefined>
 
-    findByCategory(category: string, from?: string, to?: string): InvestmentIdea[]
+    findByCategory(category: string, from?: string, to?: string): Promise<InvestmentIdea[]>
 }

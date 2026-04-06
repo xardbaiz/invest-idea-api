@@ -2,7 +2,7 @@ import Database from 'better-sqlite3';
 import {InvestmentIdea} from "../../domain/models";
 import {Repository} from "./repository";
 
-export class IdeaRepository implements Repository {
+export class SqlLiteIdeaRepository implements Repository {
     private db = new Database('invest_ideas.db');
 
     constructor() {
@@ -23,7 +23,7 @@ export class IdeaRepository implements Repository {
         `);
     }
 
-    upsert(idea: InvestmentIdea) {
+    async upsert(idea: InvestmentIdea) {
         const stmt = this.db.prepare(`
             INSERT INTO ideas (id, provider, ticker, company_name, title, categories_json, target_price, currency,
                                description, publish_date)
@@ -39,7 +39,7 @@ export class IdeaRepository implements Repository {
         );
     }
 
-    findById(id: string): InvestmentIdea | undefined {
+    async findById(id: string): Promise<InvestmentIdea | undefined> {
         const row: any = this.db.prepare(`
             SELECT id,
                    provider,
@@ -81,12 +81,12 @@ export class IdeaRepository implements Repository {
         };
     }
 
-    findCategoriesByIdeaId(id: string): string[] | undefined {
+    async findCategoriesByIdeaId(id: string): Promise<string[] | undefined> {
         const row: any = this.db.prepare("SELECT categories_json FROM ideas WHERE id = ?").get(id);
         return row ? JSON.parse(row.categories_json) : undefined;
     }
 
-    findByCategory(category: string, from?: string, to?: string): InvestmentIdea[] {
+    async findByCategory(category: string, from?: string, to?: string): Promise<InvestmentIdea[]> {
         let sql = "SELECT * FROM ideas WHERE LOWER(categories_json) LIKE LOWER(?)";
         const params: any[] = [`%${category}%`];
 

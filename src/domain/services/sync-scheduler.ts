@@ -54,7 +54,7 @@ export class SyncScheduler {
 
         for (const idea of ideas) {
             const internalId = `${idea.provider}_${idea.id}`;
-            const existing = this.repo.findById(internalId)
+            const existing = await this.repo.findById(internalId)
             if (!existing?.categories || existing.categories.length == 0) {
                 let details = await this.tradernetClient.getDetails(idea.id);
 
@@ -62,12 +62,12 @@ export class SyncScheduler {
                 if (details) {
                     idea.description += "\n\n--------details----\n\n" + details;
                 }
-                this.repo.upsert(idea);
+                await this.repo.upsert(idea);
 
-                const categories = this.repo.findCategoriesByIdeaId(idea.id);
+                const categories = await this.repo.findCategoriesByIdeaId(idea.id);
                 if (!categories || categories.length === 0) {
                     idea.categories = await this.classifier.classify(idea);
-                    this.repo.upsert(idea);
+                    await this.repo.upsert(idea);
                 }
             }
         }

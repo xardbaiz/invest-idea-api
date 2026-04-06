@@ -22,6 +22,7 @@
   "homepage": "https://github.com/xardbaiz/invest-idea-api#readme",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.27.1",
+    "@supabase/supabase-js": "^2.101.1",
     "better-sqlite3": "^12.6.2",
     "dotenv": "^17.3.1",
     "openai": "^6.27.0"

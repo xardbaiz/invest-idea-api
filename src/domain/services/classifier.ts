@@ -64,7 +64,7 @@ export class IdeaClassifier {
             const filtered = categories.filter(c => c?.trim() && c.trim() !== ',').slice(0, 10);
             return filtered.length ? filtered : [];
         } catch (e) {
-            console.error('Failed to parse categories from LLM response:', e);
+            console.error(`Failed to get categories for idea ${idea.id} from LLM response:`, e);
             return [];
         }
     }
