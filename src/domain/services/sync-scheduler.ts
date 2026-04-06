@@ -2,7 +2,7 @@ import {IdeaClassifier} from "./classifier";
 import {TradernetClient} from "../../outbound/clients/tradernet";
 import {Repository} from "../../outbound/persistence/repository";
 
-const OPENAI_BASE_URL = process.env.OPENAI_BASE_URL ?? "http://localhost:1234/v1"; // Or your compatible provider
+const OPENAI_BASE_URL = process.env.OPENAI_BASE_URL ?? "http://127.0.0.1:1234/v1"; // Or your compatible provider
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY ?? "lmstudio";
 
 export class SyncScheduler {

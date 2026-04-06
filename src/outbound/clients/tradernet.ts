@@ -26,7 +26,7 @@ export class TradernetClient {
             companyName: item.company,
             title: item.title,
             description: this.sanitize(item.about),
-            targetPrice: parseFloat(item.targetPrice.replace(/\s/g, '')),
+            targetPrice: item.targetPrice ? parseFloat(item.targetPrice.replace(/\s/g, '')) : 0,
             currency: item.currency,
             categories: [],
             publishDate: item.rawDate
