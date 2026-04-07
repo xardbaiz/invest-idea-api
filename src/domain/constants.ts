@@ -1,0 +1,1 @@
+export const INVEST_IDEA_DETAILS_MARK = '--details--'
