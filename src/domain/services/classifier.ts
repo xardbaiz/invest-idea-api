@@ -54,14 +54,15 @@ export class IdeaClassifier {
                 }
             });
 
-            const content: string = response?.choices?.[0]?.message?.content || response?.choices?.[0]?.message?.reasoning_content || '{"categories" :[]}';
-            const categories = JSON.parse(content).categories;
-            if (!Array.isArray(categories)) {
-                console.error('Expected categories to be an array, got:', typeof categories, categories);
+            const responseMessage = response?.choices?.[0]?.message;
+            const responseContent: string = responseMessage?.content || (responseMessage as any)?.reasoning_content || '{"categories" :[]}';
+            const assignedCategories = JSON.parse(responseContent).categories;
+            if (!Array.isArray(assignedCategories)) {
+                console.error('Expected categories to be an array, got:', typeof assignedCategories, assignedCategories);
                 return [];
             }
 
-            const filtered = categories.filter(c => c?.trim() && c.trim() !== ',').slice(0, 10);
+            const filtered = assignedCategories.filter(c => c?.trim() && c.trim() !== ',').slice(0, 10);
             return filtered.length ? filtered : [];
         } catch (e) {
             console.error(`Failed to get categories for idea ${idea.id} from LLM response:`, e);
