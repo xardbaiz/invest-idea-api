@@ -6,7 +6,8 @@ const LLM_MODEL = "gemma-2-2b-it";
 const predefinedCategories = ['Europe',
     'Healthcare', 'Insurance',
     'Energy', 'Electric', 'Vehicles', 'Batteries',
-    'Financial', 'Estate',
+    'Financial', 'Gambling',
+    'Estate',
 ];
 
 export class IdeaClassifier {
@@ -27,7 +28,8 @@ export class IdeaClassifier {
                 messages: [
                     {
                         role: "system",
-                        content: "Analyze the investment idea. Return a JSON array of applicable categories (e.g. " + JSON.stringify(predefinedCategories) + ")."
+                        // TODO by some reason small models assign categories from predefined list, that aren't mentioned in idea itself
+                        content: "Classify investment idea into MAIN categories. Category examples: " + JSON.stringify(predefinedCategories) + "; Assign a new category if not listed. Return only most relevant."
                     },
                     {role: "user", content: `Title: ${title}\nDescription: ${description}`}
                 ],
@@ -40,11 +42,12 @@ export class IdeaClassifier {
                             properties: {
                                 categories: {
                                     type: "array",
-                                    description: "List of categories. Words only",
+                                    description: "Matching MAIN categories, 1-2 words",
                                     uniqueItems: true,
                                     items: {
                                         type: "string",
                                     },
+                                    example: predefinedCategories,
                                     minItems: 1, maxItems: 10
                                 }
                             },
