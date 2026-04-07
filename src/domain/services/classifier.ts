@@ -54,7 +54,7 @@ export class IdeaClassifier {
                 }
             });
 
-            const content: string = response?.choices?.[0]?.message?.content || '{"categories" :[]}';
+            const content: string = response?.choices?.[0]?.message?.content || response?.choices?.[0]?.message?.reasoning_content || '{"categories" :[]}';
             const categories = JSON.parse(content).categories;
             if (!Array.isArray(categories)) {
                 console.error('Expected categories to be an array, got:', typeof categories, categories);
