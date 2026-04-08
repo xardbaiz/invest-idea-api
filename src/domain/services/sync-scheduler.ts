@@ -69,7 +69,9 @@ export class SyncScheduler {
                 const categories = await this.repo.findCategoriesByIdeaId(idea.id);
                 if (!categories || categories.length === 0) {
                     idea.categories = await this.classifier.classify(idea);
-                    await this.repo.upsert(idea);
+                    if (idea.categories && idea.categories.length > 0) {
+                        await this.repo.upsert(idea);
+                    }
                 }
             }
         }

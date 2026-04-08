@@ -10,6 +10,17 @@ const predefinedCategories = ['Europe',
     'Estate',
 ];
 
+const systemPrompt = `You are a professional investment analyst. 
+Task: Classify the business idea into 1-3 most relevant MAIN categories.
+
+Rules:
+1. Use categories from the PREDEFINED LIST below if they strictly match.
+2. If no category from the list matches, create a new concise (1-2 words) category.
+3. Strict constraint: ONLY return categories that are directly related to the idea. Do NOT add irrelevant categories.
+
+PREDEFINED LIST:
+${predefinedCategories.join(', ')}`;
+
 export class IdeaClassifier {
     private readonly openai: OpenAI;
 
@@ -21,37 +32,39 @@ export class IdeaClassifier {
         const title = idea.title;
         const description = idea.description;
 
+
         try {
             const response = await this.openai.chat.completions.create({
                 model: LLM_MODEL,
                 max_completion_tokens: 1024,
                 messages: [
+                    {role: "system", content: systemPrompt},
                     {
-                        role: "system",
-                        // TODO by some reason small models assign categories from predefined list, that aren't mentioned in idea itself
-                        content: "Classify investment idea into MAIN categories. Category examples: " + JSON.stringify(predefinedCategories) + "; Assign a new category if not listed. Return only most relevant."
+                        role: "user",
+                        content: "Title: Crypto Exchange\nDescription: Platform for trading digital assets."
                     },
-                    {role: "user", content: `Title: ${title}\nDescription: ${description}`}
+                    {role: "assistant", content: JSON.stringify({categories: ["Financial", "Crypto"]})},
+                    {role: "user", content: `Title: ${title}\nDescription: ${description}`},
                 ],
+                temperature: 0.1,
                 response_format: {
                     type: "json_schema",
                     json_schema: {
-                        name: "invest categories",
+                        name: "invest_categories",
+                        strict: true,
                         schema: {
                             type: "object",
                             properties: {
                                 categories: {
                                     type: "array",
-                                    description: "Matching MAIN categories, Each category: 1-2 words",
-                                    uniqueItems: true,
-                                    items: {
-                                        type: "string",
-                                    },
-                                    example: predefinedCategories,
-                                    minItems: 1, maxItems: 10
+                                    description: "Top 1-4 most relevant industry categories only.",
+                                    items: {type: "string"},
+                                    minItems: 1,
+                                    maxItems: 4
                                 }
                             },
-                            required: ["categories"]
+                            required: ["categories"],
+                            additionalProperties: false
                         },
                     }
                 }
