@@ -2,6 +2,7 @@ import {IdeaClassifier} from "./classifier";
 import {TradernetClient} from "../../outbound/clients/tradernet";
 import {Repository} from "../../outbound/persistence/repository";
 import {INVEST_IDEA_DETAILS_MARK} from "../constants";
+import {InvestmentIdea} from "../models";
 
 const OPENAI_BASE_URL = process.env.OPENAI_BASE_URL ?? "http://127.0.0.1:1234/v1"; // Or your compatible provider
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY ?? "lmstudio";
@@ -54,29 +55,34 @@ export class SyncScheduler {
         const ideas = await this.tradernetClient.fetchIdeas(this.skip, size);
 
         for (const idea of ideas) {
+            const externalId = idea.id;
             const internalId = `${idea.provider}_${idea.id}`;
-            const existing = await this.repo.findById(internalId)
-            if (!existing?.categories || existing.categories.length == 0) {
-                if (!existing?.description?.includes(INVEST_IDEA_DETAILS_MARK)) {
-                    let details = await this.tradernetClient.getDetails(idea.id);
-                    idea.id = internalId;
-                    if (details) {
-                        idea.description += `\n\n----${INVEST_IDEA_DETAILS_MARK}----\n\n` + details;
+            const existingIdea = await this.repo.findById(internalId)
+            if (!existingIdea) {
+                idea.id = internalId;
+                idea.categories = await this.classifier.classify(idea);
+                await this.enrichWithDetails(externalId, idea);
+                await this.repo.upsert(idea);
+            } else {
+                const existingCategories = existingIdea.categories;
+                if (!existingCategories || existingCategories.length == 0) {
+                    existingIdea.categories = await this.classifier.classify(existingIdea);
+                    if (!existingIdea.description?.includes(INVEST_IDEA_DETAILS_MARK)) {
+                        await this.enrichWithDetails(externalId, existingIdea);
                     }
-                    await this.repo.upsert(idea);
-                }
-
-                const categories = await this.repo.findCategoriesByIdeaId(idea.id);
-                if (!categories || categories.length === 0) {
-                    idea.categories = await this.classifier.classify(idea);
-                    if (idea.categories && idea.categories.length > 0) {
-                        await this.repo.upsert(idea);
-                    }
+                    await this.repo.upsert(existingIdea);
                 }
             }
         }
 
         this.skip += ideas.length;
         return ideas.length;
+    }
+
+    private async enrichWithDetails(ideaExternalId: string, idea: InvestmentIdea) {
+        let details = await this.tradernetClient.getDetails(ideaExternalId);
+        if (details) {
+            idea.description += `\n\n----${INVEST_IDEA_DETAILS_MARK}----\n\n` + details;
+        }
     }
 }
