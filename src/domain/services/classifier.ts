@@ -42,7 +42,7 @@ export class IdeaClassifier {
                             properties: {
                                 categories: {
                                     type: "array",
-                                    description: "Matching MAIN categories, 1-2 words",
+                                    description: "Matching MAIN categories, Each category: 1-2 words",
                                     uniqueItems: true,
                                     items: {
                                         type: "string",
