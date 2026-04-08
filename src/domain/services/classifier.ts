@@ -41,10 +41,10 @@ export class IdeaClassifier {
                     {role: "system", content: systemPrompt},
                     {
                         role: "user",
-                        content: "Title: Crypto Exchange\nDescription: Platform for trading digital assets."
+                        content: "Title: Crypto Exchange.\nDescription: Platform for trading digital assets."
                     },
-                    {role: "assistant", content: JSON.stringify({categories: ["Financial", "Crypto"]})},
-                    {role: "user", content: `Title: ${title}\nDescription: ${description}`},
+                    {role: "assistant", content: JSON.stringify({categories: ["Financial", "Cryptocurrency"]})},
+                    {role: "user", content: `Title: ${title}.\nDescription: ${description}`},
                 ],
                 temperature: 0.1,
                 response_format: {
