@@ -1,6 +1,7 @@
 import {Server} from "@modelcontextprotocol/sdk/server/index.js";
 import {StdioServerTransport} from "@modelcontextprotocol/sdk/server/stdio.js";
 import {CallToolRequestSchema, ListToolsRequestSchema} from "@modelcontextprotocol/sdk/types.js";
+import {encode} from '@toon-format/toon'
 import {SqlLiteIdeaRepository} from "./outbound/persistence/sqlite.repository";
 import {SyncScheduler} from "./domain/services/sync-scheduler";
 import {Repository} from "./outbound/persistence/repository";
@@ -17,54 +18,58 @@ if (supabaseUrl && supabaseKey) {
     repo = new SqlLiteIdeaRepository();
 }
 
-const SYNC_INTERVAL_MS = Number(process.env.SYNC_INTERVAL_MS ?? 2 * 60 * 1000); // each two minutes
-const SYNC_BATCH_SIZE = Number(process.env.SYNC_BATCH_SIZE ?? 5);
-const syncScheduler = new SyncScheduler(repo);
-syncScheduler.start(SYNC_INTERVAL_MS, SYNC_BATCH_SIZE);
+if (process.env.SYNC_JOB_ENABLED) {
+    const SYNC_INTERVAL_MS = Number(process.env.SYNC_INTERVAL_MS ?? 2 * 60 * 1000); // each two minutes
+    const SYNC_BATCH_SIZE = Number(process.env.SYNC_BATCH_SIZE ?? 5);
+    const syncScheduler = new SyncScheduler(repo);
+    syncScheduler.start(SYNC_INTERVAL_MS, SYNC_BATCH_SIZE);
+}
 
-// --- MCP Server Setup ---
-const server = new Server({name: "invest-idea-api", version: "1.0.0"}, {capabilities: {tools: {}}});
 
-server.setRequestHandler(ListToolsRequestSchema, async () => ({
-    tools: [
-        {
-            name: "list_by_category",
-            description: "Lists stored ideas for a specific category.",
-            inputSchema: {
-                type: "object",
-                properties: {
-                    category: {type: "string"},
-                    from: {
-                        type: "string",
-                        description: "Start date (inclusive)",
-                        example: "2025-01-01",
-                        format: "date"
+if (process.env.MCP_SERVER_ENABLED) {
+    const server = new Server({name: "invest-idea-api", version: "1.0.0"}, {capabilities: {tools: {}}});
+
+    server.setRequestHandler(ListToolsRequestSchema, async () => ({
+        tools: [
+            {
+                name: "list_by_category",
+                description: "Lists stored ideas for a specific category.",
+                inputSchema: {
+                    type: "object",
+                    properties: {
+                        category: {type: "string"},
+                        from: {
+                            type: "string",
+                            description: "Start date (inclusive)",
+                            example: "2025-01-01",
+                            format: "date"
+                        },
+                        to: {
+                            type: "string",
+                            description: "End date (inclusive)",
+                            example: "2025-01-30",
+                            format: "date"
+                        }
                     },
-                    to: {
-                        type: "string",
-                        description: "End date (inclusive)",
-                        example: "2025-01-30",
-                        format: "date"
-                    }
-                },
-                required: ["category"]
+                    required: ["category"]
+                }
             }
+        ]
+    }));
+
+    server.setRequestHandler(CallToolRequestSchema, async (request) => {
+        const {name, arguments: args} = request.params;
+
+        if (name === "list_by_category") {
+            const ideas = await repo.findByCategory(args?.category as string, args?.from as string | undefined, args?.to as string | undefined)
+            return {content: [{type: "text", text: encode({ideas: ideas})}]};
         }
-    ]
-}));
 
-server.setRequestHandler(CallToolRequestSchema, async (request) => {
-    const {name, arguments: args} = request.params;
+        throw new Error("Tool not found");
+    });
 
-    if (name === "list_by_category") {
-        const ideas = await repo.findByCategory(args?.category as string, args?.from as string | undefined, args?.to as string | undefined)
-        return {content: [{type: "text", text: JSON.stringify(ideas, null, 2)}]};
-    }
-
-    throw new Error("Tool not found");
-});
-
-const transport = new StdioServerTransport();
-server.connect(transport).then(
-    // nothing
-)
+    const transport = new StdioServerTransport();
+    server.connect(transport).then(
+        // nothing
+    );
+}
