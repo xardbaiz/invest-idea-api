@@ -2,12 +2,18 @@
   "name": "invest-idea-api",
   "version": "1.0.0",
   "description": "Collect, store and categorize invest ideas from broker news",
-  "main": "index.js",
+  "main": "./build/index.js",
+  "bin": {
+    "invest-idea-api": "./build/index.js"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "debug": "npx tsx src/index.ts",
     "build": "npx tsc"
   },
+  "files": [
+    "build"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/xardbaiz/invest-idea-api.git"
@@ -15,15 +21,15 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
+  "type": "module",
   "bugs": {
     "url": "https://github.com/xardbaiz/invest-idea-api/issues"
   },
   "homepage": "https://github.com/xardbaiz/invest-idea-api#readme",
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.27.1",
+    "@cfworker/json-schema": "^4.1.1",
+    "@modelcontextprotocol/server": "^2.0.0-alpha.2",
     "@supabase/supabase-js": "^2.101.1",
-    "@toon-format/toon": "^2.1.0",
     "better-sqlite3": "^12.6.2",
     "dotenv": "^17.3.1",
     "openai": "^6.27.0"

@@ -1,4 +1,4 @@
-import {InvestmentIdea} from "../../domain/models";
+import {InvestmentIdea} from "../../domain/models.js";
 
 export interface Repository {
     upsert(idea: InvestmentIdea): Promise<void>;

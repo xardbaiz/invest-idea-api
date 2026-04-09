@@ -1,8 +1,8 @@
-import {IdeaClassifier} from "./classifier";
-import {TradernetClient} from "../../outbound/clients/tradernet";
-import {Repository} from "../../outbound/persistence/repository";
-import {INVEST_IDEA_DETAILS_MARK} from "../constants";
-import {InvestmentIdea} from "../models";
+import {IdeaClassifier} from "./classifier.js";
+import {TradernetClient} from "../../outbound/clients/tradernet.js";
+import {Repository} from "../../outbound/persistence/repository.js";
+import {INVEST_IDEA_DETAILS_MARK} from "../constants.js";
+import {InvestmentIdea} from "../models.js";
 
 const OPENAI_BASE_URL = process.env.OPENAI_BASE_URL ?? "http://127.0.0.1:1234/v1"; // Or your compatible provider
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY ?? "lmstudio";

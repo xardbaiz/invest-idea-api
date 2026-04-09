@@ -1,5 +1,5 @@
 import OpenAI from 'openai';
-import {InvestmentIdea} from "../models";
+import {InvestmentIdea} from "../models.js";
 
 const LLM_MODEL = "nvidia/nemotron-3-nano-4b";
 

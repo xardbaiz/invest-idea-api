@@ -1,12 +1,11 @@
-import {Server} from "@modelcontextprotocol/sdk/server/index.js";
-import {StdioServerTransport} from "@modelcontextprotocol/sdk/server/stdio.js";
-import {CallToolRequestSchema, ListToolsRequestSchema} from "@modelcontextprotocol/sdk/types.js";
-import {InvestmentIdeaInfo} from "./domain/models";
-import {SqlLiteIdeaRepository} from "./outbound/persistence/sqlite.repository";
-import {SyncScheduler} from "./domain/services/sync-scheduler";
-import {Repository} from "./outbound/persistence/repository";
+import {InvestmentIdeaInfo} from "./domain/models.js";
+import {SqlLiteIdeaRepository} from "./outbound/persistence/sqlite.repository.js";
+import {SyncScheduler} from "./domain/services/sync-scheduler.js";
+import {Repository} from "./outbound/persistence/repository.js";
 import 'dotenv/config';
-import {SupabaseIdeaRepository} from "./outbound/persistence/supabase.repository";
+import {z} from "zod";
+import {SupabaseIdeaRepository} from "./outbound/persistence/supabase.repository.js";
+import {McpServer, StdioServerTransport} from "@modelcontextprotocol/server";
 
 // --- Configuration ---
 let repo: Repository;
@@ -27,51 +26,39 @@ if (process.env.SYNC_JOB_ENABLED === 'true') {
 
 
 if (process.env.MCP_SERVER_ENABLED === 'true') {
-    const server = new Server({name: "invest-idea-api", version: "1.0.0"}, {capabilities: {tools: {}}});
-
-    server.setRequestHandler(ListToolsRequestSchema, async () => ({
-        tools: [
-            {
-                name: "list_categories",
-                description: "Returns a list of all unique investment idea categories.",
-                inputSchema: {type: "object", properties: {}}
-            },
-            {
-                name: "list_by_category",
-                description: "Lists stored ideas for a specific category.",
-                inputSchema: {
-                    type: "object",
-                    properties: {
-                        category: {type: "string"},
-                        from: {
-                            type: "string",
-                            description: "Start date (inclusive)",
-                            example: "2025-01-01",
-                            format: "date"
-                        },
-                        to: {
-                            type: "string",
-                            description: "End date (inclusive)",
-                            example: "2025-01-30",
-                            format: "date"
-                        }
-                    },
-                    required: ["category"]
-                }
-            },
-        ]
-    }));
-
-    server.setRequestHandler(CallToolRequestSchema, async (request) => {
-        const {name, arguments: args} = request.params;
-
-        if (name === "list_categories") {
-            const categories = await repo.findAllCategories();
-            return {content: [{type: "text", text: JSON.stringify(categories)}]};
+    // --- MCP Server Implementation ---
+    const server = new McpServer(
+        {name: "invest-idea-api", version: "1.0.0"},
+        {
+            instructions: 'Always call list_categories before running list_by_category.'
         }
+    );
 
-        if (name === "list_by_category") {
-            const ideas = await repo.findByCategory(args?.category as string, args?.from as string | undefined, args?.to as string | undefined)
+    // --- Register Tools ---
+    server.registerTool(
+        "list_categories",
+        {
+            description: "Returns a list of all unique investment idea categories."
+        },
+        async () => {
+            const categories = await repo.findAllCategories();
+            return {
+                content: [{type: "text", text: JSON.stringify(categories)}]
+            };
+        }
+    );
+    server.registerTool(
+        "list_by_category",
+        {
+            description: "Lists stored ideas for a specific category.",
+            inputSchema: z.object({
+                category: z.string().describe("The category to filter by"),
+                from: z.string().optional().describe("Start date(inclusive) YYYY-MM-DD"),
+                to: z.string().optional().describe("End date(inclusive) YYYY-MM-DD"),
+            }),
+        },
+        async ({category, from, to}) => {
+            const ideas = await repo.findByCategory(category, from, to);
             const ideasShortInfo: InvestmentIdeaInfo[] = ideas.map(({
                                                                         ticker,
                                                                         companyName,
@@ -89,12 +76,18 @@ if (process.env.MCP_SERVER_ENABLED === 'true') {
             }));
             return {content: [{type: "text", text: JSON.stringify(ideasShortInfo)}]};
         }
-
-        throw new Error("Tool not found");
-    });
-
-    const transport = new StdioServerTransport();
-    server.connect(transport).then(
-        // nothing
     );
+
+    const startTransports = async () => {
+        if (process.env.MCP_SERVER_STDIO_TRANSPORT_ENABLED === 'true') {
+            const stdioTransport = new StdioServerTransport();
+            await server.connect(stdioTransport);
+            console.info("MCP Server started on Stdio transport");
+        }
+    }
+
+    startTransports().catch((err) => {
+        console.error("Failed to start MCP server:", err);
+        process.exit(1);
+    });
 }

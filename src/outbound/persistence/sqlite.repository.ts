@@ -1,6 +1,6 @@
 import Database from 'better-sqlite3';
-import {InvestmentIdea} from "../../domain/models";
-import {Repository} from "./repository";
+import {InvestmentIdea} from "../../domain/models.js";
+import {Repository} from "./repository.js";
 
 export class SqlLiteIdeaRepository implements Repository {
     private db = new Database('invest_ideas.db');

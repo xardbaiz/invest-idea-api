@@ -1,6 +1,6 @@
 import {createClient, SupabaseClient} from '@supabase/supabase-js';
-import {InvestmentIdea} from "../../domain/models";
-import {Repository} from "./repository";
+import {InvestmentIdea} from "../../domain/models.js";
+import {Repository} from "./repository.js";
 
 const TABLE = 'ideas';
 

@@ -1,4 +1,4 @@
-import {InvestmentIdea} from "../../domain/models";
+import {InvestmentIdea} from "../../domain/models.js";
 
 export class TradernetClient {
     private readonly url = 'https://tradernet.com/api';
