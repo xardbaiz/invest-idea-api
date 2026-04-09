@@ -19,6 +19,7 @@ export class SupabaseIdeaRepository implements Repository {
             company_name: idea.companyName,
             title: idea.title,
             categories_json: idea.categories,
+            categories: idea.categories,
             target_price: idea.targetPrice,
             currency: idea.currency,
             description: idea.description,
@@ -35,32 +36,32 @@ export class SupabaseIdeaRepository implements Repository {
             .eq('id', id)
             .maybeSingle();
 
-        if (error) throw new Error(`Supabase findById failed: ${error.message}`);
+        if (error) throw new Error(`Supabase findById('${id}') failed: ${error.message}`);
         return data ? this.toIdea(data) : undefined;
     }
 
     async findCategoriesByIdeaId(id: string): Promise<string[] | undefined> {
         const {data, error} = await this.client
             .from(TABLE)
-            .select('categories_json')
+            .select('categories')
             .eq('id', id)
             .maybeSingle();
 
-        if (error) throw new Error(`Supabase findCategoriesByIdeaId failed: ${error.message}`);
-        return data?.categories_json ?? undefined;
+        if (error) throw new Error(`Supabase findCategoriesByIdeaId('${id}') failed: ${error.message}`);
+        return data?.categories ?? undefined;
     }
 
     async findByCategory(category: string, from?: string, to?: string): Promise<InvestmentIdea[]> {
         let query = this.client
             .from(TABLE)
             .select('*')
-            .contains('categories_json', [category]);
+            .contains('categories', [category]);
 
         if (from) query = query.gte('publish_date', from);
         if (to) query = query.lte('publish_date', to);
 
         const {data, error} = await query;
-        if (error) throw new Error(`Supabase findByCategory failed: ${error.message}`);
+        if (error) throw new Error(`Supabase findByCategory('${category}') failed: ${JSON.stringify(error)}`);
         return (data ?? []).map(row => this.toIdea(row));
     }
 

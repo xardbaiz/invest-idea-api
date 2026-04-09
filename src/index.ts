@@ -1,7 +1,7 @@
 import {Server} from "@modelcontextprotocol/sdk/server/index.js";
 import {StdioServerTransport} from "@modelcontextprotocol/sdk/server/stdio.js";
 import {CallToolRequestSchema, ListToolsRequestSchema} from "@modelcontextprotocol/sdk/types.js";
-import {encode} from '@toon-format/toon'
+import {InvestmentIdeaInfo} from "./domain/models";
 import {SqlLiteIdeaRepository} from "./outbound/persistence/sqlite.repository";
 import {SyncScheduler} from "./domain/services/sync-scheduler";
 import {Repository} from "./outbound/persistence/repository";
@@ -18,7 +18,7 @@ if (supabaseUrl && supabaseKey) {
     repo = new SqlLiteIdeaRepository();
 }
 
-if (process.env.SYNC_JOB_ENABLED) {
+if (process.env.SYNC_JOB_ENABLED === 'true') {
     const SYNC_INTERVAL_MS = Number(process.env.SYNC_INTERVAL_MS ?? 2 * 60 * 1000); // each two minutes
     const SYNC_BATCH_SIZE = Number(process.env.SYNC_BATCH_SIZE ?? 5);
     const syncScheduler = new SyncScheduler(repo);
@@ -26,7 +26,7 @@ if (process.env.SYNC_JOB_ENABLED) {
 }
 
 
-if (process.env.MCP_SERVER_ENABLED) {
+if (process.env.MCP_SERVER_ENABLED === 'true') {
     const server = new Server({name: "invest-idea-api", version: "1.0.0"}, {capabilities: {tools: {}}});
 
     server.setRequestHandler(ListToolsRequestSchema, async () => ({
@@ -62,7 +62,22 @@ if (process.env.MCP_SERVER_ENABLED) {
 
         if (name === "list_by_category") {
             const ideas = await repo.findByCategory(args?.category as string, args?.from as string | undefined, args?.to as string | undefined)
-            return {content: [{type: "text", text: encode({ideas: ideas})}]};
+            const ideasShortInfo: InvestmentIdeaInfo[] = ideas.map(({
+                                                                        ticker,
+                                                                        companyName,
+                                                                        title,
+                                                                        targetPrice,
+                                                                        currency,
+                                                                        description
+                                                                    }) => ({
+                ticker,
+                companyName,
+                title,
+                targetPrice,
+                currency,
+                description
+            }));
+            return {content: [{type: "text", text: JSON.stringify(ideasShortInfo)}]};
         }
 
         throw new Error("Tool not found");

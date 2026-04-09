@@ -1,12 +1,15 @@
-export interface InvestmentIdea {
-    id: string; // Универсальный ID (напр. "tradernet_20394")
-    provider: string; // 'tradernet', 'bloomberg' и т.д.
+export interface InvestmentIdeaInfo {
     ticker: string;
     companyName: string;
     title: string;
-    description: string;
     targetPrice: number;
     currency: string;
-    categories: string[]; // Массив категорий по твоему запросу
+    description: string;
+}
+
+export interface InvestmentIdea extends InvestmentIdeaInfo {
+    id: string;
+    provider: string;
+    categories: string[];
     publishDate: string;
 }
