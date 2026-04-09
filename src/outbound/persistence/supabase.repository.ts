@@ -88,7 +88,7 @@ export class SupabaseIdeaRepository implements Repository {
             description: row.description,
             targetPrice: row.target_price,
             currency: row.currency,
-            categories: row.categories_json ?? [],
+            categories: row.categories || row.categories_json || [],
             publishDate: row.publish_date,
         };
     }
