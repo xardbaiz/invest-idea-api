@@ -75,7 +75,11 @@ export class SyncScheduler {
             }
         }
 
-        this.skip += ideas.length;
+        if (ideas.length >= size) {
+            this.skip += ideas.length;
+        } else {
+            this.skip = 0;
+        }
         return ideas.length;
     }
 
