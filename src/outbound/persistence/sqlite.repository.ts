@@ -86,6 +86,18 @@ export class SqlLiteIdeaRepository implements Repository {
         return row ? JSON.parse(row.categories_json) : undefined;
     }
 
+    async findAllCategories(): Promise<string[]> {
+        const rows: any[] = this.db.prepare("SELECT categories_json FROM ideas WHERE categories_json IS NOT NULL").all();
+        const set = new Set<string>();
+        for (const row of rows) {
+            try {
+                for (const c of JSON.parse(row.categories_json)) set.add(c);
+            } catch { /* skip */
+            }
+        }
+        return [...set];
+    }
+
     async findByCategory(category: string, from?: string, to?: string): Promise<InvestmentIdea[]> {
         let sql = "SELECT * FROM ideas WHERE LOWER(categories_json) LIKE LOWER(?)";
         const params: any[] = [`%${category}%`];

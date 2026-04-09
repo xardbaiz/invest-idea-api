@@ -32,6 +32,11 @@ if (process.env.MCP_SERVER_ENABLED === 'true') {
     server.setRequestHandler(ListToolsRequestSchema, async () => ({
         tools: [
             {
+                name: "list_categories",
+                description: "Returns a list of all unique investment idea categories.",
+                inputSchema: {type: "object", properties: {}}
+            },
+            {
                 name: "list_by_category",
                 description: "Lists stored ideas for a specific category.",
                 inputSchema: {
@@ -53,12 +58,17 @@ if (process.env.MCP_SERVER_ENABLED === 'true') {
                     },
                     required: ["category"]
                 }
-            }
+            },
         ]
     }));
 
     server.setRequestHandler(CallToolRequestSchema, async (request) => {
         const {name, arguments: args} = request.params;
+
+        if (name === "list_categories") {
+            const categories = await repo.findAllCategories();
+            return {content: [{type: "text", text: JSON.stringify(categories)}]};
+        }
 
         if (name === "list_by_category") {
             const ideas = await repo.findByCategory(args?.category as string, args?.from as string | undefined, args?.to as string | undefined)

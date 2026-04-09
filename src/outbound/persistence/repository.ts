@@ -8,4 +8,6 @@ export interface Repository {
     findCategoriesByIdeaId(id: string): Promise<string[] | undefined>
 
     findByCategory(category: string, from?: string, to?: string): Promise<InvestmentIdea[]>
+
+    findAllCategories(): Promise<string[]>
 }

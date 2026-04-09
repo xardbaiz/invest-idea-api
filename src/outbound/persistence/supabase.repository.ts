@@ -51,6 +51,19 @@ export class SupabaseIdeaRepository implements Repository {
         return data?.categories ?? undefined;
     }
 
+    async findAllCategories(): Promise<string[]> {
+        const {data, error} = await this.client
+            .from(TABLE)
+            .select('categories')
+
+        if (error) throw new Error(`Supabase findAllCategories failed: ${error.message}`);
+        const set = new Set<string>();
+        for (const row of data ?? []) {
+            for (const c of row.categories ?? []) set.add(c);
+        }
+        return [...set];
+    }
+
     async findByCategory(category: string, from?: string, to?: string): Promise<InvestmentIdea[]> {
         let query = this.client
             .from(TABLE)
