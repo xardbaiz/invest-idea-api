@@ -15,17 +15,15 @@ if (process.env.SYNC_JOB_ENABLED === 'true') {
     syncScheduler.start(SYNC_INTERVAL_MS, SYNC_BATCH_SIZE);
 }
 
-if (process.env.MCP_SERVER_ENABLED === 'true') {
-    const startTransports = async () => {
-        if (process.env.MCP_SERVER_STDIO_TRANSPORT_ENABLED === 'true') {
-            const stdioTransport = new StdioServerTransport();
-            await getServer().connect(stdioTransport);
-            console.info("MCP Server started on Stdio transport");
-        }
+if (process.env.MCP_SERVER_STDIO_TRANSPORT_ENABLED === 'true') {
+    const startStdIO = async () => {
+        const stdioTransport = new StdioServerTransport();
+        await getServer().connect(stdioTransport);
+        console.info("MCP Server started on Stdio transport");
     }
 
-    startTransports().catch((err) => {
-        console.error("Failed to start MCP server:", err);
+    startStdIO().catch((err) => {
+        console.error("Failed to start MCP StdIO server:", err);
         process.exit(1);
     });
 }
