@@ -122,6 +122,20 @@ if (process.env.MCP_SERVER_ENABLED === 'true') {
                 }
             });
 
+            app.get('/mcp', async (req: any, res: any) => {
+                console.log('Received GET MCP request');
+                res.writeHead(405).end(
+                    JSON.stringify({
+                        jsonrpc: '2.0',
+                        error: {
+                            code: -32_000,
+                            message: 'Method not allowed.'
+                        },
+                        id: null
+                    })
+                );
+            });
+
             const expressPort = process.env.PORT ?? 3000;
             app.listen(expressPort, (error: any) => {
                 if (error) {
