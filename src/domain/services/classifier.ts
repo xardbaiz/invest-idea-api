@@ -1,5 +1,6 @@
 import OpenAI from 'openai';
 import {InvestmentIdea} from "../models.js";
+import fewShotExamples from './few-shot-examples.json';
 
 const LLM_MODEL = "nvidia/nemotron-3-nano-4b";
 
@@ -60,59 +61,10 @@ export class IdeaClassifier {
                 messages: [
                     {role: "system", content: systemPrompt},
 
-                    //
-                    {
-                        role: "user",
-                        content: "Title: Crypto Exchange.\nDescription: Platform for trading digital assets."
-                    },
-                    {role: "assistant", content: JSON.stringify({categories: ["Finances", "Cryptocurrency"]})},
-
-                    //
-                    {
-                        role: "user",
-                        content: "Title: High upside in Apple Inc. Buy call options because of new iPhone sales. Description: Designs consumer electronics and smartphones."
-                    },
-                    {role: "assistant", content: JSON.stringify({categories: ["Electronics", "Hardware"]})},
-
-                    //
-                    {
-                        role: "user",
-                        content: "Title: Global Engineering Solutions.\nDescription: The company provides engineering, procurement, and construction services for liquefied natural gas (LNG) plants and hydrogen production facilities. It focuses on low-carbon energy transition and carbon capture technologies."
-                    },
-                    {
-                        role: "assistant",
-                        content: JSON.stringify({ categories: ["Engineering", "Hydrocarbons", "Renewables"] })
-                    },
-
-                    //
-                    {
-                        role: "user",
-                        content: "Title: Luxury Maritime Travel.\nDescription: Operates a massive fleet of vessels across oceans and rivers, providing culturally immersive travel experiences and destination-focused cruises for international passengers."
-                    },
-                    {
-                        role: "assistant",
-                        content: JSON.stringify({ categories: ["Travel", "Cruises"] })
-                    },
-
-                    //
-                    {
-                        role: "user",
-                        content: "Title: Investment Opportunity in Automotive Giant.\nDescription: We suggest buying call options on this manufacturer that produces internal combustion engine vehicles and is expanding into Electric Vehicles (EVs) and advanced driver-assistance software. The stock shows a 114% upside potential."
-                    },
-                    {
-                        role: "assistant",
-                        content: JSON.stringify({ categories: ["Automotive", "Vehicles"] })
-                    },
-
-                    //
-                    {
-                        role: "user",
-                        content: "Title: Digital Protection Group.\nDescription: A platform providing health insurance, life insurance policies, and digital banking services for retail clients in Europe."
-                    },
-                    {
-                        role: "assistant",
-                        content: JSON.stringify({ categories: ["Insurance", "Finances"] })
-                    },
+                    ...fewShotExamples.flatMap(example => [
+                        {role: "user" as const, content: example.request},
+                        {role: "assistant" as const, content: JSON.stringify({categories: example.response})},
+                    ]),
 
                     {role: "user", content: `Title: ${title}.\nDescription: ${description}`},
                 ],
