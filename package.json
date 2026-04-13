@@ -10,7 +10,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "debug": "npx tsx src/index.ts",
     "build": "npx tsc",
-    "http:run": "node ./build/http-server.js"
+    "http:run": "node ./build/http.server.js"
   },
   "files": [
     "build"
