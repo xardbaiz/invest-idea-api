@@ -122,14 +122,14 @@ if (process.env.MCP_SERVER_ENABLED === 'true') {
                 }
             });
 
-            const PORT = 3000;
-            app.listen(PORT, (error: any) => {
+            const expressPort = process.env.PORT ?? 3000;
+            app.listen(expressPort, (error: any) => {
                 if (error) {
                     console.error('Failed to start server:', error);
                     // eslint-disable-next-line unicorn/no-process-exit
                     process.exit(1);
                 }
-                console.log(`MCP Stateless Streamable HTTP Server listening on port ${PORT}`);
+                console.log(`MCP Stateless Streamable HTTP Server listening on port ${expressPort}`);
             });
         }
     }
