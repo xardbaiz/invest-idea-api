@@ -10,7 +10,9 @@ if (process.env.MCP_SERVER_HTTP_TRANSPORT_ENABLED === 'true') {
     app.post('/mcp', async (req: any, res: any) => {
         try {
             const transport: NodeStreamableHTTPServerTransport = new NodeStreamableHTTPServerTransport({
-                sessionIdGenerator: undefined
+                sessionIdGenerator: undefined,
+                allowedHosts: ['*'],
+                allowedOrigins: ['*'],
             });
             await getServer().connect(transport);
             await transport.handleRequest(req, res, req.body);
