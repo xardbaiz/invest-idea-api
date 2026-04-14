@@ -2,10 +2,9 @@ import {createMcpExpressApp} from "@modelcontextprotocol/express";
 import {getServer} from "./mcp-server-factory.js";
 import {NodeStreamableHTTPServerTransport} from "@modelcontextprotocol/node";
 
-const app = createMcpExpressApp();
-const expressPort = process.env.PORT ?? 3000;
-
 if (process.env.MCP_SERVER_HTTP_TRANSPORT_ENABLED === 'true') {
+    const app = createMcpExpressApp();
+    const expressPort = process.env.PORT ?? 3000;
     const server = getServer();
     const transport: NodeStreamableHTTPServerTransport = new NodeStreamableHTTPServerTransport({
         sessionIdGenerator: undefined,
@@ -48,16 +47,16 @@ if (process.env.MCP_SERVER_HTTP_TRANSPORT_ENABLED === 'true') {
             })
         );
     });
-}
 
-app.listen(expressPort, (error: any) => {
-    if (error) {
-        console.error('Failed to start server:', error);
-        // eslint-disable-next-line unicorn/no-process-exit
-        process.exit(1);
-    }
-    console.log(`MCP Stateless Streamable HTTP Server listening on port ${expressPort}`);
-});
+    app.listen(expressPort, (error: any) => {
+        if (error) {
+            console.error('Failed to start server:', error);
+            // eslint-disable-next-line unicorn/no-process-exit
+            process.exit(1);
+        }
+        console.log(`MCP Stateless Streamable HTTP Server listening on port ${expressPort}`);
+    });
+}
 
 // Handle server shutdown
 process.on('SIGINT', async () => {
