@@ -11,10 +11,8 @@ if (process.env.MCP_SERVER_HTTP_TRANSPORT_ENABLED === 'true') {
         try {
             const transport: NodeStreamableHTTPServerTransport = new NodeStreamableHTTPServerTransport({
                 sessionIdGenerator: undefined,
-                allowedHosts: ['*'],
-                allowedOrigins: ['*'],
             });
-            await getServer().connect(transport);
+            await server.connect(transport);
             await transport.handleRequest(req, res, req.body);
             res.on('close', () => {
                 console.log('Request closed');
