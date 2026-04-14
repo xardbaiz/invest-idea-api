@@ -7,12 +7,13 @@ const expressPort = process.env.PORT ?? 3000;
 
 if (process.env.MCP_SERVER_HTTP_TRANSPORT_ENABLED === 'true') {
     const server = getServer();
+    const transport: NodeStreamableHTTPServerTransport = new NodeStreamableHTTPServerTransport({
+        sessionIdGenerator: undefined,
+    });
+    await server.connect(transport);
+
     app.post('/mcp', async (req: any, res: any) => {
         try {
-            const transport: NodeStreamableHTTPServerTransport = new NodeStreamableHTTPServerTransport({
-                sessionIdGenerator: undefined,
-            });
-            await server.connect(transport);
             await transport.handleRequest(req, res, req.body);
             res.on('close', () => {
                 console.log('Request closed');
