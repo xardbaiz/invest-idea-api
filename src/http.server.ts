@@ -43,7 +43,7 @@ if (process.env.MCP_SERVER_HTTP_TRANSPORT_ENABLED === 'true') {
                 jsonrpc: '2.0',
                 error: {
                     code: -32_000,
-                    message: 'Method not allowed.'
+                    message: 'App is healthy, but method not allowed.'
                 },
                 id: null
             })
