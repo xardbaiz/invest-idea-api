@@ -1,5 +1,5 @@
 import {createMcpExpressApp} from "@modelcontextprotocol/express";
-import {getServer} from "./mcp-server-factory.js";
+import {getServer} from "./mcp.factory.js";
 import {NodeStreamableHTTPServerTransport} from "@modelcontextprotocol/node";
 
 if (process.env.MCP_SERVER_HTTP_TRANSPORT_ENABLED === 'true') {

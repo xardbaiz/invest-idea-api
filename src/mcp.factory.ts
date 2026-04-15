@@ -1,15 +1,15 @@
 import {McpServer} from "@modelcontextprotocol/server";
 import {InvestmentIdeaInfo} from "./domain/models.js";
 import {Repository} from "./outbound/persistence/repository.js";
-import {getRepository} from "./outbound/persistence/repo-getter.js";
+import {createRepository} from "./outbound/persistence/repository.factory.js";
 import {z} from "zod";
 
 export const getServer = () => {
-    let repo: Repository = getRepository();
+    let repo: Repository = createRepository();
     const server = new McpServer(
         {name: "invest-idea-api", version: "1.0.0"},
         {
-            instructions: 'Always call list_categories before running list_by_category.'
+            instructions: 'Always call `list_categories` function before running `list_by_category`.'
         }
     );
 
@@ -32,8 +32,8 @@ export const getServer = () => {
             description: "Lists stored ideas for a specific category.",
             inputSchema: z.object({
                 category: z.string().describe("The category to filter by"),
-                from: z.string().optional().describe("Start date(inclusive) YYYY-MM-DD"),
-                to: z.string().optional().describe("End date(inclusive) YYYY-MM-DD"),
+                from: z.string().optional().describe("Start date(inclusive). Mandatory format: `YYYY-MM-DD`"),
+                to: z.string().optional().describe("End date(inclusive). Mandatory format: `YYYY-MM-DD`"),
             }),
         },
         async ({category, from, to}) => {
