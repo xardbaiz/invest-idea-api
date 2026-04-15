@@ -3,7 +3,9 @@ import {getServer} from "./mcp-server-factory.js";
 import {NodeStreamableHTTPServerTransport} from "@modelcontextprotocol/node";
 
 if (process.env.MCP_SERVER_HTTP_TRANSPORT_ENABLED === 'true') {
-    const app = createMcpExpressApp();
+    const app = createMcpExpressApp({
+        allowedHosts: ['localhost', '127.0.0.1', 'invest-idea-api.onrender.com', 'onrender.com']
+    });
     const expressPort = process.env.PORT ?? 3000;
     const server = getServer();
     const transport: NodeStreamableHTTPServerTransport = new NodeStreamableHTTPServerTransport({
