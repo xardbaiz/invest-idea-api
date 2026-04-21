@@ -5,30 +5,30 @@ import fewShotExamples from './few-shot-examples.json' with {type: 'json'};
 const LLM_MODEL = "nvidia/nemotron-3-nano-4b";
 
 const predefinedCategories: string[] = [
-    "Energy",
-    "Hydrocarbons",
-    "Renewables",
-    "Engineering",
-    "Travel",
-    "Logistics",
-    "Vehicles",
-    "Automotive",
-    "Vehicles",
-    "Manufacturing",
-    "Electronics",
-    "Hardware",
-    "Software",
-    "AI",
-    "Healthcare",
-    "Biotechnology",
-    "Finances",
-    "Insurance",
-    "Cryptocurrency",
-    "Gambling",
-    "Real Estate",
-    "Industrial",
-    "Retail",
-    "Beauty",
+    "Aerospace",      // Aeronautics, Aerospace, Airline, Aviation, Satellite, Space
+    "Agriculture",    // Agricultural, Biofuels
+    "Automotive",     // Automotive, Vehicles, Transport
+    "Chemicals",      // Chemicals, Materials, Refining
+    "Communications", // Audio, Communications, Media, Social Media, Telecom
+    "Consulting",     // Consulting, Services, Certification, Design
+    "Education",
+    "Energy",         // Energy, Hydrocarbons, Renewables, Water
+    "Entertainment",  // Entertainment, Gambling, Sports
+    "Finance",        // Banking, Credit, Equities, Financial Services, Fintech, Investment, Private Equity
+    "Food",           // Food, Beverage
+    "Government",     // Security, Defense
+    "Healthcare",     // Biotechnology, Medical
+    "Hospitality",    // Travel, Cruises
+    "Realty",         // Housing, Real Estate, Residential
+    "Rental",
+    "Industrial",     // Manufacturing, Engineering, HVAC
+    "Insurance",      // Insurance
+    "Logistics",      // Logistics, Transportation
+    "Marketing",      // Advertising, Marketing
+    "Property",       // Commercial (offices, real estate)
+    "Retail",         // E-commerce, Franchise
+    "Technology",     // AI, Analytics, Cloud, Electronics, Hardware, IP, Semiconductor, Software
+    "Web3"            // Cryptocurrency, Digital Assets
 ];
 
 const systemPrompt = `You are a professional investment analyst.
