@@ -1,13 +1,13 @@
-import {InvestmentIdea} from "../../domain/models.js";
+import {InvestmentIdea, SearchResult} from "../../domain/models.js";
 
 export interface Repository {
     upsert(idea: InvestmentIdea): Promise<void>;
 
-    findById(id: string): Promise<InvestmentIdea | undefined>
+    findById(id: string): Promise<InvestmentIdea | undefined>;
 
-    findCategoriesByIdeaId(id: string): Promise<string[] | undefined>
+    hasEmbedding(ideaId: string): Promise<boolean>;
 
-    findByCategory(category: string, from?: string, to?: string): Promise<InvestmentIdea[]>
+    saveEmbedding(ideaId: string, embedding: number[]): Promise<void>;
 
-    findAllCategories(): Promise<string[]>
+    searchSimilar(queryEmbedding: number[], limit: number, from?: string, to?: string): Promise<SearchResult[]>;
 }

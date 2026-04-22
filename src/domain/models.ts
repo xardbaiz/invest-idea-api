@@ -10,6 +10,10 @@ export interface InvestmentIdeaInfo {
 export interface InvestmentIdea extends InvestmentIdeaInfo {
     id: string;
     provider: string;
-    categories: string[];
     publishDate: string;
+}
+
+export interface SearchResult {
+    idea: InvestmentIdeaInfo;
+    distance: number;
 }

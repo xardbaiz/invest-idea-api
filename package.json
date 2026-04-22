@@ -9,6 +9,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "debug": "npx tsx src/index.ts",
+    "http:debug": "npx tsx src/http.server.ts",
     "build": "npx tsc",
     "http:run": "node ./build/http.server.js"
   },
@@ -32,6 +33,7 @@
     "@modelcontextprotocol/express": "^2.0.0-alpha.2",
     "@modelcontextprotocol/node": "^2.0.0-alpha.2",
     "@modelcontextprotocol/server": "^2.0.0-alpha.2",
+    "@sqliteai/sqlite-vector": "^0.9.95",
     "@supabase/supabase-js": "^2.101.1",
     "better-sqlite3": "^12.6.2",
     "dotenv": "^17.3.1",

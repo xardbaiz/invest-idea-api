@@ -28,7 +28,6 @@ export class TradernetClient {
             description: this.sanitize(item.about),
             targetPrice: item.targetPrice ? parseFloat(item.targetPrice.replace(/\s/g, '')) : 0,
             currency: item.currency,
-            categories: [],
             publishDate: item.rawDate
         }));
     }

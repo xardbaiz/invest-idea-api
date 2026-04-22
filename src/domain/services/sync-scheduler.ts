@@ -1,10 +1,10 @@
-import {IdeaClassifier} from "./classifier.js";
+import {EmbeddingService} from "./embedding.service.js";
 import {TradernetClient} from "../../outbound/clients/tradernet.js";
 import {Repository} from "../../outbound/persistence/repository.js";
 import {INVEST_IDEA_DETAILS_MARK} from "../constants.js";
 import {InvestmentIdea} from "../models.js";
 
-const OPENAI_BASE_URL = process.env.OPENAI_BASE_URL ?? "http://127.0.0.1:1234/v1"; // Or your compatible provider
+const OPENAI_BASE_URL = process.env.OPENAI_BASE_URL ?? "http://127.0.0.1:1234/v1";
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY ?? "lmstudio";
 
 export class SyncScheduler {
@@ -14,7 +14,7 @@ export class SyncScheduler {
 
     constructor(
         private readonly repo: Repository,
-        private readonly classifier: IdeaClassifier = new IdeaClassifier(OPENAI_API_KEY, OPENAI_BASE_URL),
+        private readonly embeddingService: EmbeddingService = new EmbeddingService(OPENAI_API_KEY, OPENAI_BASE_URL),
         private readonly tradernetClient: TradernetClient = new TradernetClient(),
     ) {
     }
@@ -22,17 +22,17 @@ export class SyncScheduler {
     start(intervalMs: number, size: number): void {
         const runSafely = async () => {
             if (this.isRunning) {
-                console.warn("sync_and_categorize is still running, skipping this cycle");
+                console.warn("sync is still running, skipping this cycle");
                 return;
             }
 
             this.isRunning = true;
 
             try {
-                const processed = await this.syncAndCategorize(size);
-                console.log(`sync_and_categorize completed, processed ${processed} ideas`);
+                const processed = await this.syncAndEmbed(size);
+                console.log(`sync completed, processed ${processed} ideas`);
             } catch (error) {
-                console.error("sync_and_categorize failed", error);
+                console.error("sync failed", error);
             } finally {
                 this.isRunning = false;
             }
@@ -51,26 +51,28 @@ export class SyncScheduler {
         }
     }
 
-    private async syncAndCategorize(size: number): Promise<number> {
+    private async syncAndEmbed(size: number): Promise<number> {
         const ideas = await this.tradernetClient.fetchIdeas(this.skip, size);
 
         for (const idea of ideas) {
             const externalId = idea.id;
             const internalId = `${idea.provider}_${idea.id}`;
-            const existingIdea = await this.repo.findById(internalId)
-            if (!existingIdea) {
-                idea.id = internalId;
-                idea.categories = await this.classifier.classify(idea);
+            idea.id = internalId;
+
+            const existing = await this.repo.findById(internalId);
+            if (!existing) {
                 await this.enrichWithDetails(externalId, idea);
                 await this.repo.upsert(idea);
-            } else {
-                const existingCategories = existingIdea.categories;
-                if (!existingCategories || existingCategories.length == 0) {
-                    existingIdea.categories = await this.classifier.classify(existingIdea);
-                    if (!existingIdea.description?.includes(INVEST_IDEA_DETAILS_MARK)) {
-                        await this.enrichWithDetails(externalId, existingIdea);
-                    }
-                    await this.repo.upsert(existingIdea);
+            }
+
+            if (!await this.repo.hasEmbedding(internalId)) {
+                const target = existing ?? idea;
+                const text = `${target.title}\n${target.description}`;
+                try {
+                    const embedding = await this.embeddingService.generate(text);
+                    await this.repo.saveEmbedding(internalId, embedding);
+                } catch (e) {
+                    console.error(`Failed to generate embedding for idea ${internalId}:`, e);
                 }
             }
         }

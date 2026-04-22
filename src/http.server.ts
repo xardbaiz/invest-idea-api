@@ -1,6 +1,9 @@
 import {createMcpExpressApp} from "@modelcontextprotocol/express";
 import {getServer} from "./mcp.factory.js";
 import {NodeStreamableHTTPServerTransport} from "@modelcontextprotocol/node";
+import {createRepository} from "./outbound/persistence/repository.factory.js";
+import {EmbeddingService} from "./domain/services/embedding.service.js";
+import 'dotenv/config';
 
 if (process.env.MCP_SERVER_HTTP_TRANSPORT_ENABLED === 'true') {
     const app = createMcpExpressApp({
@@ -33,6 +36,35 @@ if (process.env.MCP_SERVER_HTTP_TRANSPORT_ENABLED === 'true') {
                     id: null
                 });
             }
+        }
+    });
+
+    const repo = createRepository();
+    const embeddingService = new EmbeddingService(
+        process.env.OPENAI_API_KEY ?? 'lmstudio',
+        process.env.OPENAI_BASE_URL ?? 'http://127.0.0.1:1234/v1',
+    );
+
+    // GET /ideas?query=...&from=YYYY-MM-DD&to=YYYY-MM-DD&limit=10
+    app.get('/ideas', async (req: any, res: any) => {
+        const {query, from, to, limit} = req.query;
+        if (!query) {
+            return res.status(400).send('Missing required query parameter: query');
+        }
+        try {
+            const queryEmbedding = await embeddingService.generate(query);
+            const results = await repo.searchSimilar(queryEmbedding, Number(limit) || 10, from, to);
+            const text = results.map((r, i) =>
+                `#${i + 1} [${r.idea.ticker}] ${r.idea.companyName}\n` +
+                `   ${r.idea.title}\n` +
+                `   Price target: ${r.idea.targetPrice} ${r.idea.currency}\n` +
+                `   Distance: ${r.distance.toFixed(4)}\n` +
+                `   ${r.idea.description?.slice(0, 200)}...`
+            ).join('\n\n');
+            res.type('text/plain').send(text || 'No results found.');
+        } catch (e: any) {
+            console.error('GET /ideas error:', e);
+            res.status(500).send(`Error: ${e.message}`);
         }
     });
 
