@@ -98,6 +98,17 @@ export class SupabaseIdeaRepository implements Repository {
         }));
     }
 
+    async findTitlesByDateRange(from: string, to: string): Promise<string[]> {
+        const {data, error} = await this.client
+            .from(IDEAS_TABLE)
+            .select('title')
+            .gte('publish_date', from)
+            .lte('publish_date', to);
+
+        if (error) throw new Error(`Supabase findTitlesByDateRange failed: ${error.message}`);
+        return (data ?? []).map(r => r.title);
+    }
+
     private toIdea(row: any): InvestmentIdea {
         return {
             id: row.id,

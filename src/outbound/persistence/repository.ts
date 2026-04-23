@@ -10,4 +10,6 @@ export interface Repository {
     saveEmbedding(ideaId: string, embedding: number[]): Promise<void>;
 
     searchSimilar(queryEmbedding: number[], limit: number, from?: string, to?: string): Promise<SearchResult[]>;
+
+    findTitlesByDateRange(from: string, to: string): Promise<string[]>;
 }

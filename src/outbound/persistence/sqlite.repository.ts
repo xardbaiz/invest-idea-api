@@ -113,6 +113,16 @@ export class SqlLiteIdeaRepository implements Repository {
         }));
     }
 
+    async findTitlesByDateRange(from: string, to: string): Promise<string[]> {
+        const rows: any[] = this.db.prepare(`
+            SELECT title
+            FROM ideas
+            WHERE publish_date >= ?
+              AND publish_date <= ?
+        `).all(from, to);
+        return rows.map(r => r.title);
+    }
+
     private toIdea(row: any): InvestmentIdea {
         return {
             id: row.id,

@@ -1,4 +1,4 @@
-import {EmbeddingService} from "./embedding.service.js";
+import {AiService} from "./ai.service.js";
 import {TradernetClient} from "../../outbound/clients/tradernet.js";
 import {Repository} from "../../outbound/persistence/repository.js";
 import {INVEST_IDEA_DETAILS_MARK} from "../constants.js";
@@ -14,7 +14,7 @@ export class SyncScheduler {
 
     constructor(
         private readonly repo: Repository,
-        private readonly embeddingService: EmbeddingService = new EmbeddingService(OPENAI_API_KEY, OPENAI_BASE_URL),
+        private readonly aiService: AiService = new AiService(OPENAI_API_KEY, OPENAI_BASE_URL),
         private readonly tradernetClient: TradernetClient = new TradernetClient(),
     ) {
     }
@@ -69,7 +69,7 @@ export class SyncScheduler {
                 const target = existing ?? idea;
                 const text = `${target.title}\n${target.description}`;
                 try {
-                    const embedding = await this.embeddingService.generate(text);
+                    const embedding = await this.aiService.generateEmbedding(text);
                     await this.repo.saveEmbedding(internalId, embedding);
                 } catch (e) {
                     console.error(`Failed to generate embedding for idea ${internalId}:`, e);

@@ -2,7 +2,7 @@ import {createMcpExpressApp} from "@modelcontextprotocol/express";
 import {getServer} from "./mcp.factory.js";
 import {NodeStreamableHTTPServerTransport} from "@modelcontextprotocol/node";
 import {createRepository} from "./outbound/persistence/repository.factory.js";
-import {EmbeddingService} from "./domain/services/embedding.service.js";
+import {AiService} from "./domain/services/ai.service.js";
 import 'dotenv/config';
 
 if (process.env.MCP_SERVER_HTTP_TRANSPORT_ENABLED === 'true') {
@@ -40,7 +40,7 @@ if (process.env.MCP_SERVER_HTTP_TRANSPORT_ENABLED === 'true') {
     });
 
     const repo = createRepository();
-    const embeddingService = new EmbeddingService(
+    const aiService = new AiService(
         process.env.OPENAI_API_KEY ?? 'lmstudio',
         process.env.OPENAI_BASE_URL ?? 'http://127.0.0.1:1234/v1',
     );
@@ -52,7 +52,7 @@ if (process.env.MCP_SERVER_HTTP_TRANSPORT_ENABLED === 'true') {
             return res.status(400).send('Missing required query parameter: query');
         }
         try {
-            const queryEmbedding = await embeddingService.generate(query);
+            const queryEmbedding = await aiService.generateEmbedding(query);
             const results = await repo.searchSimilar(queryEmbedding, Number(limit) || 10, from, to);
             const text = results.map((r, i) =>
                 `#${i + 1} [${r.idea.ticker}] ${r.idea.companyName}\n` +
@@ -64,6 +64,26 @@ if (process.env.MCP_SERVER_HTTP_TRANSPORT_ENABLED === 'true') {
             res.type('text/plain').send(text || 'No results found.');
         } catch (e: any) {
             console.error('GET /ideas error:', e);
+            res.status(500).send(`Error: ${e.message}`);
+        }
+    });
+
+    // GET /topics?from=YYYY-MM-DD&to=YYYY-MM-DD&hint=healthcare
+    app.get('/topics', async (req: any, res: any) => {
+        const {from, to, hint} = req.query;
+        if (!from || !to) {
+            return res.status(400).send('Missing required query parameters: from, to');
+        }
+        try {
+            const titles = await repo.findTitlesByDateRange(from, to);
+            const topics = await aiService.discoverTopics(titles, hint);
+            const text = topics.map((t, i) =>
+                `#${i + 1} ${t.topic} (${t.count} ideas)\n` +
+                `   Query: ${t.suggestedQuery}`
+            ).join('\n\n');
+            res.type('text/plain').send(text || 'No topics found for this date range.');
+        } catch (e: any) {
+            console.error('GET /topics error:', e);
             res.status(500).send(`Error: ${e.message}`);
         }
     });
