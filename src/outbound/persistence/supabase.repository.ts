@@ -60,20 +60,7 @@ export class SupabaseIdeaRepository implements Repository {
     }
 
     /**
-     * Requires a Supabase SQL function:
-     *
-     * CREATE OR REPLACE FUNCTION search_ideas(query_embedding vector, match_limit int, date_from text DEFAULT NULL, date_to text DEFAULT NULL)
-     * RETURNS TABLE(ticker text, company_name text, title text, target_price real, currency text, description text, distance float)
-     * LANGUAGE sql STABLE AS $$
-     *   SELECT i.ticker, i.company_name, i.title, i.target_price, i.currency, i.description,
-     *          1 - (e.embedding <=> query_embedding) AS distance
-     *   FROM idea_embeddings e
-     *   JOIN ideas i ON i.id = e.idea_id
-     *   WHERE (date_from IS NULL OR i.publish_date >= date_from)
-     *     AND (date_to IS NULL OR i.publish_date <= date_to)
-     *   ORDER BY e.embedding <=> query_embedding
-     *   LIMIT match_limit;
-     * $$;
+     * Requires a Supabase SQL function `search_ideas`
      */
     async searchSimilar(queryEmbedding: number[], limit: number, from?: string, to?: string): Promise<SearchResult[]> {
         const {data, error} = await this.client.rpc('search_ideas', {
