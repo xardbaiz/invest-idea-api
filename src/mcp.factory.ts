@@ -1,15 +1,16 @@
 import {McpServer} from "@modelcontextprotocol/server";
-import {Repository} from "./outbound/persistence/repository.js";
 import {createRepository} from "./outbound/persistence/repository.factory.js";
 import {AiService} from "./domain/services/ai.service.js";
+import {ApiService} from "./domain/services/api.service.js";
 import {z} from "zod";
 
 const OPENAI_BASE_URL = process.env.OPENAI_BASE_URL ?? "http://127.0.0.1:1234/v1";
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY ?? "lmstudio";
 
 export const getServer = () => {
-    const repo: Repository = createRepository();
+    const repo = createRepository();
     const aiService = new AiService(OPENAI_API_KEY, OPENAI_BASE_URL);
+    const apiService = new ApiService(repo, aiService);
 
     const server = new McpServer(
         {name: "invest-idea-api", version: "1.0.0"},
@@ -30,8 +31,7 @@ export const getServer = () => {
             }),
         },
         async ({query, from, to, limit}) => {
-            const queryEmbedding = await aiService.generateEmbedding(query);
-            const results = await repo.searchSimilar(queryEmbedding, limit ?? 10, from, to);
+            const results = await apiService.searchIdeas(query, limit ?? 10, from, to);
             return {content: [{type: "text", text: JSON.stringify(results)}]};
         }
     );
@@ -47,8 +47,7 @@ export const getServer = () => {
             }),
         },
         async ({from, to, hint}) => {
-            const titles = await repo.findTitlesByDateRange(from, to);
-            const topics = await aiService.discoverTopics(titles, hint);
+            const topics = await apiService.discoverTopics(from, to, hint);
             return {content: [{type: "text", text: JSON.stringify(topics)}]};
         }
     );

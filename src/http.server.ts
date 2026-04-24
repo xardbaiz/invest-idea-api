@@ -3,6 +3,7 @@ import {getServer} from "./mcp.factory.js";
 import {NodeStreamableHTTPServerTransport} from "@modelcontextprotocol/node";
 import {createRepository} from "./outbound/persistence/repository.factory.js";
 import {AiService} from "./domain/services/ai.service.js";
+import {ApiService} from "./domain/services/api.service.js";
 import 'dotenv/config';
 
 if (process.env.MCP_SERVER_HTTP_TRANSPORT_ENABLED === 'true') {
@@ -44,6 +45,7 @@ if (process.env.MCP_SERVER_HTTP_TRANSPORT_ENABLED === 'true') {
         process.env.OPENAI_API_KEY ?? 'lmstudio',
         process.env.OPENAI_BASE_URL ?? 'http://127.0.0.1:1234/v1',
     );
+    const apiService = new ApiService(repo, aiService);
 
     // GET /ideas?query=...&from=YYYY-MM-DD&to=YYYY-MM-DD&limit=10
     app.get('/ideas', async (req: any, res: any) => {
@@ -52,8 +54,7 @@ if (process.env.MCP_SERVER_HTTP_TRANSPORT_ENABLED === 'true') {
             return res.status(400).send('Missing required query parameter: query');
         }
         try {
-            const queryEmbedding = await aiService.generateEmbedding(query);
-            const results = await repo.searchSimilar(queryEmbedding, Number(limit) || 10, from, to);
+            const results = await apiService.searchIdeas(query, Number(limit) || 10, from, to);
             const text = results.map((r, i) =>
                 `#${i + 1} [${r.idea.ticker}] ${r.idea.companyName}\n` +
                 `   ${r.idea.title}\n` +
@@ -75,8 +76,7 @@ if (process.env.MCP_SERVER_HTTP_TRANSPORT_ENABLED === 'true') {
             return res.status(400).send('Missing required query parameters: from, to');
         }
         try {
-            const titles = await repo.findTitlesByDateRange(from, to);
-            const topics = await aiService.discoverTopics(titles, hint);
+            const topics = await apiService.discoverTopics(from, to, hint);
             const text = topics.map((t, i) =>
                 `#${i + 1} ${t.topic} (${t.count} ideas)\n` +
                 `   Query: ${t.suggestedQuery}`
