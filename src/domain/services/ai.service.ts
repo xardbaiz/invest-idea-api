@@ -1,4 +1,5 @@
 import OpenAI from 'openai';
+import 'dotenv/config';
 
 const EMBEDDING_MODEL = process.env.EMBEDDING_MODEL ?? "text-embedding-nomic-embed-text-v1.5";
 const LLM_MODEL = process.env.LLM_MODEL ?? "qwen/qwen3-1.7b";
