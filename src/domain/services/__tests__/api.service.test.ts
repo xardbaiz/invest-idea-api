@@ -1,11 +1,11 @@
 import {ApiService} from "../api.service.js";
-import {AiService} from "../ai.service.js";
+import {OpenAiService} from "../ai.service.js";
 import {Repository} from "../../../outbound/persistence/repository.js";
 import {jest} from "@jest/globals";
 
 describe("ApiService Integration Tests", () => {
     let apiService: ApiService;
-    let aiService: AiService;
+    let aiService: OpenAiService;
     let mockRepo: jest.Mocked<Repository>;
 
     beforeEach(() => {
@@ -18,7 +18,7 @@ describe("ApiService Integration Tests", () => {
             findTitlesByDateRange: jest.fn(),
         } as unknown as jest.Mocked<Repository>;
 
-        aiService = new AiService("test-key", "https://api.openai.com/v1");
+        aiService = new OpenAiService("test-key", "https://api.openai.com/v1");
 
         // Mock OpenAI calls within AiService
         // @ts-ignore

@@ -1,5 +1,5 @@
 import {SyncScheduler} from "../sync-scheduler.js";
-import {AiService} from "../ai.service.js";
+import {OpenAiService} from "../ai.service.js";
 import {TradernetClient} from "../../../outbound/clients/tradernet.js";
 import {Repository} from "../../../outbound/persistence/repository.js";
 import {jest} from "@jest/globals";
@@ -8,7 +8,7 @@ import {InvestmentIdea} from "../../models.js";
 describe("SyncScheduler Integration Tests", () => {
     let syncScheduler: SyncScheduler;
     let mockRepo: jest.Mocked<Repository>;
-    let aiService: AiService;
+    let aiService: OpenAiService;
     let mockTradernetClient: jest.Mocked<TradernetClient>;
 
     beforeEach(() => {
@@ -21,7 +21,7 @@ describe("SyncScheduler Integration Tests", () => {
             findTitlesByDateRange: jest.fn(),
         } as unknown as jest.Mocked<Repository>;
 
-        aiService = new AiService("test-key", "https://api.openai.com/v1");
+        aiService = new OpenAiService("test-key", "https://api.openai.com/v1");
         // @ts-ignore
         aiService.openai = {
             embeddings: {
@@ -63,12 +63,6 @@ describe("SyncScheduler Integration Tests", () => {
             data: [{embedding: [0.1, 0.2]}]
         });
 
-        // We need to access the private method for testing or call start and wait.
-        // For integration test of the logic, calling the private method via any is an option,
-        // or just calling a sync method if it was public.
-        // Since it's private, I'll use start(..., size) but I need to be careful with timers.
-
-        // Let's use the private method for logic testing as it's cleaner than dealing with intervals in tests.
         // @ts-ignore
         const processed = await syncScheduler.syncAndEmbed(1);
 

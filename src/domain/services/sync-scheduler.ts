@@ -1,11 +1,8 @@
-import {AiService} from "./ai.service.js";
+import {AiService, createAiService} from "./ai.service.js";
 import {TradernetClient} from "../../outbound/clients/tradernet.js";
 import {Repository} from "../../outbound/persistence/repository.js";
 import {INVEST_IDEA_DETAILS_MARK} from "../constants.js";
 import {InvestmentIdea} from "../models.js";
-
-const OPENAI_BASE_URL = process.env.OPENAI_BASE_URL ?? "http://127.0.0.1:1234/v1";
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY ?? "lmstudio";
 
 export class SyncScheduler {
     private isRunning = false;
@@ -14,7 +11,7 @@ export class SyncScheduler {
 
     constructor(
         private readonly repo: Repository,
-        private readonly aiService: AiService = new AiService(OPENAI_API_KEY, OPENAI_BASE_URL),
+        private readonly aiService: AiService = createAiService(),
         private readonly tradernetClient: TradernetClient = new TradernetClient(),
     ) {
     }

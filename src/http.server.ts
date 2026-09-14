@@ -2,7 +2,7 @@ import {createMcpExpressApp} from "@modelcontextprotocol/express";
 import {getServer} from "./mcp.factory.js";
 import {NodeStreamableHTTPServerTransport} from "@modelcontextprotocol/node";
 import {createRepository} from "./outbound/persistence/repository.factory.js";
-import {AiService} from "./domain/services/ai.service.js";
+import {createAiService} from "./domain/services/ai.service.js";
 import {ApiService} from "./domain/services/api.service.js";
 import 'dotenv/config';
 
@@ -41,10 +41,7 @@ if (process.env.MCP_SERVER_HTTP_TRANSPORT_ENABLED === 'true') {
     });
 
     const repo = createRepository();
-    const aiService = new AiService(
-        process.env.OPENAI_API_KEY ?? 'lmstudio',
-        process.env.OPENAI_BASE_URL ?? 'http://127.0.0.1:1234/v1',
-    );
+    const aiService = createAiService();
     const apiService = new ApiService(repo, aiService);
 
     // GET /ideas?query=...&from=YYYY-MM-DD&to=YYYY-MM-DD&limit=10
