@@ -67,8 +67,37 @@ if (process.env.MCP_SERVER_HTTP_TRANSPORT_ENABLED === 'true') {
     });
 
     // GET /ideas -> HTML Page
-    app.get('/ideas', (_req: any, res: any) => {
-        res.type('html').send(renderIdeasPage());
+    app.get('/ideas', async (req: any, res: any) => {
+        const { query, from, to, limit } = req.query;
+        let ideas: any[] = [];
+        let searched = false;
+
+        if (query) {
+            searched = true;
+            try {
+                const results = await apiService.searchIdeas(query, Number(limit) || 10, from, to);
+                ideas = results.map(r => ({
+                    ticker: r.idea.ticker,
+                    companyName: r.idea.companyName,
+                    description: r.idea.description,
+                    targetPrice: r.idea.targetPrice,
+                    url: providerUrlService.getIdeaUrl(r.idea.provider, r.idea.id),
+                    publishDate: r.idea.publishDate,
+                    similarity: typeof r.distance === 'number' ? (1 - r.distance) : null,
+                }));
+            } catch (e: any) {
+                console.error('GET /ideas search error:', e);
+            }
+        }
+
+        res.type('html').send(renderIdeasPage({
+            query: query ? String(query) : '',
+            from: from ? String(from) : '',
+            to: to ? String(to) : '',
+            limit: limit ? Number(limit) : 10,
+            ideas,
+            searched
+        }));
     });
 
     // GET /topics?from=YYYY-MM-DD&to=YYYY-MM-DD&hint=healthcare
