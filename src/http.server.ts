@@ -67,25 +67,7 @@ if (process.env.MCP_SERVER_HTTP_TRANSPORT_ENABLED === 'true') {
     });
 
     // GET /ideas -> HTML Page
-    app.get('/ideas', async (req: any, res: any) => {
-        if (req.query.format === 'json' || req.headers.accept?.includes('application/json')) {
-            const {query, from, to, limit} = req.query;
-            if (!query) {
-                return res.status(400).send('Missing required query parameter: query');
-            }
-            try {
-                const results = await apiService.searchIdeas(query, Number(limit) || 10, from, to);
-                const enriched = results.map(r => ({
-                    ...r,
-                    url: providerUrlService.getIdeaUrl(r.idea.provider, r.idea.id),
-                }));
-                return res.json(enriched);
-            } catch (e: any) {
-                console.error('GET /ideas error:', e);
-                return res.status(500).send(`Error: ${e.message}`);
-            }
-        }
-
+    app.get('/ideas', (_req: any, res: any) => {
         res.type('html').send(renderIdeasPage());
     });
 
