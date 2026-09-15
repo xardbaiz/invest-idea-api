@@ -1,15 +1,12 @@
 import {McpServer} from "@modelcontextprotocol/server";
 import {createRepository} from "./outbound/persistence/repository.factory.js";
-import {AiService} from "./domain/services/ai.service.js";
+import {createAiService} from "./domain/services/ai.service.js";
 import {ApiService} from "./domain/services/api.service.js";
 import {z} from "zod";
 
-const OPENAI_BASE_URL = process.env.OPENAI_BASE_URL ?? "http://127.0.0.1:1234/v1";
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY ?? "lmstudio";
-
 export const getServer = () => {
     const repo = createRepository();
-    const aiService = new AiService(OPENAI_API_KEY, OPENAI_BASE_URL);
+    const aiService = createAiService();
     const apiService = new ApiService(repo, aiService);
 
     const server = new McpServer(
