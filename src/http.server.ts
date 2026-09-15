@@ -4,6 +4,8 @@ import {NodeStreamableHTTPServerTransport} from "@modelcontextprotocol/node";
 import {createRepository} from "./outbound/persistence/repository.factory.js";
 import {createAiService} from "./domain/services/ai.service.js";
 import {ApiService} from "./domain/services/api.service.js";
+import {ProviderUrlService} from "./domain/services/provider-url.service.js";
+import {renderIdeasPage} from "./views/ideas-page.js";
 import 'dotenv/config';
 
 if (process.env.MCP_SERVER_HTTP_TRANSPORT_ENABLED === 'true') {
@@ -43,27 +45,48 @@ if (process.env.MCP_SERVER_HTTP_TRANSPORT_ENABLED === 'true') {
     const repo = createRepository();
     const aiService = createAiService();
     const apiService = new ApiService(repo, aiService);
+    const providerUrlService = new ProviderUrlService();
 
-    // GET /ideas?query=...&from=YYYY-MM-DD&to=YYYY-MM-DD&limit=10
-    app.get('/ideas', async (req: any, res: any) => {
+    // GET /api/ideas?query=...&from=YYYY-MM-DD&to=YYYY-MM-DD&limit=10
+    app.get('/api/ideas', async (req: any, res: any) => {
         const {query, from, to, limit} = req.query;
         if (!query) {
             return res.status(400).send('Missing required query parameter: query');
         }
         try {
             const results = await apiService.searchIdeas(query, Number(limit) || 10, from, to);
-            const text = results.map((r, i) =>
-                `#${i + 1} [${r.idea.ticker}] ${r.idea.companyName}\n` +
-                `   ${r.idea.title}\n` +
-                `   Price target: ${r.idea.targetPrice} ${r.idea.currency}\n` +
-                `   Distance: ${r.distance.toFixed(4)}\n` +
-                `   ${r.idea.description?.slice(0, 200)}...`
-            ).join('\n\n');
-            res.type('text/plain').send(text || 'No results found.');
+            const enriched = results.map(r => ({
+                ...r,
+                url: providerUrlService.getIdeaUrl(r.idea.provider, r.idea.id),
+            }));
+            res.json(enriched);
         } catch (e: any) {
-            console.error('GET /ideas error:', e);
+            console.error('GET /api/ideas error:', e);
             res.status(500).send(`Error: ${e.message}`);
         }
+    });
+
+    // GET /ideas -> HTML Page
+    app.get('/ideas', async (req: any, res: any) => {
+        if (req.query.format === 'json' || req.headers.accept?.includes('application/json')) {
+            const {query, from, to, limit} = req.query;
+            if (!query) {
+                return res.status(400).send('Missing required query parameter: query');
+            }
+            try {
+                const results = await apiService.searchIdeas(query, Number(limit) || 10, from, to);
+                const enriched = results.map(r => ({
+                    ...r,
+                    url: providerUrlService.getIdeaUrl(r.idea.provider, r.idea.id),
+                }));
+                return res.json(enriched);
+            } catch (e: any) {
+                console.error('GET /ideas error:', e);
+                return res.status(500).send(`Error: ${e.message}`);
+            }
+        }
+
+        res.type('html').send(renderIdeasPage());
     });
 
     // GET /topics?from=YYYY-MM-DD&to=YYYY-MM-DD&hint=healthcare

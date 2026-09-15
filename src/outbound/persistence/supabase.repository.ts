@@ -74,12 +74,15 @@ export class SupabaseIdeaRepository implements Repository {
 
         return (data ?? []).map((row: any) => ({
             idea: {
+                id: row.id,
+                provider: row.provider,
                 ticker: row.ticker,
                 companyName: row.company_name,
                 title: row.title,
                 targetPrice: row.target_price,
                 currency: row.currency,
                 description: row.description,
+                publishDate: row.publish_date,
             },
             distance: row.distance,
         }));

@@ -35,6 +35,7 @@
     "@modelcontextprotocol/node": "^2.0.0-alpha.2",
     "@modelcontextprotocol/server": "^2.0.0-alpha.2",
     "@sqliteai/sqlite-vector": "^0.9.95",
+    "@sqliteai/sqlite-vector-linux-x86_64": "^1.1.2",
     "@supabase/supabase-js": "^2.101.1",
     "better-sqlite3": "^12.6.2",
     "dotenv": "^17.3.1",

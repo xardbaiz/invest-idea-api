@@ -1,10 +1,13 @@
 export interface InvestmentIdeaInfo {
+    id?: string;
+    provider?: string;
     ticker: string;
     companyName: string;
     title: string;
     targetPrice: number;
     currency: string;
     description: string;
+    publishDate?: string;
 }
 
 export interface InvestmentIdea extends InvestmentIdeaInfo {

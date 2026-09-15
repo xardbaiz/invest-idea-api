@@ -11,7 +11,15 @@ export class ApiService {
 
     async searchIdeas(query: string, limit: number = 10, from?: string, to?: string): Promise<SearchResult[]> {
         const queryEmbedding = await this.aiService.generateEmbedding(query);
-        return await this.repo.searchSimilar(queryEmbedding, limit, from, to);
+        const results = await this.repo.searchSimilar(queryEmbedding, limit, from, to);
+        return results.sort((a, b) => {
+            if (b.distance !== a.distance) {
+                return b.distance - a.distance;
+            }
+            const dateA = a.idea.publishDate ? new Date(a.idea.publishDate).getTime() : 0;
+            const dateB = b.idea.publishDate ? new Date(b.idea.publishDate).getTime() : 0;
+            return dateB - dateA;
+        });
     }
 
     async discoverTopics(from: string, to: string, hint?: string): Promise<TopicSuggestion[]> {

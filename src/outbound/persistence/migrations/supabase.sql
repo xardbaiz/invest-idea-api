@@ -32,29 +32,35 @@ CREATE OR REPLACE FUNCTION search_ideas(
 )
     RETURNS TABLE
             (
+                id           text,
+                provider     varchar,
                 ticker       text,
                 company_name text,
                 title        text,
                 target_price real,
                 currency     text,
                 description  text,
+                publish_date timestamptz,
                 distance     float
             )
     LANGUAGE sql
     STABLE
 AS
 $$
-SELECT i.ticker,
+SELECT i.id,
+       i.provider,
+       i.ticker,
        i.company_name,
        i.title,
        i.target_price,
        i.currency,
        i.description,
+       i.publish_date,
        1 - (e.embedding <=> query_embedding) AS distance
 FROM idea_embeddings e
          JOIN ideas i ON i.id = e.idea_id
 WHERE (date_from IS NULL OR i.publish_date >= date_from::timestamptz)
   AND (date_to IS NULL OR i.publish_date <= date_to::timestamptz)
-ORDER BY e.embedding <=> query_embedding
+ORDER BY e.embedding <=> query_embedding, i.publish_date DESC
 LIMIT match_limit;
 $$;
