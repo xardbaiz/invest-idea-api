@@ -4,6 +4,8 @@ import {NodeStreamableHTTPServerTransport} from "@modelcontextprotocol/node";
 import {createRepository} from "./outbound/persistence/repository.factory.js";
 import {createAiService} from "./domain/services/ai.service.js";
 import {ApiService} from "./domain/services/api.service.js";
+import {ProviderUrlService} from "./domain/services/provider-url.service.js";
+import {renderIdeasPage} from "./views/ideas-page.js";
 import 'dotenv/config';
 
 if (process.env.MCP_SERVER_HTTP_TRANSPORT_ENABLED === 'true') {
@@ -43,25 +45,85 @@ if (process.env.MCP_SERVER_HTTP_TRANSPORT_ENABLED === 'true') {
     const repo = createRepository();
     const aiService = createAiService();
     const apiService = new ApiService(repo, aiService);
+    const providerUrlService = new ProviderUrlService();
 
-    // GET /ideas?query=...&from=YYYY-MM-DD&to=YYYY-MM-DD&limit=10
-    app.get('/ideas', async (req: any, res: any) => {
+    async function searchIdeasWithQuotes(query: string, limit: number, from?: string, to?: string) {
+        const results = await apiService.searchIdeas(query, limit, from, to);
+        const tickers = results.map(r => r.idea.ticker).filter(Boolean) as string[];
+        const quotes = tickers.length ? await apiService.getQuoteDetails(tickers).catch(() => []) : [];
+        const quoteMap = new Map(quotes.map(q => [q.ticker, q]));
+        return results.map(r => {
+            const q = r.idea.ticker ? quoteMap.get(r.idea.ticker) : undefined;
+            const currentPrice = q?.bap || q?.bbp || q?.ClosePrice || q?.ltp || null;
+            return {
+                ...r,
+                ticker: r.idea.ticker,
+                companyName: r.idea.companyName,
+                description: r.idea.description,
+                targetPrice: r.idea.targetPrice,
+                currentPrice,
+                url: providerUrlService.getIdeaUrl(r.idea.provider, r.idea.id),
+                publishDate: r.idea.publishDate,
+                similarity: typeof r.distance === 'number' ? (1 - r.distance) : null,
+            };
+        });
+    }
+
+    // GET /api/ideas?query=...&from=YYYY-MM-DD&to=YYYY-MM-DD&limit=10
+    app.get('/api/ideas', async (req: any, res: any) => {
         const {query, from, to, limit} = req.query;
         if (!query) {
             return res.status(400).send('Missing required query parameter: query');
         }
         try {
-            const results = await apiService.searchIdeas(query, Number(limit) || 10, from, to);
-            const text = results.map((r, i) =>
-                `#${i + 1} [${r.idea.ticker}] ${r.idea.companyName}\n` +
-                `   ${r.idea.title}\n` +
-                `   Price target: ${r.idea.targetPrice} ${r.idea.currency}\n` +
-                `   Distance: ${r.distance.toFixed(4)}\n` +
-                `   ${r.idea.description?.slice(0, 200)}...`
-            ).join('\n\n');
-            res.type('text/plain').send(text || 'No results found.');
+            res.json(await searchIdeasWithQuotes(query, Number(limit) || 10, from, to));
         } catch (e: any) {
-            console.error('GET /ideas error:', e);
+            console.error('GET /api/ideas error:', e);
+            res.status(500).send(`Error: ${e.message}`);
+        }
+    });
+
+    // GET /ideas -> HTML Page
+    app.get('/ideas', async (req: any, res: any) => {
+        const { query, from, to, limit } = req.query;
+
+        const defaultTo = new Date();
+        const defaultFrom = new Date(defaultTo);
+        defaultFrom.setMonth(defaultFrom.getMonth() - 2);
+
+        const toStr = to ? String(to) : defaultTo.toISOString().slice(0, 10);
+        const fromStr = from ? String(from) : defaultFrom.toISOString().slice(0, 10);
+        let ideas: any[] = [];
+        let searched = false;
+
+        if (query) {
+            searched = true;
+            try {
+                ideas = await searchIdeasWithQuotes(query, Number(limit) || 10, fromStr, toStr);
+            } catch (e: any) {
+                console.error('GET /ideas search error:', e);
+            }
+        }
+
+        res.type('html').send(renderIdeasPage({
+            query: query ? String(query) : '',
+            from: fromStr,
+            to: toStr,
+            limit: limit ? Number(limit) : 10,
+            ideas,
+            searched
+        }));
+    });
+
+    // GET /api/:ticker/quota/details
+    app.get('/api/:ticker/quota/details', async (req: any, res: any) => {
+        const {ticker} = req.params;
+        try {
+            const details = await apiService.getQuoteDetails([ticker]);
+            if (!details.length) return res.status(404).send('Quote not found');
+            res.json(details[0]);
+        } catch (e: any) {
+            console.error('GET /api/:ticker/quota/details error:', e);
             res.status(500).send(`Error: ${e.message}`);
         }
     });

@@ -10,7 +10,11 @@ export class SqlLiteIdeaRepository implements Repository {
 
     constructor() {
         this.db = new Database('invest_ideas.db');
-        this.db.loadExtension(getExtensionPath());
+        try {
+            this.db.loadExtension(getExtensionPath());
+        } catch (e: any) {
+            console.warn('Failed to load sqlite-vector extension:', e?.message || e);
+        }
 
         this.db.exec(`
             CREATE TABLE IF NOT EXISTS ideas
@@ -35,7 +39,11 @@ export class SqlLiteIdeaRepository implements Repository {
             )
         `);
 
-        this.db.exec(`SELECT vector_init('idea_embeddings', 'embedding', 'dimension=${EMBEDDING_DIMENSION},type=FLOAT32,distance=COSINE')`);
+        try {
+            this.db.exec(`SELECT vector_init('idea_embeddings', 'embedding', 'dimension=${EMBEDDING_DIMENSION},type=FLOAT32,distance=COSINE')`);
+        } catch (e: any) {
+            console.warn('Failed to init sqlite-vector:', e?.message || e);
+        }
     }
 
     async upsert(idea: InvestmentIdea) {
@@ -92,7 +100,7 @@ export class SqlLiteIdeaRepository implements Repository {
 
         // Streaming mode with JOIN and date filtering
         const rows: any[] = this.db.prepare(`
-            SELECT i.ticker, i.company_name, i.title, i.target_price, i.currency, i.description, v.distance
+            SELECT i.id, i.provider, i.ticker, i.company_name, i.title, i.target_price, i.currency, i.description, i.publish_date, v.distance
             FROM vector_full_scan('idea_embeddings', 'embedding', ?) AS v
                      JOIN idea_embeddings e ON e.rowid = v.rowid
                      JOIN ideas i ON i.id = e.idea_id
@@ -102,12 +110,15 @@ export class SqlLiteIdeaRepository implements Repository {
 
         return rows.map(row => ({
             idea: {
+                id: row.id,
+                provider: row.provider,
                 ticker: row.ticker,
                 companyName: row.company_name,
                 title: row.title,
                 targetPrice: row.target_price,
                 currency: row.currency,
                 description: row.description,
+                publishDate: row.publish_date,
             },
             distance: row.distance,
         }));

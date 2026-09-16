@@ -61,6 +61,27 @@ describe("ApiService Integration Tests", () => {
         expect(mockRepo.searchSimilar).toHaveBeenCalledWith(embedding, 10, "2023-01-01", "2023-01-31");
     });
 
+    it("should sort search results by vector distance (descending) and publish date (descending)", async () => {
+        const query = "apple";
+        const embedding = [0.1, 0.2];
+
+        const unsortedResults = [
+            { idea: { ticker: "A", title: "Idea A", companyName: "A", targetPrice: 10, currency: "USD", description: "A", publishDate: "2023-01-01" }, distance: 0.8 },
+            { idea: { ticker: "B", title: "Idea B", companyName: "B", targetPrice: 20, currency: "USD", description: "B", publishDate: "2023-05-01" }, distance: 0.95 },
+            { idea: { ticker: "C", title: "Idea C", companyName: "C", targetPrice: 30, currency: "USD", description: "C", publishDate: "2023-01-01" }, distance: 0.95 },
+        ];
+
+        // @ts-ignore
+        aiService.openai.embeddings.create.mockResolvedValue({
+            data: [{embedding}]
+        });
+        mockRepo.searchSimilar.mockResolvedValue(unsortedResults);
+
+        const results = await apiService.searchIdeas(query, 10);
+
+        expect(results.map(r => r.idea.ticker)).toEqual(["B", "C", "A"]);
+    });
+
     it("should discover topics correctly", async () => {
         const from = "2023-01-01";
         const to = "2023-01-31";
