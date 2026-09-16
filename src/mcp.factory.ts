@@ -1,13 +1,15 @@
 import {McpServer} from "@modelcontextprotocol/server";
 import {createRepository} from "./outbound/persistence/repository.factory.js";
+import {QdrantVectorService} from "./outbound/vector/qdrant.service.js";
 import {createAiService} from "./domain/services/ai.service.js";
 import {ApiService} from "./domain/services/api.service.js";
 import {z} from "zod";
 
 export const getServer = () => {
     const repo = createRepository();
+    const vectorStore = new QdrantVectorService();
     const aiService = createAiService();
-    const apiService = new ApiService(repo, aiService);
+    const apiService = new ApiService(repo, aiService, vectorStore);
 
     const server = new McpServer(
         {name: "invest-idea-api", version: "1.0.0"},

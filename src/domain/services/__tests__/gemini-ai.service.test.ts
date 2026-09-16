@@ -24,7 +24,10 @@ describe("GeminiAiService and Factory Tests", () => {
             expect(result).toEqual([0.1, 0.2, 0.3]);
             expect(service["ai"].models.embedContent).toHaveBeenCalledWith({
                 model: "text-embedding-004",
-                contents: "hello world"
+                contents: "hello world",
+                config: {
+                    outputDimensionality: 1024,
+                },
             });
         });
 

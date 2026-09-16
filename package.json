@@ -37,7 +37,7 @@
     "@modelcontextprotocol/node": "^2.0.0-alpha.2",
     "@modelcontextprotocol/server": "^2.0.0-alpha.2",
     "@mui/material": "^9.4.0",
-    "@sqliteai/sqlite-vector": "^0.9.95",
+    "@qdrant/js-client-rest": "^1.13.0",
     "@supabase/supabase-js": "^2.101.1",
     "better-sqlite3": "^12.6.2",
     "dotenv": "^17.3.1",

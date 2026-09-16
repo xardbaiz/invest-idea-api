@@ -2,6 +2,7 @@ import {createMcpExpressApp} from "@modelcontextprotocol/express";
 import {getServer} from "./mcp.factory.js";
 import {NodeStreamableHTTPServerTransport} from "@modelcontextprotocol/node";
 import {createRepository} from "./outbound/persistence/repository.factory.js";
+import {QdrantVectorService} from "./outbound/vector/qdrant.service.js";
 import {createAiService} from "./domain/services/ai.service.js";
 import {ApiService} from "./domain/services/api.service.js";
 import {ProviderUrlService} from "./domain/services/provider-url.service.js";
@@ -43,8 +44,9 @@ if (process.env.MCP_SERVER_HTTP_TRANSPORT_ENABLED === 'true') {
     });
 
     const repo = createRepository();
+    const vectorStore = new QdrantVectorService();
     const aiService = createAiService();
-    const apiService = new ApiService(repo, aiService);
+    const apiService = new ApiService(repo, aiService, vectorStore);
     const providerUrlService = new ProviderUrlService();
 
     async function searchIdeasWithQuotes(query: string, limit: number, from?: string, to?: string) {
