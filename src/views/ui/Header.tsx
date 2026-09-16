@@ -1,5 +1,3 @@
-import { h } from 'preact';
-
 export function Header() {
     return (
         <div style={{ textAlign: 'center', margin: '24px 0 32px 0' }}>

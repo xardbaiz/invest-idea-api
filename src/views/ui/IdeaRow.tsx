@@ -1,10 +1,9 @@
-import { h } from 'preact';
-
 export interface IdeaItem {
     ticker?: string;
     companyName?: string;
     description?: string;
     targetPrice?: number | null;
+    currentPrice?: number | null;
     url?: string | null;
     publishDate?: string | null;
     similarity?: number | null;
@@ -28,6 +27,9 @@ export function IdeaRow({ idea, index }: IdeaRowProps) {
     const similarityPercent = idea.similarity !== null && idea.similarity !== undefined
         ? `${Math.round(idea.similarity * 100)}%`
         : '—';
+
+    const isGreenPrice = idea.currentPrice != null && idea.targetPrice != null && idea.currentPrice < idea.targetPrice;
+    const currentToTargetPercentage = isGreenPrice ? ((idea.targetPrice! - idea.currentPrice!) / idea.currentPrice! * 100).toFixed(1) : null;
 
     const toggleScript = `var f=document.getElementById('${descId}-full'), s=document.getElementById('${descId}-short'), b=document.getElementById('${btnId}'); if(f.style.display==='none'){f.style.display='inline'; s.style.display='none'; b.innerText='Свернуть';}else{f.style.display='none'; s.style.display='inline'; b.innerText='Развернуть';}`;
 
@@ -86,8 +88,23 @@ export function IdeaRow({ idea, index }: IdeaRowProps) {
                     <span>{desc || '—'}</span>
                 )}
             </td>
-            <td style={{ padding: '16px', textAlign: 'right', whiteSpace: 'nowrap', fontWeight: 600, color: '#2e7d32' }}>
-                {idea.targetPrice !== null && idea.targetPrice !== undefined ? `$${idea.targetPrice}` : '—'}
+            <td style={{
+                padding: '16px',
+                textAlign: 'right',
+                whiteSpace: 'nowrap',
+                fontWeight: 600,
+                color: isGreenPrice ? '#2e7d32' : undefined
+            }}>
+                {idea.currentPrice != null ? `$${idea.currentPrice.toFixed(2)}` : '—'}
+            </td>
+            <td style={{
+                padding: '16px',
+                textAlign: 'right',
+                whiteSpace: 'nowrap',
+                fontWeight: 600,
+                color: isGreenPrice ? '#2e7d32' : undefined
+            }}>
+                {idea.targetPrice != null ? `$${idea.targetPrice}${isGreenPrice ? ` (+${currentToTargetPercentage}%)` : ''}` : '—'}
             </td>
             <td style={{ padding: '16px', textAlign: 'center', whiteSpace: 'nowrap' }}>
                 <span style={{

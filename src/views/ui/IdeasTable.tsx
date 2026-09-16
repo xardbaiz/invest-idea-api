@@ -1,5 +1,4 @@
-import { h } from 'preact';
-import { IdeaRow, IdeaItem } from './IdeaRow.js';
+import {IdeaItem, IdeaRow} from './IdeaRow.js';
 
 interface IdeasTableProps {
     ideas: IdeaItem[];
@@ -58,6 +57,9 @@ export function IdeasTable({ ideas, searched }: IdeasTableProps) {
                             <th style={{ padding: '16px', fontWeight: 600, color: '#333' }}>Тикер</th>
                             <th style={{ padding: '16px', fontWeight: 600, color: '#333' }}>Компания</th>
                             <th style={{ padding: '16px', fontWeight: 600, color: '#333' }}>Описание</th>
+                            <th style={{padding: '16px', fontWeight: 600, color: '#333', textAlign: 'right'}}>Текущая
+                                цена
+                            </th>
                             <th style={{ padding: '16px', fontWeight: 600, color: '#333', textAlign: 'right' }}>Целевая цена</th>
                             <th style={{ padding: '16px', fontWeight: 600, color: '#333', textAlign: 'center' }}>Релевантность</th>
                             <th style={{ padding: '16px', fontWeight: 600, color: '#333', textAlign: 'right' }}>Дата публикации</th>

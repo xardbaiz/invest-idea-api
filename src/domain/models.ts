@@ -20,3 +20,11 @@ export interface SearchResult {
     idea: InvestmentIdeaInfo;
     distance: number;
 }
+
+export interface QuoteDetails {
+    ticker: string;
+    bap: number;
+    bbp: number;
+    ClosePrice: number;
+    ltp: number;
+}

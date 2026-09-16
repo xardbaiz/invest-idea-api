@@ -47,6 +47,28 @@ if (process.env.MCP_SERVER_HTTP_TRANSPORT_ENABLED === 'true') {
     const apiService = new ApiService(repo, aiService);
     const providerUrlService = new ProviderUrlService();
 
+    async function searchIdeasWithQuotes(query: string, limit: number, from?: string, to?: string) {
+        const results = await apiService.searchIdeas(query, limit, from, to);
+        const tickers = results.map(r => r.idea.ticker).filter(Boolean) as string[];
+        const quotes = tickers.length ? await apiService.getQuoteDetails(tickers).catch(() => []) : [];
+        const quoteMap = new Map(quotes.map(q => [q.ticker, q]));
+        return results.map(r => {
+            const q = r.idea.ticker ? quoteMap.get(r.idea.ticker) : undefined;
+            const currentPrice = q?.bap || q?.bbp || q?.ClosePrice || q?.ltp || null;
+            return {
+                ...r,
+                ticker: r.idea.ticker,
+                companyName: r.idea.companyName,
+                description: r.idea.description,
+                targetPrice: r.idea.targetPrice,
+                currentPrice,
+                url: providerUrlService.getIdeaUrl(r.idea.provider, r.idea.id),
+                publishDate: r.idea.publishDate,
+                similarity: typeof r.distance === 'number' ? (1 - r.distance) : null,
+            };
+        });
+    }
+
     // GET /api/ideas?query=...&from=YYYY-MM-DD&to=YYYY-MM-DD&limit=10
     app.get('/api/ideas', async (req: any, res: any) => {
         const {query, from, to, limit} = req.query;
@@ -54,12 +76,7 @@ if (process.env.MCP_SERVER_HTTP_TRANSPORT_ENABLED === 'true') {
             return res.status(400).send('Missing required query parameter: query');
         }
         try {
-            const results = await apiService.searchIdeas(query, Number(limit) || 10, from, to);
-            const enriched = results.map(r => ({
-                ...r,
-                url: providerUrlService.getIdeaUrl(r.idea.provider, r.idea.id),
-            }));
-            res.json(enriched);
+            res.json(await searchIdeasWithQuotes(query, Number(limit) || 10, from, to));
         } catch (e: any) {
             console.error('GET /api/ideas error:', e);
             res.status(500).send(`Error: ${e.message}`);
@@ -69,22 +86,20 @@ if (process.env.MCP_SERVER_HTTP_TRANSPORT_ENABLED === 'true') {
     // GET /ideas -> HTML Page
     app.get('/ideas', async (req: any, res: any) => {
         const { query, from, to, limit } = req.query;
+
+        const defaultTo = new Date();
+        const defaultFrom = new Date(defaultTo);
+        defaultFrom.setMonth(defaultFrom.getMonth() - 2);
+
+        const toStr = to ? String(to) : defaultTo.toISOString().slice(0, 10);
+        const fromStr = from ? String(from) : defaultFrom.toISOString().slice(0, 10);
         let ideas: any[] = [];
         let searched = false;
 
         if (query) {
             searched = true;
             try {
-                const results = await apiService.searchIdeas(query, Number(limit) || 10, from, to);
-                ideas = results.map(r => ({
-                    ticker: r.idea.ticker,
-                    companyName: r.idea.companyName,
-                    description: r.idea.description,
-                    targetPrice: r.idea.targetPrice,
-                    url: providerUrlService.getIdeaUrl(r.idea.provider, r.idea.id),
-                    publishDate: r.idea.publishDate,
-                    similarity: typeof r.distance === 'number' ? (1 - r.distance) : null,
-                }));
+                ideas = await searchIdeasWithQuotes(query, Number(limit) || 10, fromStr, toStr);
             } catch (e: any) {
                 console.error('GET /ideas search error:', e);
             }
@@ -92,12 +107,25 @@ if (process.env.MCP_SERVER_HTTP_TRANSPORT_ENABLED === 'true') {
 
         res.type('html').send(renderIdeasPage({
             query: query ? String(query) : '',
-            from: from ? String(from) : '',
-            to: to ? String(to) : '',
+            from: fromStr,
+            to: toStr,
             limit: limit ? Number(limit) : 10,
             ideas,
             searched
         }));
+    });
+
+    // GET /api/:ticker/quota/details
+    app.get('/api/:ticker/quota/details', async (req: any, res: any) => {
+        const {ticker} = req.params;
+        try {
+            const details = await apiService.getQuoteDetails([ticker]);
+            if (!details.length) return res.status(404).send('Quote not found');
+            res.json(details[0]);
+        } catch (e: any) {
+            console.error('GET /api/:ticker/quota/details error:', e);
+            res.status(500).send(`Error: ${e.message}`);
+        }
     });
 
     // GET /topics?from=YYYY-MM-DD&to=YYYY-MM-DD&hint=healthcare

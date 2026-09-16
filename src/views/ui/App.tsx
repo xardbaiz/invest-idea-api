@@ -1,8 +1,7 @@
-import { h } from 'preact';
-import { Header } from './Header.js';
-import { SearchForm } from './SearchForm.js';
-import { IdeasTable } from './IdeasTable.js';
-import { IdeaItem } from './IdeaRow.js';
+import {Header} from './Header.js';
+import {SearchForm} from './SearchForm.js';
+import {IdeasTable} from './IdeasTable.js';
+import {IdeaItem} from './IdeaRow.js';
 
 interface AppProps {
     query?: string;

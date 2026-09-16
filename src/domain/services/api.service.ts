@@ -1,11 +1,13 @@
 import {AiService, TopicSuggestion} from "./ai.service.js";
 import {Repository} from "../../outbound/persistence/repository.js";
-import {SearchResult} from "../models.js";
+import {QuoteDetails, SearchResult} from "../models.js";
+import {TradernetClient} from "../../outbound/clients/tradernet.js";
 
 export class ApiService {
     constructor(
         private readonly repo: Repository,
-        private readonly aiService: AiService
+        private readonly aiService: AiService,
+        private readonly tradernetClient: TradernetClient = new TradernetClient(),
     ) {
     }
 
@@ -25,5 +27,9 @@ export class ApiService {
     async discoverTopics(from: string, to: string, hint?: string): Promise<TopicSuggestion[]> {
         const titles = await this.repo.findTitlesByDateRange(from, to);
         return await this.aiService.discoverTopics(titles, hint);
+    }
+
+    async getQuoteDetails(tickers: string[]): Promise<QuoteDetails[]> {
+        return this.tradernetClient.getQuoteDetails(tickers);
     }
 }

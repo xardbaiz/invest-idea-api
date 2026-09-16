@@ -1,9 +1,9 @@
 import {SyncScheduler} from "./domain/services/sync-scheduler.js";
 import {Repository} from "./outbound/persistence/repository.js";
 import 'dotenv/config';
-import {StdioServerTransport} from "@modelcontextprotocol/server";
 import {createRepository} from "./outbound/persistence/repository.factory.js";
 import {getServer} from "./mcp.factory.js";
+import {StdioServerTransport} from "@modelcontextprotocol/server/stdio";
 
 // --- Configuration ---
 let repo: Repository = createRepository();
