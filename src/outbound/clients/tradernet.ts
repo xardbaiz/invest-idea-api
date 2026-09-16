@@ -49,7 +49,7 @@ export class TradernetClient {
 
     async getQuoteDetails(tickers: string[]): Promise<QuoteDetails[]> {
         const response = await fetch(
-            `https://tradernet.global/securities/export?tickers=${encodeURIComponent(tickers.join(' '))}`
+            this.host + `/securities/export?tickers=${encodeURIComponent(tickers.join(' '))}`
         );
 
         if (!response.ok) {
