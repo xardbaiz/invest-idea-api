@@ -15,7 +15,7 @@ export interface VectorStoreService {
 export class QdrantVectorService implements VectorStoreService {
     private client: QdrantClient;
     private collectionName: string;
-    private collectionEnsured = false;
+    private isCollectionExist = false;
 
     constructor(
         url?: string,
@@ -34,7 +34,7 @@ export class QdrantVectorService implements VectorStoreService {
     }
 
     private async ensureCollection(vectorSize: number): Promise<void> {
-        if (this.collectionEnsured) return;
+        if (this.isCollectionExist) return;
         try {
             const exists = await this.client.collectionExists(this.collectionName);
             if (!exists.exists) {
@@ -45,7 +45,7 @@ export class QdrantVectorService implements VectorStoreService {
                     },
                 });
             }
-            this.collectionEnsured = true;
+            this.isCollectionExist = true;
         } catch (e) {
             console.warn(`Failed to ensure Qdrant collection ${this.collectionName}:`, e);
         }

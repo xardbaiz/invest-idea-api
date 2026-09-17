@@ -1,6 +1,7 @@
 import OpenAI from 'openai';
 import {GoogleGenAI, Type} from '@google/genai';
 import 'dotenv/config';
+import {EMBEDDING_DIMENSION} from "../constants.js";
 
 export interface TopicSuggestion {
     topic: string;
@@ -110,11 +111,10 @@ export class GeminiAiService implements AiService {
     }
 
     async generateEmbedding(text: string): Promise<number[]> {
-        const dimension = Number(process.env.EMBEDDING_DIMENSION ?? 1024);
         const response = await this.ai.models.embedContent({
             model: this.embeddingModel,
             contents: text,
-            config: {outputDimensionality: dimension},
+            config: {outputDimensionality: EMBEDDING_DIMENSION},
         });
         const embeddingObj = (response as any).embedding ?? response.embeddings?.[0];
         return embeddingObj?.values ?? [];

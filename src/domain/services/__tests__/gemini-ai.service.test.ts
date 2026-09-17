@@ -1,5 +1,6 @@
 import {createAiService, GeminiAiService, OpenAiService} from "../ai.service.js";
 import {jest} from "@jest/globals";
+import {EMBEDDING_DIMENSION} from "../../constants.js";
 
 describe("GeminiAiService and Factory Tests", () => {
     let originalEnv: NodeJS.ProcessEnv;
@@ -26,7 +27,7 @@ describe("GeminiAiService and Factory Tests", () => {
                 model: "text-embedding-004",
                 contents: "hello world",
                 config: {
-                    outputDimensionality: 1024,
+                    outputDimensionality: EMBEDDING_DIMENSION,
                 },
             });
         });

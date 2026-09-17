@@ -1,5 +1,5 @@
 import {LocalIndex} from 'vectra';
-import path from 'path';
+import path from 'node:path';
 import {VectorSearchResult, VectorStoreService} from './qdrant.service.js';
 
 export class VectraVectorService implements VectorStoreService {
@@ -30,7 +30,7 @@ export class VectraVectorService implements VectorStoreService {
         const publishTimestamp = publishDate ? new Date(publishDate).getTime() : undefined;
         const metadata: Record<string, any> = { ideaId };
         if (publishDate) metadata.publishDate = publishDate;
-        if (publishTimestamp !== undefined && !isNaN(publishTimestamp)) {
+        if (publishTimestamp !== undefined && !Number.isNaN(publishTimestamp)) {
             metadata.publishTimestamp = publishTimestamp;
         }
 
@@ -57,11 +57,11 @@ export class VectraVectorService implements VectorStoreService {
 
         let filter: Record<string, any> | undefined;
 
-        if (fromTs !== undefined && !isNaN(fromTs) && toTs !== undefined && !isNaN(toTs)) {
+        if (fromTs !== undefined && !Number.isNaN(fromTs) && toTs !== undefined && !Number.isNaN(toTs)) {
             filter = { publishTimestamp: { $gte: fromTs, $lte: toTs } };
-        } else if (fromTs !== undefined && !isNaN(fromTs)) {
+        } else if (fromTs !== undefined && !Number.isNaN(fromTs)) {
             filter = { publishTimestamp: { $gte: fromTs } };
-        } else if (toTs !== undefined && !isNaN(toTs)) {
+        } else if (toTs !== undefined && !Number.isNaN(toTs)) {
             filter = { publishTimestamp: { $lte: toTs } };
         }
 
