@@ -110,10 +110,11 @@ export class GeminiAiService implements AiService {
     }
 
     async generateEmbedding(text: string): Promise<number[]> {
+        const dimension = Number(process.env.EMBEDDING_DIMENSION ?? 1024);
         const response = await this.ai.models.embedContent({
             model: this.embeddingModel,
             contents: text,
-            config: {outputDimensionality: 1024},
+            config: {outputDimensionality: dimension},
         });
         const embeddingObj = (response as any).embedding ?? response.embeddings?.[0];
         return embeddingObj?.values ?? [];

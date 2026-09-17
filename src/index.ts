@@ -2,13 +2,13 @@ import {SyncScheduler} from "./domain/services/sync-scheduler.js";
 import {Repository} from "./outbound/persistence/repository.js";
 import 'dotenv/config';
 import {createRepository} from "./outbound/persistence/repository.factory.js";
-import {QdrantVectorService} from "./outbound/vector/qdrant.service.js";
+import {createVectorStoreService} from "./outbound/vector/vector-store.factory.js";
 import {getServer} from "./mcp.factory.js";
 import {StdioServerTransport} from "@modelcontextprotocol/server/stdio";
 
 // --- Configuration ---
 let repo: Repository = createRepository();
-let vectorStore = new QdrantVectorService();
+let vectorStore = createVectorStoreService();
 
 if (process.env.SYNC_JOB_ENABLED === 'true') {
     const SYNC_INTERVAL_MS = Number(process.env.SYNC_INTERVAL_MS ?? 2 * 60 * 1000); // each two minutes
