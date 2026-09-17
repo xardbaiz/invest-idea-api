@@ -1,5 +1,5 @@
 import {VectorStoreService, QdrantVectorService} from "./qdrant.service.js";
-import {InMemoryVectorService} from "./in-memory-vector.service.js";
+import {VectraVectorService} from "./vectra.service.js";
 
 export function createVectorStoreService(): VectorStoreService {
     const qdrantUrl = process.env.QDRANT_URL;
@@ -9,5 +9,5 @@ export function createVectorStoreService(): VectorStoreService {
         return new QdrantVectorService(qdrantUrl, qdrantApiKey);
     }
 
-    return new InMemoryVectorService();
+    return new VectraVectorService();
 }

@@ -1,21 +1,25 @@
-import {InMemoryVectorService} from "../in-memory-vector.service.js";
+import {VectraVectorService} from "../vectra.service.js";
 import {createVectorStoreService} from "../vector-store.factory.js";
 import {QdrantVectorService} from "../qdrant.service.js";
+import fs from "fs/promises";
+import path from "path";
 
 describe("VectorStore Service Tests", () => {
     let originalEnv: NodeJS.ProcessEnv;
+    const testFolder = path.join(process.cwd(), "test_vectra_index");
 
     beforeEach(() => {
         originalEnv = { ...process.env };
     });
 
-    afterEach(() => {
+    afterEach(async () => {
         process.env = originalEnv;
+        await fs.rm(testFolder, { recursive: true, force: true }).catch(() => {});
     });
 
-    describe("InMemoryVectorService unit tests", () => {
+    describe("VectraVectorService unit tests", () => {
         it("should save and check embedding presence", async () => {
-            const service = new InMemoryVectorService();
+            const service = new VectraVectorService(testFolder);
             expect(await service.hasEmbedding("idea_1")).toBe(false);
 
             await service.saveEmbedding("idea_1", [1, 0, 0], "2023-01-01");
@@ -23,7 +27,7 @@ describe("VectorStore Service Tests", () => {
         });
 
         it("should search similar vectors with cosine similarity and date filter", async () => {
-            const service = new InMemoryVectorService();
+            const service = new VectraVectorService(testFolder);
 
             await service.saveEmbedding("idea_1", [1, 0, 0], "2023-01-01");
             await service.saveEmbedding("idea_2", [0, 1, 0], "2023-02-01");
@@ -54,11 +58,11 @@ describe("VectorStore Service Tests", () => {
             expect(service).toBeInstanceOf(QdrantVectorService);
         });
 
-        it("should fallback to InMemoryVectorService when no Qdrant env vars are present", () => {
+        it("should fallback to VectraVectorService when no Qdrant env vars are present", () => {
             delete process.env.QDRANT_URL;
             delete process.env.QDRANT_API_KEY;
             const service = createVectorStoreService();
-            expect(service).toBeInstanceOf(InMemoryVectorService);
+            expect(service).toBeInstanceOf(VectraVectorService);
         });
     });
 });
