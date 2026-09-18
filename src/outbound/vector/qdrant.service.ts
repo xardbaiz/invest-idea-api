@@ -12,6 +12,7 @@ export interface VectorStoreService {
     searchSimilar(queryEmbedding: number[], limit: number, from?: string, to?: string): Promise<VectorSearchResult[]>;
 }
 
+const timestampIndexFieldName = 'publish_timestamp';
 export class QdrantVectorService implements VectorStoreService {
     private client: QdrantClient;
     private collectionName: string;
@@ -33,22 +34,28 @@ export class QdrantVectorService implements VectorStoreService {
         });
     }
 
-    private async ensureCollection(vectorSize: number): Promise<void> {
-        if (this.isCollectionExist) return;
-        try {
-            const exists = await this.client.collectionExists(this.collectionName);
-            if (!exists.exists) {
-                await this.client.createCollection(this.collectionName, {
-                    vectors: {
-                        size: vectorSize,
-                        distance: 'Cosine',
-                    },
-                });
-            }
-            this.isCollectionExist = true;
-        } catch (e) {
-            console.warn(`Failed to ensure Qdrant collection ${this.collectionName}:`, e);
+    async saveEmbedding(ideaId: string, embedding: number[], publishDate?: string): Promise<void> {
+        await this.ensureCollection(embedding.length);
+
+        const pointId = this.stringToUuid(ideaId);
+        const payload: Record<string, any> = {
+            idea_id: ideaId,
+        };
+        if (publishDate) {
+            payload.publish_date = publishDate;
+            payload[timestampIndexFieldName] = new Date(publishDate).getTime();
         }
+
+        await this.client.upsert(this.collectionName, {
+            wait: true,
+            points: [
+                {
+                    id: pointId,
+                    vector: embedding,
+                    payload,
+                },
+            ],
+        });
     }
 
     private stringToUuid(str: string): string {
@@ -70,30 +77,6 @@ export class QdrantVectorService implements VectorStoreService {
         }
     }
 
-    async saveEmbedding(ideaId: string, embedding: number[], publishDate?: string): Promise<void> {
-        await this.ensureCollection(embedding.length);
-
-        const pointId = this.stringToUuid(ideaId);
-        const payload: Record<string, any> = {
-            idea_id: ideaId,
-        };
-        if (publishDate) {
-            payload.publish_date = publishDate;
-            payload.publish_timestamp = new Date(publishDate).getTime();
-        }
-
-        await this.client.upsert(this.collectionName, {
-            wait: true,
-            points: [
-                {
-                    id: pointId,
-                    vector: embedding,
-                    payload,
-                },
-            ],
-        });
-    }
-
     async searchSimilar(queryEmbedding: number[], limit: number, from?: string, to?: string): Promise<VectorSearchResult[]> {
         await this.ensureCollection(queryEmbedding.length);
 
@@ -103,7 +86,7 @@ export class QdrantVectorService implements VectorStoreService {
             const fromTs = new Date(from).getTime();
             if (!isNaN(fromTs)) {
                 filterConditions.push({
-                    key: 'publish_timestamp',
+                    key: timestampIndexFieldName,
                     range: { gte: fromTs },
                 });
             }
@@ -113,7 +96,7 @@ export class QdrantVectorService implements VectorStoreService {
             const toTs = new Date(to).getTime();
             if (!isNaN(toTs)) {
                 filterConditions.push({
-                    key: 'publish_timestamp',
+                    key: timestampIndexFieldName,
                     range: { lte: toTs },
                 });
             }
@@ -135,5 +118,32 @@ export class QdrantVectorService implements VectorStoreService {
                 distance: point.score,
             };
         });
+    }
+
+    private async ensureCollection(vectorSize: number): Promise<void> {
+        if (this.isCollectionExist) return;
+        try {
+            const exists = await this.client.collectionExists(this.collectionName);
+            if (!exists.exists) {
+                await this.client.createCollection(this.collectionName, {
+                    vectors: {
+                        size: vectorSize,
+                        distance: 'Cosine',
+                    },
+                });
+            }
+            this.isCollectionExist = true;
+
+            await this.client.createPayloadIndex(this.collectionName, {
+                field_name: timestampIndexFieldName,
+                field_schema: {
+                    type: "integer",
+                    lookup: true,
+                    range: true,
+                },
+            });
+        } catch (e) {
+            console.warn(`Failed to ensure Qdrant collection ${this.collectionName}:`, e);
+        }
     }
 }
