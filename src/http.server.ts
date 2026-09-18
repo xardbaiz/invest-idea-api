@@ -130,25 +130,6 @@ if (process.env.MCP_SERVER_HTTP_TRANSPORT_ENABLED === 'true') {
         }
     });
 
-    // GET /topics?from=YYYY-MM-DD&to=YYYY-MM-DD&hint=healthcare
-    app.get('/topics', async (req: any, res: any) => {
-        const {from, to, hint} = req.query;
-        if (!from || !to) {
-            return res.status(400).send('Missing required query parameters: from, to');
-        }
-        try {
-            const topics = await apiService.discoverTopics(from, to, hint);
-            const text = topics.map((t, i) =>
-                `#${i + 1} ${t.topic} (${t.count} ideas)\n` +
-                `   Query: ${t.suggestedQuery}`
-            ).join('\n\n');
-            res.type('text/plain').send(text || 'No topics found for this date range.');
-        } catch (e: any) {
-            console.error('GET /topics error:', e);
-            res.status(500).send(`Error: ${e.message}`);
-        }
-    });
-
     app.get('/mcp', async (req: any, res: any) => {
         console.log('Received GET MCP request');
         res.writeHead(405).end(

@@ -32,24 +32,6 @@ describe("GeminiAiService and Factory Tests", () => {
             });
         });
 
-        it("should discover topics with GeminiAiService", async () => {
-            const topicSuggestions = [{ topic: "Tech", suggestedQuery: "Tech stocks", count: 5 }];
-            const service = new GeminiAiService("test-gemini-key");
-            jest.spyOn(service["ai"].models, "generateContent").mockResolvedValue(
-                {text: JSON.stringify({topics: topicSuggestions})} as any
-            );
-
-            const topics = await service.discoverTopics(["Title 1", "Title 2"], "tech");
-            expect(topics).toEqual(topicSuggestions);
-            expect(service["ai"].models.generateContent).toHaveBeenCalled();
-        });
-
-        it("should return empty array when titles list is empty in discoverTopics", async () => {
-            const service = new GeminiAiService("test-gemini-key");
-            const topics = await service.discoverTopics([]);
-            expect(topics).toEqual([]);
-        });
-
         it("should generate summary with GeminiAiService", async () => {
             const service = new GeminiAiService("test-gemini-key");
             const summaryOutput = "Sector: Tech\nBusiness: Apple\nIdea: Growth";

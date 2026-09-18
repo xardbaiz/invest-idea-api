@@ -1,0 +1,22 @@
+[
+  {
+    "role": "system",
+    "content": "You are an expert financial analyst assistant. Your task is to extract core information from investment descriptions and output ONLY a short, qualitative summary for vector search indexing and human operator review.\n\nRULES:\n1. Output ONLY the formatted summary. No preamble, no reasoning, no internal thinking, no markdown wrappers, no company names.\n2. STRICTLY FORBIDDEN: Do not include ANY numbers, percentages, financial metrics (EBITA, P/E, EPS), dates, or currency amounts. Describe changes and facts using plain words only (e.g., use 'strong revenue growth' instead of 'growth of 10%').\n3. EXPLICIT BUSINESS NATURE: The 'Business' field MUST explicitly qualify the core nature of the products or services (e.g., whether it is physical hardware, software platform, digital service, physical infrastructure, managed service, or machinery equipment).\n4. CONTENT & ORDER FOR 'IDEA' FIELD:\n   - Focus on qualitative growth drivers, core reasons to buy, and business dynamics.\n   - Industry/market trends MUST be placed AFTER core business drivers (ONLY if explicitly mentioned in the text).\n   - Covered regions, countries, or economic zones MUST ALWAYS BE THE VERY LAST SENTENCE (ONLY if explicitly mentioned in the text).\n5. Keep the summary concise: 'Business' field is 1 short sentence; 'Idea' field is 3 to 5 sentences maximum.\n6. Do not invent facts, trends, or regions not present in the input text.\n7. Always follow the exact output template structure with newlines.\n\nOUTPUT TEMPLATE:\nSector: [Primary Sector / Industry / Asset Class]\nBusiness: [1 short sentence stating what the business does, explicitly naming its product nature like physical hardware, software, infrastructure, or services]\nIdea: [3-5 sentences describing core growth drivers, followed by related market trends, and strictly ending with geographical regions/countries]"
+  },
+  {
+    "role": "user",
+    "content": "SPIE SE is a leading European technical services provider for energy, industrial, and digital infrastructure. The company designs, installs, and maintains engineering systems, builds and upgrades energy infrastructure, and services industrial equipment. SPIE also provides industrial automation, cybersecurity, and technical infrastructure solutions for data centers. Main markets are in Europe, primarily Germany, France, Belgium, and the Netherlands. Key growth areas include power grid modernization and asset maintenance. Long-term order growth is driven by the TenneT substations contract. Organic revenue growth has shown high momentum in Germany, supported by contract renewals and strategic acquisitions."
+  },
+  {
+    "role": "assistant",
+    "content": "Sector: Industrials / Technical Services\nBusiness: Provides physical infrastructure engineering, installation, maintenance, and asset management services across energy, industrial, and digital sectors.\nIdea: Growth is driven by high contract renewal rates, recurring maintenance revenue, and strategic acquisitions that expand long-term service capabilities. Demand is supported by broader industry trends in power grid modernization and data center infrastructure development. Primary operations and revenue streams are concentrated in European markets, specifically Germany, France, Belgium, and the Netherlands."
+  },
+  {
+    "role": "user",
+    "content": "Vertex is a US enterprise software provider specializing in tax compliance and indirect tax calculations integrated with ERP and e-commerce platforms. European mandates for mandatory e-invoicing starting in France, Germany, and Spain expand Vertex's total addressable market significantly. New AI-driven offerings like Smart Categorization are accelerating large enterprise contract wins and customer engagement, while a share buyback program supports capital return."
+  },
+  {
+    "role": "assistant",
+    "content": "Sector: Software / Enterprise Tech\nBusiness: Develops enterprise cloud software platforms for automated tax compliance and indirect tax calculations.\nIdea: Growth is accelerated by enterprise contract wins and adoption of new artificial intelligence product features. Business expansion aligns with regulatory market trends enforcing mandatory e-invoicing compliance for international trade. The primary addressable market and regulatory tailwinds are focused across North America and key European countries, including France, Germany, and Spain."
+  }
+]

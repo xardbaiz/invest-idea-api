@@ -1,4 +1,4 @@
-import {AiService, TopicSuggestion} from "./ai.service.js";
+import {AiService} from "./ai.service.js";
 import {Repository} from "../../outbound/persistence/repository.js";
 import {VectorStoreService} from "../../outbound/vector/qdrant.service.js";
 import {QuoteDetails, SearchResult} from "../models.js";
@@ -44,11 +44,6 @@ export class ApiService {
             const dateB = b.idea.publishDate ? new Date(b.idea.publishDate).getTime() : 0;
             return dateB - dateA;
         });
-    }
-
-    async discoverTopics(from: string, to: string, hint?: string): Promise<TopicSuggestion[]> {
-        const titles = await this.repo.findTitlesByDateRange(from, to);
-        return await this.aiService.discoverTopics(titles, hint);
     }
 
     async getQuoteDetails(tickers: string[]): Promise<QuoteDetails[]> {
