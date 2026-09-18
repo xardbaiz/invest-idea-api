@@ -14,8 +14,13 @@ export class ApiService {
     }
 
     async searchIdeas(query: string, limit: number = 10, from?: string, to?: string): Promise<SearchResult[]> {
-        const queryEmbedding = await this.aiService.generateEmbedding(query);
-        const vectorResults = await this.vectorStore.searchSimilar(queryEmbedding, limit, from, to);
+        let vectorResults;
+        if (this.vectorStore.isSupportInference()) {
+            vectorResults = await this.vectorStore.searchSimilar(query, limit, from, to);
+        } else {
+            const queryEmbedding = await this.aiService.generateEmbedding(query);
+            vectorResults = await this.vectorStore.searchSimilar(queryEmbedding, limit, from, to);
+        }
 
         if (vectorResults.length === 0) {
             return [];

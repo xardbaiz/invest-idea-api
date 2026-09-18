@@ -22,6 +22,7 @@ describe("SyncScheduler Integration Tests", () => {
         } as unknown as jest.Mocked<Repository>;
 
         mockVectorStore = {
+            isSupportInference: jest.fn().mockReturnValue(false),
             hasEmbedding: jest.fn(),
             saveEmbedding: jest.fn(),
             searchSimilar: jest.fn(),
@@ -92,7 +93,35 @@ describe("SyncScheduler Integration Tests", () => {
             input: "Sector: Tech\nBusiness: Apple\nIdea: Buy",
             encoding_format: "float"
         });
-        expect(mockVectorStore.saveEmbedding).toHaveBeenCalledWith("tradernet_123", [0.1, 0.2], "2023-01-01");
+        expect(mockVectorStore.saveEmbedding).toHaveBeenCalledWith("tradernet_123", "Sector: Tech\nBusiness: Apple\nIdea: Buy", [0.1, 0.2], "2023-01-01");
+    });
+
+    it("should use vector store inference when isSupportInference is true", async () => {
+        const idea: InvestmentIdea = {
+            id: "123",
+            provider: "tradernet",
+            ticker: "AAPL",
+            companyName: "Apple",
+            title: "Buy Apple",
+            description: "Good stock",
+            summary: "Sector: Tech\nBusiness: Apple\nIdea: Buy",
+            targetPrice: 200,
+            currency: "USD",
+            publishDate: "2023-01-01"
+        };
+
+        mockVectorStore.isSupportInference.mockReturnValue(true);
+        mockTradernetClient.fetchIdeas.mockResolvedValue([idea]);
+        mockRepo.findById.mockResolvedValue(idea);
+        mockVectorStore.hasEmbedding.mockResolvedValue(false);
+
+        // @ts-ignore
+        const processed = await syncScheduler.syncAndEmbed(1);
+
+        expect(processed).toBe(1);
+        // @ts-ignore
+        expect(aiService.openai.embeddings.create).not.toHaveBeenCalled();
+        expect(mockVectorStore.saveEmbedding).toHaveBeenCalledWith("tradernet_123", "Sector: Tech\nBusiness: Apple\nIdea: Buy", "2023-01-01");
     });
 
     it("should skip summary generation if idea already has summary and embedding exists", async () => {

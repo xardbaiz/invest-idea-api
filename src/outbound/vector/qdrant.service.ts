@@ -8,9 +8,13 @@ export interface VectorSearchResult {
 }
 
 export interface VectorStoreService {
+    isSupportInference(): boolean;
     hasEmbedding(ideaId: string): Promise<boolean>;
 
+    saveEmbedding(ideaId: string, text: string, publishDate?: string): Promise<void>;
     saveEmbedding(ideaId: string, text: string, embedding: number[], publishDate?: string): Promise<void>;
+
+    searchSimilar(queryText: string, limit: number, from?: string, to?: string): Promise<VectorSearchResult[]>;
     searchSimilar(queryEmbedding: number[], limit: number, from?: string, to?: string): Promise<VectorSearchResult[]>;
 }
 
@@ -18,16 +22,19 @@ const timestampIndexFieldName = 'publish_timestamp';
 export class QdrantVectorService implements VectorStoreService {
     private client: QdrantClient;
     private collectionName: string;
+    private embeddingModel?: string;
     private isCollectionExist = false;
 
     constructor(
         url?: string,
         apiKey?: string,
-        collectionName?: string
+        collectionName?: string,
+        embeddingModel?: string
     ) {
         const qdrantUrl = url ?? process.env.QDRANT_URL ?? 'http://localhost:6333';
         const qdrantApiKey = apiKey ?? process.env.QDRANT_API_KEY;
         this.collectionName = collectionName ?? process.env.QDRANT_COLLECTION ?? 'invest_ideas';
+        this.embeddingModel = embeddingModel ?? process.env.QDRANT_EMBEDDING_MODEL;
 
         this.client = new QdrantClient({
             url: qdrantUrl,
@@ -36,8 +43,41 @@ export class QdrantVectorService implements VectorStoreService {
         });
     }
 
-    async saveEmbedding(ideaId: string, text: string, embedding: number[], publishDate?: string): Promise<void> {
-        await this.ensureCollection(EMBEDDING_DIMENSION);
+    isSupportInference(): boolean {
+        return Boolean(this.embeddingModel);
+    }
+
+    async saveEmbedding(
+        ideaId: string,
+        text: string,
+        embeddingOrPublishDate?: number[] | string,
+        publishDate?: string
+    ): Promise<void> {
+        let embedding: number[] | undefined;
+        let actualPublishDate: string | undefined;
+
+        if (Array.isArray(embeddingOrPublishDate)) {
+            embedding = embeddingOrPublishDate;
+            actualPublishDate = publishDate;
+        } else if (typeof embeddingOrPublishDate === 'string') {
+            actualPublishDate = embeddingOrPublishDate;
+        } else {
+            actualPublishDate = publishDate;
+        }
+
+        let vectorValue: any;
+        if (embedding) {
+            vectorValue = embedding;
+        } else if (this.isSupportInference()) {
+            vectorValue = {
+                text: text,
+                model: this.embeddingModel!,
+            };
+        } else {
+            throw new Error("Embedding array is required when server-side inference is not configured.");
+        }
+
+        await this.ensureCollection(Array.isArray(vectorValue) ? vectorValue.length : EMBEDDING_DIMENSION);
 
         const pointId = this.stringToUuid(ideaId);
         const payload: Record<string, any> = {
@@ -46,9 +86,9 @@ export class QdrantVectorService implements VectorStoreService {
         if (!text.includes(INVEST_IDEA_DETAILS_MARK)) {
             payload.text = text;
         }
-        if (publishDate) {
-            payload.publish_date = publishDate;
-            payload[timestampIndexFieldName] = new Date(publishDate).getTime();
+        if (actualPublishDate) {
+            payload.publish_date = actualPublishDate;
+            payload[timestampIndexFieldName] = new Date(actualPublishDate).getTime();
         }
 
         await this.client.upsert(this.collectionName, {
@@ -56,7 +96,7 @@ export class QdrantVectorService implements VectorStoreService {
             points: [
                 {
                     id: pointId,
-                    vector: embedding,
+                    vector: vectorValue,
                     payload,
                 },
             ],
@@ -82,8 +122,27 @@ export class QdrantVectorService implements VectorStoreService {
         }
     }
 
-    async searchSimilar(queryEmbedding: number[], limit: number, from?: string, to?: string): Promise<VectorSearchResult[]> {
-        await this.ensureCollection(EMBEDDING_DIMENSION);
+    async searchSimilar(
+        query: string | number[],
+        limit: number,
+        from?: string,
+        to?: string
+    ): Promise<VectorSearchResult[]> {
+        let queryValue: any;
+        if (typeof query === 'string') {
+            if (this.isSupportInference()) {
+                queryValue = {
+                    text: query,
+                    model: this.embeddingModel!,
+                };
+            } else {
+                throw new Error("Server-side inference is not configured for QdrantVectorService.");
+            }
+        } else {
+            queryValue = query;
+        }
+
+        await this.ensureCollection(Array.isArray(queryValue) ? queryValue.length : EMBEDDING_DIMENSION);
 
         const filterConditions: any[] = [];
 
@@ -110,7 +169,7 @@ export class QdrantVectorService implements VectorStoreService {
         const filter = filterConditions.length > 0 ? { must: filterConditions } : undefined;
 
         const results = await this.client.query(this.collectionName, {
-            query: queryEmbedding,
+            query: queryValue,
             limit,
             filter,
             with_payload: true,
