@@ -33,6 +33,11 @@ describe("SyncScheduler Integration Tests", () => {
             embeddings: {
                 create: jest.fn(),
             },
+            chat: {
+                completions: {
+                    create: jest.fn(),
+                },
+            },
         };
 
         mockTradernetClient = {
@@ -47,7 +52,7 @@ describe("SyncScheduler Integration Tests", () => {
         syncScheduler.stop();
     });
 
-    it("should sync and embed new ideas", async () => {
+    it("should sync, generate summary if missing, and embed summary for new ideas", async () => {
         const idea: InvestmentIdea = {
             id: "123",
             provider: "tradernet",
@@ -64,6 +69,11 @@ describe("SyncScheduler Integration Tests", () => {
         mockRepo.findById.mockResolvedValue(undefined);
         mockTradernetClient.getDetails.mockResolvedValue("Some details");
         mockVectorStore.hasEmbedding.mockResolvedValue(false);
+
+        // @ts-ignore
+        aiService.openai.chat.completions.create.mockResolvedValue({
+            choices: [{ message: { content: "Sector: Tech\nBusiness: Apple\nIdea: Buy" } }]
+        });
         // @ts-ignore
         aiService.openai.embeddings.create.mockResolvedValue({
             data: [{embedding: [0.1, 0.2]}]
@@ -73,11 +83,18 @@ describe("SyncScheduler Integration Tests", () => {
         const processed = await syncScheduler.syncAndEmbed(1);
 
         expect(processed).toBe(1);
-        expect(mockRepo.upsert).toHaveBeenCalled();
+        expect(idea.summary).toBe("Sector: Tech\nBusiness: Apple\nIdea: Buy");
+        expect(mockRepo.upsert).toHaveBeenCalledWith(idea);
+        // @ts-ignore
+        expect(aiService.openai.embeddings.create).toHaveBeenCalledWith({
+            model: expect.any(String),
+            input: "Sector: Tech\nBusiness: Apple\nIdea: Buy",
+            encoding_format: "float"
+        });
         expect(mockVectorStore.saveEmbedding).toHaveBeenCalledWith("tradernet_123", [0.1, 0.2], "2023-01-01");
     });
 
-    it("should skip embedding if it already exists", async () => {
+    it("should skip summary generation if idea already has summary and embedding exists", async () => {
         const idea: InvestmentIdea = {
             id: "123",
             provider: "tradernet",
@@ -85,6 +102,7 @@ describe("SyncScheduler Integration Tests", () => {
             companyName: "Apple",
             title: "Buy Apple",
             description: "Good stock",
+            summary: "Existing summary",
             targetPrice: 200,
             currency: "USD",
             publishDate: "2023-01-01"
@@ -99,6 +117,8 @@ describe("SyncScheduler Integration Tests", () => {
 
         expect(processed).toBe(1);
         expect(mockRepo.upsert).not.toHaveBeenCalled();
+        // @ts-ignore
+        expect(aiService.openai.chat.completions.create).not.toHaveBeenCalled();
         // @ts-ignore
         expect(aiService.openai.embeddings.create).not.toHaveBeenCalled();
         expect(mockVectorStore.saveEmbedding).not.toHaveBeenCalled();

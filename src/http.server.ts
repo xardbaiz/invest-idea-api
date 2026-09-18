@@ -61,7 +61,7 @@ if (process.env.MCP_SERVER_HTTP_TRANSPORT_ENABLED === 'true') {
                 ...r,
                 ticker: r.idea.ticker,
                 companyName: r.idea.companyName,
-                description: r.idea.description,
+                summary: r.idea.summary || r.idea.description,
                 targetPrice: r.idea.targetPrice,
                 currentPrice,
                 url: providerUrlService.getIdeaUrl(r.idea.provider, r.idea.id),

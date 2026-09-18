@@ -12,6 +12,7 @@ export interface TopicSuggestion {
 export interface AiService {
     generateEmbedding(text: string): Promise<number[]>;
     discoverTopics(titles: string[], hint?: string): Promise<TopicSuggestion[]>;
+    generateSummary(systemPrompt: string, userPrompt: string): Promise<string>;
 }
 
 const discoverTopicsSystemPrompt = `You are an investment analyst. You receive a list of investment idea titles.
@@ -97,6 +98,18 @@ export class OpenAiService implements AiService {
             return [];
         }
     }
+
+    async generateSummary(systemPrompt: string, userPrompt: string): Promise<string> {
+        const response = await this.openai.chat.completions.create({
+            model: this.llmModel,
+            temperature: 0.3,
+            messages: [
+                { role: "system", content: systemPrompt },
+                { role: "user", content: userPrompt },
+            ],
+        });
+        return response?.choices?.[0]?.message?.content?.trim() ?? '';
+    }
 }
 
 export class GeminiAiService implements AiService {
@@ -163,6 +176,18 @@ export class GeminiAiService implements AiService {
             console.error('Failed to parse topic suggestions:', content);
             return [];
         }
+    }
+
+    async generateSummary(systemPrompt: string, userPrompt: string): Promise<string> {
+        const response = await this.ai.models.generateContent({
+            model: this.llmModel,
+            contents: userPrompt,
+            config: {
+                systemInstruction: systemPrompt,
+                temperature: 0.3,
+            },
+        });
+        return response.text?.trim() ?? '';
     }
 }
 

@@ -7,6 +7,7 @@ export interface InvestmentIdeaInfo {
     targetPrice: number;
     currency: string;
     description: string;
+    summary?: string;
     publishDate?: string;
 }
 

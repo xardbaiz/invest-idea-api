@@ -49,6 +49,25 @@ describe("GeminiAiService and Factory Tests", () => {
             const topics = await service.discoverTopics([]);
             expect(topics).toEqual([]);
         });
+
+        it("should generate summary with GeminiAiService", async () => {
+            const service = new GeminiAiService("test-gemini-key");
+            const summaryOutput = "Sector: Tech\nBusiness: Apple\nIdea: Growth";
+            jest.spyOn(service["ai"].models, "generateContent").mockResolvedValue(
+                {text: summaryOutput} as any
+            );
+
+            const result = await service.generateSummary("system prompt", "user prompt");
+            expect(result).toBe(summaryOutput);
+            expect(service["ai"].models.generateContent).toHaveBeenCalledWith({
+                model: expect.any(String),
+                contents: "user prompt",
+                config: {
+                    systemInstruction: "system prompt",
+                    temperature: 0.3,
+                },
+            });
+        });
     });
 
     describe("createAiService factory tests", () => {
