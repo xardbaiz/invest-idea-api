@@ -1,6 +1,7 @@
 import {LocalIndex} from 'vectra';
 import path from 'node:path';
 import {VectorSearchResult, VectorStoreService} from './qdrant.service.js';
+import {INVEST_IDEA_DETAILS_MARK} from "../../domain/constants.js";
 
 export class VectraVectorService implements VectorStoreService {
     private index: LocalIndex;
@@ -25,13 +26,16 @@ export class VectraVectorService implements VectorStoreService {
         return existing.length > 0;
     }
 
-    async saveEmbedding(ideaId: string, embedding: number[], publishDate?: string): Promise<void> {
+    async saveEmbedding(ideaId: string, text: string, embedding: number[], publishDate?: string): Promise<void> {
         await this.ensureIndex();
         const publishTimestamp = publishDate ? new Date(publishDate).getTime() : undefined;
         const metadata: Record<string, any> = { ideaId };
         if (publishDate) metadata.publishDate = publishDate;
         if (publishTimestamp !== undefined && !Number.isNaN(publishTimestamp)) {
             metadata.publishTimestamp = publishTimestamp;
+        }
+        if (!text.includes(INVEST_IDEA_DETAILS_MARK)) {
+            metadata.text = text;
         }
 
         const existing = await this.index.listItemsByMetadata({ ideaId });

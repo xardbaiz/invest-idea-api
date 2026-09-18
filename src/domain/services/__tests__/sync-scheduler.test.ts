@@ -87,6 +87,7 @@ describe("SyncScheduler Integration Tests", () => {
         expect(mockRepo.upsert).toHaveBeenCalledWith(idea);
         // @ts-ignore
         expect(aiService.openai.embeddings.create).toHaveBeenCalledWith({
+            dimensions: expect.any(Number),
             model: expect.any(String),
             input: "Sector: Tech\nBusiness: Apple\nIdea: Buy",
             encoding_format: "float"

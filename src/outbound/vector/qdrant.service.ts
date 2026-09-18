@@ -1,6 +1,6 @@
 import {QdrantClient} from '@qdrant/js-client-rest';
 import crypto from 'node:crypto';
-import {EMBEDDING_DIMENSION} from "../../domain/constants.js";
+import {EMBEDDING_DIMENSION, INVEST_IDEA_DETAILS_MARK} from "../../domain/constants.js";
 
 export interface VectorSearchResult {
     ideaId: string;
@@ -9,7 +9,8 @@ export interface VectorSearchResult {
 
 export interface VectorStoreService {
     hasEmbedding(ideaId: string): Promise<boolean>;
-    saveEmbedding(ideaId: string, embedding: number[], publishDate?: string): Promise<void>;
+
+    saveEmbedding(ideaId: string, text: string, embedding: number[], publishDate?: string): Promise<void>;
     searchSimilar(queryEmbedding: number[], limit: number, from?: string, to?: string): Promise<VectorSearchResult[]>;
 }
 
@@ -35,13 +36,16 @@ export class QdrantVectorService implements VectorStoreService {
         });
     }
 
-    async saveEmbedding(ideaId: string, embedding: number[], publishDate?: string): Promise<void> {
+    async saveEmbedding(ideaId: string, text: string, embedding: number[], publishDate?: string): Promise<void> {
         await this.ensureCollection(EMBEDDING_DIMENSION);
 
         const pointId = this.stringToUuid(ideaId);
         const payload: Record<string, any> = {
             idea_id: ideaId,
         };
+        if (!text.includes(INVEST_IDEA_DETAILS_MARK)) {
+            payload.text = text;
+        }
         if (publishDate) {
             payload.publish_date = publishDate;
             payload[timestampIndexFieldName] = new Date(publishDate).getTime();

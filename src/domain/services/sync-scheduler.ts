@@ -86,7 +86,7 @@ export class SyncScheduler {
                 const embeddingText = target.summary || ideaText;
                 try {
                     const embedding = await this.aiService.generateEmbedding(embeddingText);
-                    await this.vectorStore.saveEmbedding(internalId, embedding, target.publishDate);
+                    await this.vectorStore.saveEmbedding(internalId, embeddingText, embedding, target.publishDate);
                 } catch (e) {
                     console.error(`Failed to generate embedding for idea ${internalId}:`, e);
                 }
