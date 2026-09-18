@@ -4,9 +4,10 @@ import {Repository} from "../../outbound/persistence/repository.js";
 import {VectorStoreService} from "../../outbound/vector/qdrant.service.js";
 import {INVEST_IDEA_DETAILS_MARK} from "../constants.js";
 import {ChatMessage, InvestmentIdea} from "../models.js";
-
 // @ts-ignore
 import summaryPromptMessages from "./summary.messages.json";
+
+const embeddingSourcePrefix = process.env.EMBEDDING_SOURCE_PREFIX;
 
 export class SyncScheduler {
     private isRunning = false;
@@ -83,10 +84,10 @@ export class SyncScheduler {
             }
 
             if (!await this.vectorStore.hasEmbedding(internalId)) {
-                const embeddingText = target.summary || ideaText;
+                let payloadText = target.summary || ideaText;
                 try {
-                    const embedding = await this.aiService.generateEmbedding(embeddingText);
-                    await this.vectorStore.saveEmbedding(internalId, embeddingText, embedding, target.publishDate);
+                    const embedding = await this.aiService.generateEmbedding(embeddingSourcePrefix ? embeddingSourcePrefix + payloadText : payloadText);
+                    await this.vectorStore.saveEmbedding(internalId, payloadText, embedding, target.publishDate);
                 } catch (e) {
                     console.error(`Failed to generate embedding for idea ${internalId}:`, e);
                 }
