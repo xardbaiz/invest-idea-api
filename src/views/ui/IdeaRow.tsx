@@ -1,6 +1,7 @@
 export interface IdeaItem {
     ticker?: string;
     companyName?: string;
+    summary?: string;
     description?: string;
     targetPrice?: number | null;
     currentPrice?: number | null;
@@ -19,9 +20,9 @@ export function IdeaRow({ idea, index }: IdeaRowProps) {
     const descId = `desc-${index}`;
     const btnId = `btn-${index}`;
 
-    const desc = idea.description || '';
-    const isLong = desc.length > 150;
-    const shortDesc = isLong ? desc.substring(0, 150) + '...' : desc;
+    const text = idea.summary || idea.description || '';
+    const isLong = text.length > 150;
+    const shortText = isLong ? text.substring(0, 150) + '...' : text;
 
     const formattedDate = idea.publishDate ? new Date(idea.publishDate).toLocaleDateString('ru-RU') : '—';
     const similarityPercent = idea.similarity !== null && idea.similarity !== undefined
@@ -61,11 +62,11 @@ export function IdeaRow({ idea, index }: IdeaRowProps) {
             <td style={{ padding: '16px', fontWeight: 500, color: '#333' }}>
                 {idea.companyName || '—'}
             </td>
-            <td style={{ padding: '16px', maxWidth: '400px', lineHeight: '1.5', color: '#444' }}>
+            <td style={{ padding: '16px', maxWidth: '400px', lineHeight: '1.5', color: '#444', whiteSpace: 'pre-line' }}>
                 {isLong ? (
                     <div>
-                        <span id={`${descId}-short`}>{shortDesc} </span>
-                        <span id={`${descId}-full`} style={{ display: 'none' }}>{desc} </span>
+                        <span id={`${descId}-short`}>{shortText} </span>
+                        <span id={`${descId}-full`} style={{ display: 'none' }}>{text} </span>
                         <button
                             type="button"
                             id={btnId}
@@ -85,7 +86,7 @@ export function IdeaRow({ idea, index }: IdeaRowProps) {
                         </button>
                     </div>
                 ) : (
-                    <span>{desc || '—'}</span>
+                    <span>{text || '—'}</span>
                 )}
             </td>
             <td style={{

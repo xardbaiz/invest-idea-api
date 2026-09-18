@@ -19,22 +19,30 @@ export class SqlLiteIdeaRepository implements Repository {
                 target_price REAL,
                 currency     TEXT,
                 description  TEXT,
+                summary      TEXT,
                 publish_date TEXT
             )
         `);
+
+        try {
+            this.db.exec(`ALTER TABLE ideas ADD COLUMN summary TEXT`);
+        } catch {
+            // Column already exists
+        }
     }
 
     async upsert(idea: InvestmentIdea) {
         this.db.prepare(`
-            INSERT INTO ideas (id, provider, ticker, company_name, title, target_price, currency, description,
+            INSERT INTO ideas (id, provider, ticker, company_name, title, target_price, currency, description, summary,
                                publish_date)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(id) DO UPDATE SET description  = excluded.description,
-                                          target_price = excluded.target_price
+                                          target_price = excluded.target_price,
+                                          summary      = excluded.summary
         `).run(
             idea.id, idea.provider, idea.ticker, idea.companyName,
             idea.title, idea.targetPrice, idea.currency,
-            idea.description, idea.publishDate
+            idea.description, idea.summary ?? null, idea.publishDate
         );
     }
 
@@ -72,6 +80,7 @@ export class SqlLiteIdeaRepository implements Repository {
             companyName: row.company_name,
             title: row.title,
             description: row.description,
+            summary: row.summary ?? undefined,
             targetPrice: row.target_price,
             currency: row.currency,
             publishDate: row.publish_date,

@@ -21,6 +21,7 @@ export class SupabaseIdeaRepository implements Repository {
             target_price: idea.targetPrice,
             currency: idea.currency,
             description: idea.description,
+            summary: idea.summary,
             publish_date: idea.publishDate,
         }, {onConflict: 'id'});
 
@@ -68,6 +69,7 @@ export class SupabaseIdeaRepository implements Repository {
             companyName: row.company_name,
             title: row.title,
             description: row.description,
+            summary: row.summary ?? undefined,
             targetPrice: row.target_price,
             currency: row.currency,
             publishDate: row.publish_date,

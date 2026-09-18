@@ -9,5 +9,6 @@ CREATE TABLE IF NOT EXISTS ideas
     target_price numeric,
     currency     varchar,
     description  TEXT,
+    summary      TEXT,
     publish_date timestamptz
 );

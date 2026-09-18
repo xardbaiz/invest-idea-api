@@ -1,5 +1,6 @@
 import {QdrantClient} from '@qdrant/js-client-rest';
 import crypto from 'node:crypto';
+import {EMBEDDING_DIMENSION} from "../../domain/constants.js";
 
 export interface VectorSearchResult {
     ideaId: string;
@@ -35,7 +36,7 @@ export class QdrantVectorService implements VectorStoreService {
     }
 
     async saveEmbedding(ideaId: string, embedding: number[], publishDate?: string): Promise<void> {
-        await this.ensureCollection(embedding.length);
+        await this.ensureCollection(EMBEDDING_DIMENSION);
 
         const pointId = this.stringToUuid(ideaId);
         const payload: Record<string, any> = {
@@ -78,7 +79,7 @@ export class QdrantVectorService implements VectorStoreService {
     }
 
     async searchSimilar(queryEmbedding: number[], limit: number, from?: string, to?: string): Promise<VectorSearchResult[]> {
-        await this.ensureCollection(queryEmbedding.length);
+        await this.ensureCollection(EMBEDDING_DIMENSION);
 
         const filterConditions: any[] = [];
 

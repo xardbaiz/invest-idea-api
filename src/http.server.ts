@@ -61,7 +61,7 @@ if (process.env.MCP_SERVER_HTTP_TRANSPORT_ENABLED === 'true') {
                 ...r,
                 ticker: r.idea.ticker,
                 companyName: r.idea.companyName,
-                description: r.idea.description,
+                summary: r.idea.summary || r.idea.description,
                 targetPrice: r.idea.targetPrice,
                 currentPrice,
                 url: providerUrlService.getIdeaUrl(r.idea.provider, r.idea.id),
@@ -126,25 +126,6 @@ if (process.env.MCP_SERVER_HTTP_TRANSPORT_ENABLED === 'true') {
             res.json(details[0]);
         } catch (e: any) {
             console.error('GET /api/:ticker/quota/details error:', e);
-            res.status(500).send(`Error: ${e.message}`);
-        }
-    });
-
-    // GET /topics?from=YYYY-MM-DD&to=YYYY-MM-DD&hint=healthcare
-    app.get('/topics', async (req: any, res: any) => {
-        const {from, to, hint} = req.query;
-        if (!from || !to) {
-            return res.status(400).send('Missing required query parameters: from, to');
-        }
-        try {
-            const topics = await apiService.discoverTopics(from, to, hint);
-            const text = topics.map((t, i) =>
-                `#${i + 1} ${t.topic} (${t.count} ideas)\n` +
-                `   Query: ${t.suggestedQuery}`
-            ).join('\n\n');
-            res.type('text/plain').send(text || 'No topics found for this date range.');
-        } catch (e: any) {
-            console.error('GET /topics error:', e);
             res.status(500).send(`Error: ${e.message}`);
         }
     });

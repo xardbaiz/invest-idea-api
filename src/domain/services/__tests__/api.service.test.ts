@@ -71,6 +71,7 @@ describe("ApiService Integration Tests", () => {
         expect(results).toEqual([{idea, distance: 0.9}]);
         // @ts-ignore
         expect(aiService.openai.embeddings.create).toHaveBeenCalledWith({
+            dimensions: expect.any(Number),
             model: expect.any(String),
             input: query,
             encoding_format: "float"
@@ -101,30 +102,5 @@ describe("ApiService Integration Tests", () => {
         const results = await apiService.searchIdeas(query, 10);
 
         expect(results.map(r => r.idea.ticker)).toEqual(["B", "C", "A"]);
-    });
-
-    it("should discover topics correctly", async () => {
-        const from = "2023-01-01";
-        const to = "2023-01-31";
-        const titles = ["Title 1", "Title 2"];
-        const topicSuggestions = [{topic: "Topic 1", suggestedQuery: "Query 1", count: 2}];
-
-        mockRepo.findTitlesByDateRange.mockResolvedValue(titles);
-
-        // @ts-ignore
-        aiService.openai.chat.completions.create.mockResolvedValue({
-            choices: [{
-                message: {
-                    content: JSON.stringify({topics: topicSuggestions})
-                }
-            }]
-        });
-
-        const topics = await apiService.discoverTopics(from, to, "hint");
-
-        expect(topics).toEqual(topicSuggestions);
-        expect(mockRepo.findTitlesByDateRange).toHaveBeenCalledWith(from, to);
-        // @ts-ignore
-        expect(aiService.openai.chat.completions.create).toHaveBeenCalled();
     });
 });

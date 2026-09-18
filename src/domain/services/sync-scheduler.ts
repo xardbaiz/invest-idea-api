@@ -3,7 +3,10 @@ import {TradernetClient} from "../../outbound/clients/tradernet.js";
 import {Repository} from "../../outbound/persistence/repository.js";
 import {VectorStoreService} from "../../outbound/vector/qdrant.service.js";
 import {INVEST_IDEA_DETAILS_MARK} from "../constants.js";
-import {InvestmentIdea} from "../models.js";
+import {ChatMessage, InvestmentIdea} from "../models.js";
+
+// @ts-ignore
+import summaryPromptMessages from "./summary.messages.json";
 
 export class SyncScheduler {
     private isRunning = false;
@@ -64,11 +67,25 @@ export class SyncScheduler {
                 await this.repo.upsert(idea);
             }
 
-            if (!await this.vectorStore.hasEmbedding(internalId)) {
-                const target = existing ?? idea;
-                const text = `${target.title}\n${target.description}`;
+            const target = existing ?? idea;
+            const ideaText = `${target.title}\n${target.description}`;
+
+            if (!target.summary) {
                 try {
-                    const embedding = await this.aiService.generateEmbedding(text);
+                    const summary = await this.aiService.generateSummary(summaryPromptMessages as ChatMessage[], ideaText);
+                    if (summary) {
+                        target.summary = summary;
+                        await this.repo.upsert(target);
+                    }
+                } catch (e) {
+                    console.error(`Failed to generate summary for idea ${internalId}:`, e);
+                }
+            }
+
+            if (!await this.vectorStore.hasEmbedding(internalId)) {
+                const embeddingText = target.summary || ideaText;
+                try {
+                    const embedding = await this.aiService.generateEmbedding(embeddingText);
                     await this.vectorStore.saveEmbedding(internalId, embedding, target.publishDate);
                 } catch (e) {
                     console.error(`Failed to generate embedding for idea ${internalId}:`, e);

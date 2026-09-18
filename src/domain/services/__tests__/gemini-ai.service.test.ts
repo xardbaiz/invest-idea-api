@@ -32,22 +32,33 @@ describe("GeminiAiService and Factory Tests", () => {
             });
         });
 
-        it("should discover topics with GeminiAiService", async () => {
-            const topicSuggestions = [{ topic: "Tech", suggestedQuery: "Tech stocks", count: 5 }];
+        it("should generate summary with GeminiAiService", async () => {
             const service = new GeminiAiService("test-gemini-key");
+            const summaryOutput = "Sector: Tech\nBusiness: Apple\nIdea: Growth";
             jest.spyOn(service["ai"].models, "generateContent").mockResolvedValue(
-                {text: JSON.stringify({topics: topicSuggestions})} as any
+                {text: summaryOutput} as any
             );
 
-            const topics = await service.discoverTopics(["Title 1", "Title 2"], "tech");
-            expect(topics).toEqual(topicSuggestions);
-            expect(service["ai"].models.generateContent).toHaveBeenCalled();
-        });
+            const messages = [
+                { role: "system" as const, content: "system instruction" },
+                { role: "user" as const, content: "ex user" },
+                { role: "assistant" as const, content: "ex assistant" },
+            ];
 
-        it("should return empty array when titles list is empty in discoverTopics", async () => {
-            const service = new GeminiAiService("test-gemini-key");
-            const topics = await service.discoverTopics([]);
-            expect(topics).toEqual([]);
+            const result = await service.generateSummary(messages, "user input text");
+            expect(result).toBe(summaryOutput);
+            expect(service["ai"].models.generateContent).toHaveBeenCalledWith({
+                model: expect.any(String),
+                contents: [
+                    { role: "user", parts: [{ text: "ex user" }] },
+                    { role: "model", parts: [{ text: "ex assistant" }] },
+                    { role: "user", parts: [{ text: "user input text" }] },
+                ],
+                config: {
+                    systemInstruction: "system instruction",
+                    temperature: 0.3,
+                },
+            });
         });
     });
 

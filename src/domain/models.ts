@@ -1,3 +1,8 @@
+export interface ChatMessage {
+    role: 'system' | 'user' | 'assistant';
+    content: string;
+}
+
 export interface InvestmentIdeaInfo {
     id?: string;
     provider?: string;
@@ -7,6 +12,7 @@ export interface InvestmentIdeaInfo {
     targetPrice: number;
     currency: string;
     description: string;
+    summary?: string;
     publishDate?: string;
 }
 
