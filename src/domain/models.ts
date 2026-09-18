@@ -1,3 +1,8 @@
+export interface ChatMessage {
+    role: 'system' | 'user' | 'assistant';
+    content: string;
+}
+
 export interface InvestmentIdeaInfo {
     id?: string;
     provider?: string;

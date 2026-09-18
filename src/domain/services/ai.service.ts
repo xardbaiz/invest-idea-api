@@ -2,6 +2,7 @@ import OpenAI from 'openai';
 import {GoogleGenAI, Type} from '@google/genai';
 import 'dotenv/config';
 import {EMBEDDING_DIMENSION} from "../constants.js";
+import {ChatMessage} from "../models.js";
 
 export interface TopicSuggestion {
     topic: string;
@@ -12,7 +13,7 @@ export interface TopicSuggestion {
 export interface AiService {
     generateEmbedding(text: string): Promise<number[]>;
     discoverTopics(titles: string[], hint?: string): Promise<TopicSuggestion[]>;
-    generateSummary(systemPrompt: string, userPrompt: string): Promise<string>;
+    generateSummary(messages: ChatMessage[], input: string): Promise<string>;
 }
 
 const discoverTopicsSystemPrompt = `You are an investment analyst. You receive a list of investment idea titles.
@@ -99,14 +100,16 @@ export class OpenAiService implements AiService {
         }
     }
 
-    async generateSummary(systemPrompt: string, userPrompt: string): Promise<string> {
+    async generateSummary(messages: ChatMessage[], input: string): Promise<string> {
+        const openAiMessages = [
+            ...messages.map(m => ({ role: m.role, content: m.content })),
+            { role: 'user' as const, content: input },
+        ];
+
         const response = await this.openai.chat.completions.create({
             model: this.llmModel,
             temperature: 0.3,
-            messages: [
-                { role: "system", content: systemPrompt },
-                { role: "user", content: userPrompt },
-            ],
+            messages: openAiMessages,
         });
         return response?.choices?.[0]?.message?.content?.trim() ?? '';
     }
@@ -178,12 +181,26 @@ export class GeminiAiService implements AiService {
         }
     }
 
-    async generateSummary(systemPrompt: string, userPrompt: string): Promise<string> {
+    async generateSummary(messages: ChatMessage[], input: string): Promise<string> {
+        const systemMessage = messages.find(m => m.role === 'system');
+        const fewShots = messages.filter(m => m.role !== 'system');
+
+        const contents: any[] = [
+            ...fewShots.map(m => ({
+                role: m.role === 'assistant' ? 'model' : m.role,
+                parts: [{ text: m.content }],
+            })),
+            {
+                role: 'user',
+                parts: [{ text: input }],
+            },
+        ];
+
         const response = await this.ai.models.generateContent({
             model: this.llmModel,
-            contents: userPrompt,
+            contents,
             config: {
-                systemInstruction: systemPrompt,
+                systemInstruction: systemMessage?.content,
                 temperature: 0.3,
             },
         });

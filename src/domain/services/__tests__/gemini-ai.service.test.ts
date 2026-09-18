@@ -57,13 +57,23 @@ describe("GeminiAiService and Factory Tests", () => {
                 {text: summaryOutput} as any
             );
 
-            const result = await service.generateSummary("system prompt", "user prompt");
+            const messages = [
+                { role: "system" as const, content: "system instruction" },
+                { role: "user" as const, content: "ex user" },
+                { role: "assistant" as const, content: "ex assistant" },
+            ];
+
+            const result = await service.generateSummary(messages, "user input text");
             expect(result).toBe(summaryOutput);
             expect(service["ai"].models.generateContent).toHaveBeenCalledWith({
                 model: expect.any(String),
-                contents: "user prompt",
+                contents: [
+                    { role: "user", parts: [{ text: "ex user" }] },
+                    { role: "model", parts: [{ text: "ex assistant" }] },
+                    { role: "user", parts: [{ text: "user input text" }] },
+                ],
                 config: {
-                    systemInstruction: "system prompt",
+                    systemInstruction: "system instruction",
                     temperature: 0.3,
                 },
             });
