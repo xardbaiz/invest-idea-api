@@ -1,6 +1,7 @@
 import {AiService, createAiService} from "./ai.service.js";
 import {TradernetClient} from "../../outbound/clients/tradernet.js";
 import {Repository} from "../../outbound/persistence/repository.js";
+import {VectorStoreService} from "../../outbound/vector/qdrant.service.js";
 import {INVEST_IDEA_DETAILS_MARK} from "../constants.js";
 import {InvestmentIdea} from "../models.js";
 
@@ -11,6 +12,7 @@ export class SyncScheduler {
 
     constructor(
         private readonly repo: Repository,
+        private readonly vectorStore: VectorStoreService,
         private readonly aiService: AiService = createAiService(),
         private readonly tradernetClient: TradernetClient = new TradernetClient(),
     ) {
@@ -62,12 +64,12 @@ export class SyncScheduler {
                 await this.repo.upsert(idea);
             }
 
-            if (!await this.repo.hasEmbedding(internalId)) {
+            if (!await this.vectorStore.hasEmbedding(internalId)) {
                 const target = existing ?? idea;
                 const text = `${target.title}\n${target.description}`;
                 try {
                     const embedding = await this.aiService.generateEmbedding(text);
-                    await this.repo.saveEmbedding(internalId, embedding);
+                    await this.vectorStore.saveEmbedding(internalId, embedding, target.publishDate);
                 } catch (e) {
                     console.error(`Failed to generate embedding for idea ${internalId}:`, e);
                 }

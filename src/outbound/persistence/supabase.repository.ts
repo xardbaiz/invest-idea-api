@@ -1,9 +1,8 @@
 import {createClient, SupabaseClient} from '@supabase/supabase-js';
-import {InvestmentIdea, SearchResult} from "../../domain/models.js";
+import {InvestmentIdea} from "../../domain/models.js";
 import {Repository} from "./repository.js";
 
 const IDEAS_TABLE = 'ideas';
-const EMBEDDINGS_TABLE = 'idea_embeddings';
 
 export class SupabaseIdeaRepository implements Repository {
     private client: SupabaseClient;
@@ -39,53 +38,15 @@ export class SupabaseIdeaRepository implements Repository {
         return data ? this.toIdea(data) : undefined;
     }
 
-    async hasEmbedding(ideaId: string): Promise<boolean> {
+    async findByIds(ids: string[]): Promise<InvestmentIdea[]> {
+        if (ids.length === 0) return [];
         const {data, error} = await this.client
-            .from(EMBEDDINGS_TABLE)
-            .select('idea_id')
-            .eq('idea_id', ideaId)
-            .maybeSingle();
+            .from(IDEAS_TABLE)
+            .select('*')
+            .in('id', ids);
 
-        if (error) throw new Error(`Supabase hasEmbedding('${ideaId}') failed: ${error.message}`);
-        return !!data;
-    }
-
-    async saveEmbedding(ideaId: string, embedding: number[]): Promise<void> {
-        const {error} = await this.client.from(EMBEDDINGS_TABLE).upsert({
-            idea_id: ideaId,
-            embedding: JSON.stringify(embedding),
-        }, {onConflict: 'idea_id'});
-
-        if (error) throw new Error(`Supabase saveEmbedding('${ideaId}') failed: ${error.message}`);
-    }
-
-    /**
-     * Requires a Supabase SQL function `search_ideas`
-     */
-    async searchSimilar(queryEmbedding: number[], limit: number, from?: string, to?: string): Promise<SearchResult[]> {
-        const {data, error} = await this.client.rpc('search_ideas', {
-            query_embedding: JSON.stringify(queryEmbedding),
-            match_limit: limit,
-            date_from: from ?? null,
-            date_to: to ?? null,
-        });
-
-        if (error) throw new Error(`Supabase searchSimilar failed: ${error.message}`);
-
-        return (data ?? []).map((row: any) => ({
-            idea: {
-                id: row.id,
-                provider: row.provider,
-                ticker: row.ticker,
-                companyName: row.company_name,
-                title: row.title,
-                targetPrice: row.target_price,
-                currency: row.currency,
-                description: row.description,
-                publishDate: row.publish_date,
-            },
-            distance: row.distance,
-        }));
+        if (error) throw new Error(`Supabase findByIds failed: ${error.message}`);
+        return (data ?? []).map((row: any) => this.toIdea(row));
     }
 
     async findTitlesByDateRange(from: string, to: string): Promise<string[]> {

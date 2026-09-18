@@ -1,15 +1,11 @@
-import {InvestmentIdea, SearchResult} from "../../domain/models.js";
+import {InvestmentIdea} from "../../domain/models.js";
 
 export interface Repository {
     upsert(idea: InvestmentIdea): Promise<void>;
 
     findById(id: string): Promise<InvestmentIdea | undefined>;
 
-    hasEmbedding(ideaId: string): Promise<boolean>;
-
-    saveEmbedding(ideaId: string, embedding: number[]): Promise<void>;
-
-    searchSimilar(queryEmbedding: number[], limit: number, from?: string, to?: string): Promise<SearchResult[]>;
+    findByIds(ids: string[]): Promise<InvestmentIdea[]>;
 
     findTitlesByDateRange(from: string, to: string): Promise<string[]>;
 }

@@ -1,20 +1,12 @@
 import Database from 'better-sqlite3';
-import {InvestmentIdea, SearchResult} from "../../domain/models.js";
+import {InvestmentIdea} from "../../domain/models.js";
 import {Repository} from "./repository.js";
-import {getExtensionPath} from '@sqliteai/sqlite-vector';
-
-const EMBEDDING_DIMENSION = Number(process.env.EMBEDDING_DIMENSION ?? 256);
 
 export class SqlLiteIdeaRepository implements Repository {
     private db: Database.Database;
 
     constructor() {
         this.db = new Database('invest_ideas.db');
-        try {
-            this.db.loadExtension(getExtensionPath());
-        } catch (e: any) {
-            console.warn('Failed to load sqlite-vector extension:', e?.message || e);
-        }
 
         this.db.exec(`
             CREATE TABLE IF NOT EXISTS ideas
@@ -30,20 +22,6 @@ export class SqlLiteIdeaRepository implements Repository {
                 publish_date TEXT
             )
         `);
-
-        this.db.exec(`
-            CREATE TABLE IF NOT EXISTS idea_embeddings
-            (
-                idea_id   TEXT PRIMARY KEY REFERENCES ideas (id),
-                embedding BLOB NOT NULL
-            )
-        `);
-
-        try {
-            this.db.exec(`SELECT vector_init('idea_embeddings', 'embedding', 'dimension=${EMBEDDING_DIMENSION},type=FLOAT32,distance=COSINE')`);
-        } catch (e: any) {
-            console.warn('Failed to init sqlite-vector:', e?.message || e);
-        }
     }
 
     async upsert(idea: InvestmentIdea) {
@@ -67,61 +45,13 @@ export class SqlLiteIdeaRepository implements Repository {
         return row ? this.toIdea(row) : undefined;
     }
 
-    async hasEmbedding(ideaId: string): Promise<boolean> {
-        const row = this.db.prepare(`SELECT 1
-                                     FROM idea_embeddings
-                                     WHERE idea_id = ?`).get(ideaId);
-        return !!row;
-    }
-
-    async saveEmbedding(ideaId: string, embedding: number[]): Promise<void> {
-        const blob = Buffer.from(new Float32Array(embedding).buffer);
-        this.db.prepare(`
-            INSERT INTO idea_embeddings (idea_id, embedding)
-            VALUES (?, vector_as_f32(?))
-            ON CONFLICT(idea_id) DO UPDATE SET embedding = vector_as_f32(excluded.embedding)
-        `).run(ideaId, blob);
-    }
-
-    async searchSimilar(queryEmbedding: number[], limit: number, from?: string, to?: string): Promise<SearchResult[]> {
-        const queryBlob = Buffer.from(new Float32Array(queryEmbedding).buffer);
-
-        let dateFilter = '';
-        const params: any[] = [];
-
-        if (from) {
-            dateFilter += ' AND i.publish_date >= ?';
-            params.push(from);
-        }
-        if (to) {
-            dateFilter += ' AND i.publish_date <= ?';
-            params.push(to);
-        }
-
-        // Streaming mode with JOIN and date filtering
-        const rows: any[] = this.db.prepare(`
-            SELECT i.id, i.provider, i.ticker, i.company_name, i.title, i.target_price, i.currency, i.description, i.publish_date, v.distance
-            FROM vector_full_scan('idea_embeddings', 'embedding', ?) AS v
-                     JOIN idea_embeddings e ON e.rowid = v.rowid
-                     JOIN ideas i ON i.id = e.idea_id
-            WHERE 1 = 1 ${dateFilter}
-            LIMIT ?
-        `).all(queryBlob, ...params, limit);
-
-        return rows.map(row => ({
-            idea: {
-                id: row.id,
-                provider: row.provider,
-                ticker: row.ticker,
-                companyName: row.company_name,
-                title: row.title,
-                targetPrice: row.target_price,
-                currency: row.currency,
-                description: row.description,
-                publishDate: row.publish_date,
-            },
-            distance: row.distance,
-        }));
+    async findByIds(ids: string[]): Promise<InvestmentIdea[]> {
+        if (ids.length === 0) return [];
+        const placeholders = ids.map(() => '?').join(',');
+        const rows: any[] = this.db.prepare(`SELECT *
+                                              FROM ideas
+                                              WHERE id IN (${placeholders})`).all(...ids);
+        return rows.map(row => this.toIdea(row));
     }
 
     async findTitlesByDateRange(from: string, to: string): Promise<string[]> {

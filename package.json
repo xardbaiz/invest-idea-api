@@ -37,13 +37,14 @@
     "@modelcontextprotocol/node": "^2.0.0-alpha.2",
     "@modelcontextprotocol/server": "^2.0.0-alpha.2",
     "@mui/material": "^9.4.0",
-    "@sqliteai/sqlite-vector": "^0.9.95",
+    "@qdrant/js-client-rest": "^1.13.0",
     "@supabase/supabase-js": "^2.101.1",
     "better-sqlite3": "^12.6.2",
     "dotenv": "^17.3.1",
     "openai": "^6.27.0",
     "preact": "^10.29.8",
-    "preact-render-to-string": "^6.7.0"
+    "preact-render-to-string": "^6.7.0",
+    "vectra": "^0.15.0"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.13",
