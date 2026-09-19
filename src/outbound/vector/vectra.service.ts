@@ -12,6 +12,10 @@ export class VectraVectorService implements VectorStoreService {
         this.index = new LocalIndex(folderPath);
     }
 
+    isSupportInference(): boolean {
+        return false;
+    }
+
     private async ensureIndex(): Promise<void> {
         if (this.initialized) return;
         if (!await this.index.isIndexCreated()) {
@@ -26,11 +30,32 @@ export class VectraVectorService implements VectorStoreService {
         return existing.length > 0;
     }
 
-    async saveEmbedding(ideaId: string, text: string, embedding: number[], publishDate?: string): Promise<void> {
+    async saveEmbedding(
+        ideaId: string,
+        text: string,
+        embeddingOrPublishDate?: number[] | string,
+        publishDate?: string
+    ): Promise<void> {
+        let embedding: number[] | undefined;
+        let actualPublishDate: string | undefined;
+
+        if (Array.isArray(embeddingOrPublishDate)) {
+            embedding = embeddingOrPublishDate;
+            actualPublishDate = publishDate;
+        } else if (typeof embeddingOrPublishDate === 'string') {
+            actualPublishDate = embeddingOrPublishDate;
+        } else {
+            actualPublishDate = publishDate;
+        }
+
+        if (!embedding || !Array.isArray(embedding)) {
+            throw new Error("VectraVectorService does not support server-side inference. Embedding array is required.");
+        }
+
         await this.ensureIndex();
-        const publishTimestamp = publishDate ? new Date(publishDate).getTime() : undefined;
+        const publishTimestamp = actualPublishDate ? new Date(actualPublishDate).getTime() : undefined;
         const metadata: Record<string, any> = { ideaId };
-        if (publishDate) metadata.publishDate = publishDate;
+        if (actualPublishDate) metadata.publishDate = actualPublishDate;
         if (publishTimestamp !== undefined && !Number.isNaN(publishTimestamp)) {
             metadata.publishTimestamp = publishTimestamp;
         }
@@ -53,7 +78,15 @@ export class VectraVectorService implements VectorStoreService {
         }
     }
 
-    async searchSimilar(queryEmbedding: number[], limit: number, from?: string, to?: string): Promise<VectorSearchResult[]> {
+    async searchSimilar(
+        query: string | number[],
+        limit: number,
+        from?: string,
+        to?: string
+    ): Promise<VectorSearchResult[]> {
+        if (typeof query === 'string') {
+            throw new Error("VectraVectorService does not support server-side inference. Query vector array is required.");
+        }
         await this.ensureIndex();
 
         const fromTs = from ? new Date(from).getTime() : undefined;
@@ -69,7 +102,7 @@ export class VectraVectorService implements VectorStoreService {
             filter = { publishTimestamp: { $lte: toTs } };
         }
 
-        const queryResults = await this.index.queryItems(queryEmbedding, '', limit, filter);
+        const queryResults = await this.index.queryItems(query, '', limit, filter);
 
         return queryResults.map(res => ({
             ideaId: (res.item.metadata?.ideaId as string) ?? res.item.id,

@@ -86,8 +86,12 @@ export class SyncScheduler {
             if (!await this.vectorStore.hasEmbedding(internalId)) {
                 let payloadText = target.summary || ideaText;
                 try {
-                    const embedding = await this.aiService.generateEmbedding(embeddingSourcePrefix ? embeddingSourcePrefix + payloadText : payloadText);
-                    await this.vectorStore.saveEmbedding(internalId, payloadText, embedding, target.publishDate);
+                    if (this.vectorStore.isSupportInference()) {
+                        await this.vectorStore.saveEmbedding(internalId, payloadText, target.publishDate);
+                    } else {
+                        const embedding = await this.aiService.generateEmbedding(embeddingSourcePrefix ? embeddingSourcePrefix + payloadText : payloadText);
+                        await this.vectorStore.saveEmbedding(internalId, payloadText, embedding, target.publishDate);
+                    }
                 } catch (e) {
                     console.error(`Failed to generate embedding for idea ${internalId}:`, e);
                 }

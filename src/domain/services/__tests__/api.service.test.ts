@@ -20,6 +20,7 @@ describe("ApiService Integration Tests", () => {
         } as unknown as jest.Mocked<Repository>;
 
         mockVectorStore = {
+            isSupportInference: jest.fn().mockReturnValue(false),
             hasEmbedding: jest.fn(),
             saveEmbedding: jest.fn(),
             searchSimilar: jest.fn(),
@@ -78,6 +79,32 @@ describe("ApiService Integration Tests", () => {
         });
         expect(mockVectorStore.searchSimilar).toHaveBeenCalledWith(embedding, 10, "2023-01-01", "2023-01-31");
         expect(mockRepo.findByIds).toHaveBeenCalledWith(["tradernet_1"]);
+    });
+
+    it("should search ideas directly using text query when isSupportInference is true", async () => {
+        const query = "test query";
+        const idea: InvestmentIdea = {
+            id: "tradernet_1",
+            provider: "tradernet",
+            ticker: "AAPL",
+            companyName: "Apple",
+            title: "Test Idea",
+            description: "Desc",
+            targetPrice: 150,
+            currency: "USD",
+            publishDate: "2023-01-01",
+        };
+
+        mockVectorStore.isSupportInference.mockReturnValue(true);
+        mockVectorStore.searchSimilar.mockResolvedValue([{ideaId: "tradernet_1", distance: 0.9}]);
+        mockRepo.findByIds.mockResolvedValue([idea]);
+
+        const results = await apiService.searchIdeas(query, 10, "2023-01-01", "2023-01-31");
+
+        expect(results).toEqual([{idea, distance: 0.9}]);
+        // @ts-ignore
+        expect(aiService.openai.embeddings.create).not.toHaveBeenCalled();
+        expect(mockVectorStore.searchSimilar).toHaveBeenCalledWith(query, 10, "2023-01-01", "2023-01-31");
     });
 
     it("should sort search results by vector distance (descending) and publish date (descending)", async () => {
