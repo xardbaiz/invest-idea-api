@@ -179,7 +179,7 @@ export class QdrantVectorService implements VectorStoreService {
             const ideaId = (point.payload?.idea_id as string) ?? String(point.id);
             return {
                 ideaId,
-                distance: point.score,
+                distance: (1 - point.score),
             };
         });
     }
