@@ -1,11 +1,15 @@
+import { Language, getTranslations } from './i18n/translations.js';
+
 interface SearchFormProps {
     query?: string;
     from?: string;
     to?: string;
     limit?: number;
+    lang?: Language;
 }
 
-export function SearchForm({ query = '', from = '', to = '', limit = 10 }: SearchFormProps) {
+export function SearchForm({ query = '', from = '', to = '', limit = 10, lang = 'en' }: SearchFormProps) {
+    const t = getTranslations(lang);
     return (
         <div style={{
             backgroundColor: '#ffffff',
@@ -19,14 +23,14 @@ export function SearchForm({ query = '', from = '', to = '', limit = 10 }: Searc
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                     <div>
                         <label htmlFor="query" style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#444', marginBottom: '6px' }}>
-                            Поисковый запрос
+                            {t.searchLabelQuery}
                         </label>
                         <input
                             type="text"
                             name="query"
                             id="query"
                             value={query}
-                            placeholder="например, искусственный интеллект, дивиденды или IT сектор"
+                            placeholder={t.searchPlaceholderQuery}
                             style={{
                                 width: '100%',
                                 padding: '12px 16px',
@@ -42,7 +46,7 @@ export function SearchForm({ query = '', from = '', to = '', limit = 10 }: Searc
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px' }}>
                         <div>
                             <label htmlFor="from" style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#444', marginBottom: '6px' }}>
-                                Дата с
+                                {t.searchLabelFrom}
                             </label>
                             <input
                                 type="date"
@@ -61,7 +65,7 @@ export function SearchForm({ query = '', from = '', to = '', limit = 10 }: Searc
                         </div>
                         <div>
                             <label htmlFor="to" style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#444', marginBottom: '6px' }}>
-                                Дата по
+                                {t.searchLabelTo}
                             </label>
                             <input
                                 type="date"
@@ -80,7 +84,7 @@ export function SearchForm({ query = '', from = '', to = '', limit = 10 }: Searc
                         </div>
                         <div>
                             <label htmlFor="limit" style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#444', marginBottom: '6px' }}>
-                                Лимит
+                                {t.searchLabelLimit}
                             </label>
                             <input
                                 type="number"
@@ -120,7 +124,7 @@ export function SearchForm({ query = '', from = '', to = '', limit = 10 }: Searc
                             }}
                         >
                             <span className="material-icons" style={{ fontSize: '20px' }}>search</span>
-                            Искать
+                            {t.searchBtn}
                         </button>
                     </div>
                 </div>

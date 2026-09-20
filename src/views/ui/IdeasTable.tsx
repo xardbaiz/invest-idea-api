@@ -1,11 +1,15 @@
-import {IdeaItem, IdeaRow} from './IdeaRow.js';
+import { Language, getTranslations } from './i18n/translations.js';
+import { IdeaItem, IdeaRow } from './IdeaRow.js';
 
 interface IdeasTableProps {
     ideas: IdeaItem[];
     searched: boolean;
+    lang?: Language;
 }
 
-export function IdeasTable({ ideas, searched }: IdeasTableProps) {
+export function IdeasTable({ ideas, searched, lang = 'en' }: IdeasTableProps) {
+    const t = getTranslations(lang);
+
     if (!searched && ideas.length === 0) {
         return (
             <div style={{
@@ -18,7 +22,7 @@ export function IdeasTable({ ideas, searched }: IdeasTableProps) {
                 boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
             }}>
                 <p style={{ margin: 0, fontSize: '1.05rem' }}>
-                    Введите поисковый запрос или задайте параметры фильтрации для поиска инвестиционных идей.
+                    {t.tablePromptInitial}
                 </p>
             </div>
         );
@@ -34,9 +38,9 @@ export function IdeasTable({ ideas, searched }: IdeasTableProps) {
                 color: '#856404',
                 border: '1px solid #ffeba2'
             }}>
-                <h3 style={{ margin: '0 0 8px 0', fontSize: '1.2rem' }}>Идеи не найдены</h3>
+                <h3 style={{ margin: '0 0 8px 0', fontSize: '1.2rem' }}>{t.tableNoResultsTitle}</h3>
                 <p style={{ margin: 0, fontSize: '0.95rem' }}>
-                    Попробуйте изменить поисковый запрос или расширить временной интервал.
+                    {t.tableNoResultsText}
                 </p>
             </div>
         );
@@ -54,20 +58,18 @@ export function IdeasTable({ ideas, searched }: IdeasTableProps) {
                 <table id="ideasTable" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.95rem' }}>
                     <thead>
                         <tr style={{ backgroundColor: '#f5f5f5', borderBottom: '2px solid #e0e0e0' }}>
-                            <th style={{ padding: '16px', fontWeight: 600, color: '#333' }}>Тикер</th>
-                            <th style={{ padding: '16px', fontWeight: 600, color: '#333' }}>Компания</th>
-                            <th style={{ padding: '16px', fontWeight: 600, color: '#333' }}>Сводка</th>
-                            <th style={{padding: '16px', fontWeight: 600, color: '#333', textAlign: 'right'}}>Текущая
-                                цена
-                            </th>
-                            <th style={{ padding: '16px', fontWeight: 600, color: '#333', textAlign: 'right' }}>Целевая цена</th>
-                            <th style={{ padding: '16px', fontWeight: 600, color: '#333', textAlign: 'center' }}>Релевантность</th>
-                            <th style={{ padding: '16px', fontWeight: 600, color: '#333', textAlign: 'right' }}>Дата публикации</th>
+                            <th style={{ padding: '16px', fontWeight: 600, color: '#333' }}>{t.thTicker}</th>
+                            <th style={{ padding: '16px', fontWeight: 600, color: '#333' }}>{t.thCompany}</th>
+                            <th style={{ padding: '16px', fontWeight: 600, color: '#333' }}>{t.thSummary}</th>
+                            <th style={{ padding: '16px', fontWeight: 600, color: '#333', textAlign: 'right' }}>{t.thCurrentPrice}</th>
+                            <th style={{ padding: '16px', fontWeight: 600, color: '#333', textAlign: 'right' }}>{t.thTargetPrice}</th>
+                            <th style={{ padding: '16px', fontWeight: 600, color: '#333', textAlign: 'center' }}>{t.thRelevance}</th>
+                            <th style={{ padding: '16px', fontWeight: 600, color: '#333', textAlign: 'right' }}>{t.thPublishDate}</th>
                         </tr>
                     </thead>
                     <tbody>
                         {ideas.map((idea, index) => (
-                            <IdeaRow key={idea.ticker ? `${idea.ticker}-${index}` : index} idea={idea} index={index} />
+                            <IdeaRow key={idea.ticker ? `${idea.ticker}-${index}` : index} idea={idea} index={index} lang={lang} />
                         ))}
                     </tbody>
                 </table>

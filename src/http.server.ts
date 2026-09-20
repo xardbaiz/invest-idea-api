@@ -7,6 +7,8 @@ import {createAiService} from "./domain/services/ai.service.js";
 import {ApiService} from "./domain/services/api.service.js";
 import {ProviderUrlService} from "./domain/services/provider-url.service.js";
 import {renderIdeasPage} from "./views/ideas-page.js";
+import {renderLandingPage} from "./views/landing-page.js";
+import {getLanguageFromHeader} from "./views/ui/i18n/translations.js";
 import 'dotenv/config';
 
 if (process.env.MCP_SERVER_HTTP_TRANSPORT_ENABLED === 'true') {
@@ -73,6 +75,12 @@ if (process.env.MCP_SERVER_HTTP_TRANSPORT_ENABLED === 'true') {
         });
     }
 
+    // GET / -> Landing HTML Page
+    app.get('/', async (req: any, res: any) => {
+        const lang = getLanguageFromHeader(req.headers['accept-language']);
+        res.type('html').send(renderLandingPage({ lang }));
+    });
+
     // GET /api/ideas?query=...&from=YYYY-MM-DD&to=YYYY-MM-DD&limit=10
     app.get('/api/ideas', async (req: any, res: any) => {
         const {query, from, to, limit} = req.query;
@@ -90,6 +98,7 @@ if (process.env.MCP_SERVER_HTTP_TRANSPORT_ENABLED === 'true') {
     // GET /ideas -> HTML Page
     app.get('/ideas', async (req: any, res: any) => {
         const { query, from, to, limit } = req.query;
+        const lang = getLanguageFromHeader(req.headers['accept-language']);
 
         const defaultTo = new Date();
         const defaultFrom = new Date(defaultTo);
@@ -115,7 +124,8 @@ if (process.env.MCP_SERVER_HTTP_TRANSPORT_ENABLED === 'true') {
             to: toStr,
             limit: limit ? Number(limit) : 10,
             ideas,
-            searched
+            searched,
+            lang
         }));
     });
 

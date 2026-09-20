@@ -2,6 +2,7 @@ import { h } from 'preact';
 import { renderToString } from 'preact-render-to-string';
 import { App } from './ui/App.js';
 import { IdeaItem } from './ui/IdeaRow.js';
+import { Language, getTranslations } from './ui/i18n/translations.js';
 
 export interface RenderIdeasPageOptions {
     query?: string;
@@ -10,10 +11,12 @@ export interface RenderIdeasPageOptions {
     limit?: number;
     ideas?: IdeaItem[];
     searched?: boolean;
+    lang?: Language;
 }
 
 export function renderIdeasPage(options: RenderIdeasPageOptions = {}): string {
-    const { query = '', from = '', to = '', limit = 10, ideas = [], searched = false } = options;
+    const { query = '', from = '', to = '', limit = 10, ideas = [], searched = false, lang = 'en' } = options;
+    const t = getTranslations(lang);
 
     const pageHtml = renderToString(
         h(App, {
@@ -23,15 +26,16 @@ export function renderIdeasPage(options: RenderIdeasPageOptions = {}): string {
             limit,
             ideas,
             searched,
+            lang
         })
     );
 
     return `<!DOCTYPE html>
-<html lang="ru">
+<html lang="${lang}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Поиск инвестиционных идей</title>
+    <title>${t.ideasPageTitle}</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap">
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <style>
