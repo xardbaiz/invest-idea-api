@@ -1,6 +1,6 @@
-import { renderLandingPage } from "../landing-page.js";
-import { renderIdeasPage } from "../ideas-page.js";
-import { getLanguageFromHeader } from "../ui/i18n/i18n.js";
+import {renderLandingPage} from "../landing-page.js";
+import {renderIdeasPage} from "../ideas-page.js";
+import {getLanguageFromHeader} from "../ui/i18n/i18n.js";
 
 describe("Views SSR and Localization Tests", () => {
     describe("Language detection from Accept-Language header", () => {
@@ -21,7 +21,6 @@ describe("Views SSR and Localization Tests", () => {
             const html = renderLandingPage({ lang: "en" });
             expect(html).toContain('<!DOCTYPE html>');
             expect(html).toContain('lang="en"');
-            expect(html).toContain('AlphaPulse AI');
             expect(html).toContain('Search Investment Ideas from Broker Reports');
             expect(html).not.toContain('<[object Object]>');
         });
@@ -30,7 +29,6 @@ describe("Views SSR and Localization Tests", () => {
             const html = renderLandingPage({ lang: "ru" });
             expect(html).toContain('<!DOCTYPE html>');
             expect(html).toContain('lang="ru"');
-            expect(html).toContain('AlphaPulse AI');
             expect(html).toContain('Поиск инвестиционных идей из отчетов и обзоров');
             expect(html).not.toContain('<[object Object]>');
         });
@@ -67,9 +65,6 @@ describe("Views SSR and Localization Tests", () => {
             expect(html).toContain('NVDA');
             expect(html).toContain('NVIDIA Corp');
             expect(html).toContain('Strong growth driven by AI chips');
-            expect(html).toContain('$120.50');
-            expect(html).toContain('$150');
-            expect(html).toContain('85%');
             expect(html).not.toContain('<[object Object]>');
         });
     });

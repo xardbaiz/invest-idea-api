@@ -1,16 +1,5 @@
-import { Language, getTranslations } from './i18n/i18n.js';
-import {
-    Box,
-    Container,
-    Typography,
-    Button,
-    Card,
-    CardContent,
-    Chip,
-    Paper,
-    Link,
-    Divider
-} from '@mui/material';
+import {getTranslations, Language} from './i18n/i18n.js';
+import {Box, Button, Card, CardContent, Chip, Container, Divider, Link, Paper, Typography} from '@mui/material';
 
 interface LandingPageProps {
     lang?: Language;
@@ -200,9 +189,9 @@ export function LandingPage({ lang = 'en' }: LandingPageProps) {
                     gap: 2.5
                 }}>
                     {[
-                        { val: t.stat1Value, lbl: t.stat1Label },
-                        { val: t.stat2Value, lbl: t.stat2Label },
-                        { val: t.stat3Value, lbl: t.stat3Label },
+                        {val: '1251', lbl: t.stat1Label},
+                        {val: '15+', lbl: t.stat2Label},
+                        {val: '99.4%', lbl: t.stat3Label},
                         { val: t.stat4Value, lbl: t.stat4Label },
                     ].map((st, i) => (
                         <Paper key={i} elevation={0} sx={{
