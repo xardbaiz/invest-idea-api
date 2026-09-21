@@ -2,7 +2,7 @@ import { h } from 'preact';
 import { renderToString } from 'preact-render-to-string';
 import { App } from './ui/App.js';
 import { IdeaItem } from './ui/IdeaRow.js';
-import { Language, getTranslations } from './ui/i18n/translations.js';
+import { Language, getTranslations } from './ui/i18n/i18n.js';
 
 export interface RenderIdeasPageOptions {
     query?: string;

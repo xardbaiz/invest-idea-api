@@ -1,4 +1,4 @@
-import { Language, getTranslations } from './i18n/translations.js';
+import { Language, getTranslations } from './i18n/i18n.js';
 import { Header } from './Header.js';
 import { SearchForm } from './SearchForm.js';
 import { IdeasTable } from './IdeasTable.js';

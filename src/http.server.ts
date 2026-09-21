@@ -8,7 +8,7 @@ import {ApiService} from "./domain/services/api.service.js";
 import {ProviderUrlService} from "./domain/services/provider-url.service.js";
 import {renderIdeasPage} from "./views/ideas-page.js";
 import {renderLandingPage} from "./views/landing-page.js";
-import {getLanguageFromHeader} from "./views/ui/i18n/translations.js";
+import {getLanguageFromHeader} from "./views/ui/i18n/i18n.js";
 import 'dotenv/config';
 
 if (process.env.MCP_SERVER_HTTP_TRANSPORT_ENABLED === 'true') {

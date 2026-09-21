@@ -1,4 +1,5 @@
-import { Language, getTranslations } from './i18n/translations.js';
+import { h } from 'preact';
+import { Language, getTranslations } from './i18n/i18n.js';
 
 interface LandingPageProps {
     lang?: Language;

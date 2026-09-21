@@ -1,4 +1,4 @@
-import { Language, getTranslations } from './i18n/translations.js';
+import { Language, getTranslations } from './i18n/i18n.js';
 import { IdeaItem, IdeaRow } from './IdeaRow.js';
 
 interface IdeasTableProps {

@@ -1,7 +1,7 @@
 import { h } from 'preact';
 import { renderToString } from 'preact-render-to-string';
 import { LandingPage } from './ui/LandingPage.js';
-import { Language, getTranslations } from './ui/i18n/translations.js';
+import { Language, getTranslations } from './ui/i18n/i18n.js';
 
 export interface RenderLandingPageOptions {
     lang?: Language;
