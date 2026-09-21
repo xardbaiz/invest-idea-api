@@ -1,3 +1,5 @@
+import { Language, getTranslations } from './i18n/i18n.js';
+
 export interface IdeaItem {
     ticker?: string;
     companyName?: string;
@@ -13,9 +15,11 @@ export interface IdeaItem {
 interface IdeaRowProps {
     idea: IdeaItem;
     index: number;
+    lang?: Language;
 }
 
-export function IdeaRow({ idea, index }: IdeaRowProps) {
+export function IdeaRow({ idea, index, lang = 'en' }: IdeaRowProps) {
+    const t = getTranslations(lang);
     const rowId = `idea-${index}`;
     const descId = `desc-${index}`;
     const btnId = `btn-${index}`;
@@ -24,7 +28,9 @@ export function IdeaRow({ idea, index }: IdeaRowProps) {
     const isLong = text.length > 150;
     const shortText = isLong ? text.substring(0, 150) + '...' : text;
 
-    const formattedDate = idea.publishDate ? new Date(idea.publishDate).toLocaleDateString('ru-RU') : '—';
+    const formattedDate = idea.publishDate
+        ? new Date(idea.publishDate).toLocaleDateString(lang === 'ru' ? 'ru-RU' : 'en-US')
+        : '—';
     const similarityPercent = idea.similarity !== null && idea.similarity !== undefined
         ? `${Math.round(idea.similarity * 100)}%`
         : '—';
@@ -32,7 +38,7 @@ export function IdeaRow({ idea, index }: IdeaRowProps) {
     const isGreenPrice = idea.currentPrice != null && idea.targetPrice != null && idea.currentPrice < idea.targetPrice;
     const currentToTargetPercentage = isGreenPrice ? ((idea.targetPrice! - idea.currentPrice!) / idea.currentPrice! * 100).toFixed(1) : null;
 
-    const toggleScript = `var f=document.getElementById('${descId}-full'), s=document.getElementById('${descId}-short'), b=document.getElementById('${btnId}'); if(f.style.display==='none'){f.style.display='inline'; s.style.display='none'; b.innerText='Свернуть';}else{f.style.display='none'; s.style.display='inline'; b.innerText='Развернуть';}`;
+    const toggleScript = `var f=document.getElementById('${descId}-full'), s=document.getElementById('${descId}-short'), b=document.getElementById('${btnId}'); if(f.style.display==='none'){f.style.display='inline'; s.style.display='none'; b.innerText='${t.btnCollapse}';}else{f.style.display='none'; s.style.display='inline'; b.innerText='${t.btnExpand}';}`;
 
     return (
         <tr id={rowId} style={{ borderBottom: '1px solid #eee', transition: 'background-color 0.15s' }}>
@@ -82,7 +88,7 @@ export function IdeaRow({ idea, index }: IdeaRowProps) {
                             }}
                             onClick={toggleScript as any}
                         >
-                            Развернуть
+                            {t.btnExpand}
                         </button>
                     </div>
                 ) : (

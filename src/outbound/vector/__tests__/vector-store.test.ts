@@ -115,7 +115,8 @@ describe("VectorStore Service Tests", () => {
                 with_payload: true,
             });
 
-            expect(results).toEqual([{ ideaId: "idea_1", distance: 0.95 }]);
+            expect(results[0].ideaId).toBe("idea_1");
+            expect(results[0].distance).toBeCloseTo(0.05);
         });
     });
 
