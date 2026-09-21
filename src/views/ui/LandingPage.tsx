@@ -1,5 +1,31 @@
-import { h } from 'preact';
 import { Language, getTranslations } from './i18n/i18n.js';
+import {
+    Box as MuiBox,
+    Container as MuiContainer,
+    Typography as MuiTypography,
+    Button as MuiButton,
+    Grid as MuiGrid,
+    Card as MuiCard,
+    CardContent as MuiCardContent,
+    Chip as MuiChip,
+    Paper as MuiPaper,
+    Link as MuiLink,
+    Divider as MuiDivider,
+    Stack as MuiStack
+} from '@mui/material';
+
+const Box = MuiBox as any;
+const Container = MuiContainer as any;
+const Typography = MuiTypography as any;
+const Button = MuiButton as any;
+const Grid = MuiGrid as any;
+const Card = MuiCard as any;
+const CardContent = MuiCardContent as any;
+const Chip = MuiChip as any;
+const Paper = MuiPaper as any;
+const Link = MuiLink as any;
+const Divider = MuiDivider as any;
+const Stack = MuiStack as any;
 
 interface LandingPageProps {
     lang?: Language;
@@ -9,16 +35,14 @@ export function LandingPage({ lang = 'en' }: LandingPageProps) {
     const t = getTranslations(lang);
 
     return (
-        <div style={{
+        <Box sx={{
             backgroundColor: '#0b1326',
             color: '#dae2fd',
             fontFamily: "'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
-            minHeight: '100vh',
-            margin: 0,
-            padding: 0
+            minHeight: '100vh'
         }}>
             {/* Header Navigation */}
-            <header style={{
+            <Box component="header" sx={{
                 position: 'sticky',
                 top: 0,
                 zIndex: 100,
@@ -26,541 +50,528 @@ export function LandingPage({ lang = 'en' }: LandingPageProps) {
                 backdropFilter: 'blur(12px)',
                 borderBottom: '1px solid rgba(255, 255, 255, 0.08)'
             }}>
-                <div style={{
-                    maxWidth: '1280px',
-                    margin: '0 auto',
-                    padding: '16px 24px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between'
-                }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <span className="material-icons" style={{ color: '#10b981', fontSize: '28px' }}>insights</span>
-                        <div>
-                            <span style={{ fontWeight: 700, fontSize: '1.2rem', color: '#ffffff', letterSpacing: '-0.02em' }}>
-                                {t.brandName}
-                            </span>
-                            <span style={{
-                                marginLeft: '8px',
-                                fontSize: '0.75rem',
-                                color: '#10b981',
-                                backgroundColor: 'rgba(16, 185, 129, 0.12)',
-                                border: '1px solid rgba(16, 185, 129, 0.3)',
-                                padding: '2px 8px',
-                                borderRadius: '12px'
-                            }}>
-                                AI Pipeline: Active
-                            </span>
-                        </div>
-                    </div>
-                    <nav style={{ display: 'flex', gap: '24px', alignItems: 'center' }}>
-                        <a href="/" style={{ color: '#dae2fd', textDecoration: 'none', fontSize: '0.9rem', fontWeight: 500 }}>{t.navHome}</a>
-                        <a href="/ideas" style={{ color: '#bbcabf', textDecoration: 'none', fontSize: '0.9rem', fontWeight: 500 }}>{t.navIdeas}</a>
-                        <a href="#pipeline" style={{ color: '#bbcabf', textDecoration: 'none', fontSize: '0.9rem', fontWeight: 500 }}>{t.navPipeline}</a>
-                        <a href="#about" style={{ color: '#bbcabf', textDecoration: 'none', fontSize: '0.9rem', fontWeight: 500 }}>{t.navAbout}</a>
-                        <a href="/ideas" style={{
-                            backgroundColor: '#10b981',
-                            color: '#05080e',
-                            padding: '8px 18px',
-                            borderRadius: '8px',
-                            fontWeight: 600,
-                            textDecoration: 'none',
-                            fontSize: '0.875rem',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '6px',
-                            boxShadow: '0 0 20px rgba(16, 185, 129, 0.35)'
-                        }}>
-                            {t.ctaExploreIdeas}
-                            <span className="material-icons" style={{ fontSize: '16px' }}>trending_flat</span>
-                        </a>
-                    </nav>
-                </div>
-            </header>
+                <Container maxWidth="xl">
+                    <Box sx={{
+                        py: 2,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between'
+                    }}>
+                        <Stack direction="row" alignItems="center" spacing={1.5}>
+                            <Box component="span" className="material-icons" sx={{ color: '#10b981', fontSize: 28 }}>
+                                insights
+                            </Box>
+                            <Box>
+                                <Typography component="span" sx={{ fontWeight: 700, fontSize: '1.2rem', color: '#ffffff', letterSpacing: '-0.02em' }}>
+                                    {t.brandName}
+                                </Typography>
+                                <Chip
+                                    label="AI Pipeline: Active"
+                                    size="small"
+                                    sx={{
+                                        ml: 1,
+                                        fontSize: '0.75rem',
+                                        color: '#10b981',
+                                        backgroundColor: 'rgba(16, 185, 129, 0.12)',
+                                        border: '1px solid rgba(16, 185, 129, 0.3)',
+                                        height: 22
+                                    }}
+                                />
+                            </Box>
+                        </Stack>
+
+                        <Stack direction="row" spacing={3} alignItems="center" component="nav">
+                            <Link href="/" underline="none" sx={{ color: '#dae2fd', fontSize: '0.9rem', fontWeight: 500 }}>{t.navHome}</Link>
+                            <Link href="/ideas" underline="none" sx={{ color: '#bbcabf', fontSize: '0.9rem', fontWeight: 500 }}>{t.navIdeas}</Link>
+                            <Link href="#pipeline" underline="none" sx={{ color: '#bbcabf', fontSize: '0.9rem', fontWeight: 500 }}>{t.navPipeline}</Link>
+                            <Link href="#about" underline="none" sx={{ color: '#bbcabf', fontSize: '0.9rem', fontWeight: 500 }}>{t.navAbout}</Link>
+                            <Button
+                                component="a"
+                                href="/ideas"
+                                variant="contained"
+                                sx={{
+                                    backgroundColor: '#10b981',
+                                    color: '#05080e',
+                                    fontWeight: 600,
+                                    textTransform: 'none',
+                                    borderRadius: '8px',
+                                    px: 2.2,
+                                    py: 1,
+                                    boxShadow: '0 0 20px rgba(16, 185, 129, 0.35)',
+                                    '&:hover': { backgroundColor: '#34d399' }
+                                }}
+                                endIcon={<Box component="span" className="material-icons" sx={{ fontSize: 16 }}>trending_flat</Box>}
+                            >
+                                {t.ctaExploreIdeas}
+                            </Button>
+                        </Stack>
+                    </Box>
+                </Container>
+            </Box>
 
             {/* Hero Section */}
-            <section style={{
-                padding: '80px 24px 60px 24px',
-                maxWidth: '1280px',
-                margin: '0 auto',
-                textAlign: 'center'
-            }}>
-                <div style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    padding: '6px 16px',
-                    borderRadius: '20px',
-                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                    border: '1px solid rgba(16, 185, 129, 0.25)',
-                    color: '#34d399',
-                    fontSize: '0.85rem',
-                    fontWeight: 600,
-                    marginBottom: '24px'
-                }}>
-                    <span className="material-icons" style={{ fontSize: '18px' }}>bolt</span>
-                    {t.heroBadge}
-                </div>
+            <Container maxWidth="lg" component="section" sx={{ pt: 10, pb: 8, textAlign: 'center' }}>
+                <Chip
+                    icon={<Box component="span" className="material-icons" sx={{ fontSize: '18px !important', color: '#34d399' }}>bolt</Box>}
+                    label={t.heroBadge}
+                    sx={{
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        border: '1px solid rgba(16, 185, 129, 0.25)',
+                        color: '#34d399',
+                        fontWeight: 600,
+                        mb: 3,
+                        px: 1,
+                        py: 2
+                    }}
+                />
 
-                <h1 style={{
-                    fontSize: '3.2rem',
+                <Typography variant="h1" sx={{
+                    fontSize: { xs: '2.2rem', md: '3.2rem' },
                     fontWeight: 700,
                     lineHeight: 1.15,
-                    margin: '0 0 20px 0',
+                    mb: 2.5,
                     color: '#ffffff',
                     letterSpacing: '-0.03em'
                 }}>
                     {t.heroTitle}
-                </h1>
+                </Typography>
 
-                <p style={{
+                <Typography sx={{
                     fontSize: '1.15rem',
                     lineHeight: 1.6,
                     color: '#bbcabf',
-                    maxWidth: '840px',
-                    margin: '0 auto 36px auto'
+                    maxWidth: 840,
+                    mx: 'auto',
+                    mb: 4.5
                 }}>
                     {t.heroSubtitle}
-                </p>
+                </Typography>
 
-                <div style={{ display: 'flex', gap: '16px', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '32px' }}>
-                    <a href="/ideas" style={{
-                        backgroundColor: '#10b981',
-                        color: '#05080e',
-                        padding: '14px 28px',
-                        borderRadius: '8px',
-                        fontWeight: 600,
-                        fontSize: '1rem',
-                        textDecoration: 'none',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        boxShadow: '0 0 24px rgba(16, 185, 129, 0.35)'
-                    }}>
+                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} justifyContent="center" sx={{ mb: 4 }}>
+                    <Button
+                        component="a"
+                        href="/ideas"
+                        variant="contained"
+                        sx={{
+                            backgroundColor: '#10b981',
+                            color: '#05080e',
+                            py: 1.75,
+                            px: 3.5,
+                            borderRadius: '8px',
+                            fontWeight: 600,
+                            fontSize: '1rem',
+                            textTransform: 'none',
+                            boxShadow: '0 0 24px rgba(16, 185, 129, 0.35)',
+                            '&:hover': { backgroundColor: '#34d399' }
+                        }}
+                        endIcon={<Box component="span" className="material-icons" sx={{ fontSize: 20 }}>trending_flat</Box>}
+                    >
                         {t.heroBtnSearch}
-                        <span className="material-icons" style={{ fontSize: '20px' }}>trending_flat</span>
-                    </a>
-                    <a href="#pipeline" style={{
-                        backgroundColor: 'rgba(16, 27, 39, 0.7)',
-                        color: '#f8fafc',
-                        padding: '14px 28px',
-                        borderRadius: '8px',
-                        fontWeight: 600,
-                        fontSize: '1rem',
-                        textDecoration: 'none',
-                        border: '1px solid rgba(255, 255, 255, 0.12)',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '8px'
-                    }}>
+                    </Button>
+                    <Button
+                        component="a"
+                        href="#pipeline"
+                        variant="outlined"
+                        sx={{
+                            backgroundColor: 'rgba(16, 27, 39, 0.7)',
+                            color: '#f8fafc',
+                            py: 1.75,
+                            px: 3.5,
+                            borderRadius: '8px',
+                            fontWeight: 600,
+                            fontSize: '1rem',
+                            textTransform: 'none',
+                            borderColor: 'rgba(255, 255, 255, 0.12)',
+                            '&:hover': { borderColor: 'rgba(16, 185, 129, 0.5)', backgroundColor: 'rgba(16, 185, 129, 0.08)' }
+                        }}
+                        endIcon={<Box component="span" className="material-icons" sx={{ fontSize: 20 }}>south</Box>}
+                    >
                         {t.heroBtnPipeline}
-                        <span className="material-icons" style={{ fontSize: '20px' }}>south</span>
-                    </a>
-                </div>
+                    </Button>
+                </Stack>
 
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', color: '#94a3b8', fontSize: '0.875rem' }}>
-                    <span className="material-icons" style={{ color: '#10b981', fontSize: '18px' }}>verified</span>
-                    {t.heroStatus}
-                </div>
-            </section>
+                <Stack direction="row" spacing={1} justifyContent="center" alignItems="center" sx={{ color: '#94a3b8', fontSize: '0.875rem' }}>
+                    <Box component="span" className="material-icons" sx={{ color: '#10b981', fontSize: 18 }}>
+                        verified
+                    </Box>
+                    <Typography component="span" variant="body2" sx={{ color: '#94a3b8' }}>
+                        {t.heroStatus}
+                    </Typography>
+                </Stack>
+            </Container>
 
             {/* Metrics Section */}
-            <section style={{
-                maxWidth: '1280px',
-                margin: '0 auto 80px auto',
-                padding: '0 24px'
-            }}>
-                <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-                    gap: '20px'
-                }}>
+            <Container maxWidth="lg" component="section" sx={{ mb: 10 }}>
+                <Grid container spacing={2.5}>
                     {[
                         { val: t.stat1Value, lbl: t.stat1Label },
                         { val: t.stat2Value, lbl: t.stat2Label },
                         { val: t.stat3Value, lbl: t.stat3Label },
                         { val: t.stat4Value, lbl: t.stat4Label },
                     ].map((st, i) => (
-                        <div key={i} style={{
-                            backgroundColor: '#171f33',
-                            border: '1px solid rgba(255, 255, 255, 0.08)',
-                            borderRadius: '16px',
-                            padding: '24px',
-                            textAlign: 'center'
-                        }}>
-                            <div style={{ fontSize: '2rem', fontWeight: 700, color: '#10b981', marginBottom: '6px' }}>
-                                {st.val}
-                            </div>
-                            <div style={{ fontSize: '0.875rem', color: '#bbcabf' }}>
-                                {st.lbl}
-                            </div>
-                        </div>
+                        <Grid item xs={12} sm={6} md={3} key={i}>
+                            <Paper sx={{
+                                backgroundColor: '#171f33',
+                                border: '1px solid rgba(255, 255, 255, 0.08)',
+                                borderRadius: '16px',
+                                p: 3,
+                                textAlign: 'center'
+                            }}>
+                                <Typography sx={{ fontSize: '2rem', fontWeight: 700, color: '#10b981', mb: 0.75 }}>
+                                    {st.val}
+                                </Typography>
+                                <Typography sx={{ fontSize: '0.875rem', color: '#bbcabf' }}>
+                                    {st.lbl}
+                                </Typography>
+                            </Paper>
+                        </Grid>
                     ))}
-                </div>
-            </section>
+                </Grid>
+            </Container>
 
             {/* Interactive Search Preview */}
-            <section style={{
+            <Box component="section" sx={{
                 backgroundColor: '#131b2e',
                 borderTop: '1px solid rgba(255, 255, 255, 0.08)',
                 borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-                padding: '80px 24px'
+                py: 10
             }}>
-                <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
-                    <div style={{ textAlign: 'center', marginBottom: '48px' }}>
-                        <div style={{
-                            display: 'inline-block',
+                <Container maxWidth="lg">
+                    <Box sx={{ textAlign: 'center', mb: 6 }}>
+                        <Typography variant="overline" sx={{
                             fontSize: '0.75rem',
                             fontWeight: 600,
                             letterSpacing: '0.06em',
-                            textTransform: 'uppercase',
                             color: '#10b981',
-                            marginBottom: '12px'
+                            display: 'block',
+                            mb: 1.5
                         }}>
                             {t.previewBadge}
-                        </div>
-                        <h2 style={{ fontSize: '2.25rem', fontWeight: 700, margin: '0 0 16px 0', color: '#ffffff' }}>
+                        </Typography>
+                        <Typography variant="h2" sx={{ fontSize: '2.25rem', fontWeight: 700, mb: 2, color: '#ffffff' }}>
                             {t.previewTitle}
-                        </h2>
-                        <p style={{ color: '#bbcabf', fontSize: '1rem', maxWidth: '700px', margin: '0 auto' }}>
+                        </Typography>
+                        <Typography sx={{ color: '#bbcabf', fontSize: '1rem', maxWidth: 700, mx: 'auto' }}>
                             {t.previewSubtitle}
-                        </p>
-                    </div>
+                        </Typography>
+                    </Box>
 
-                    <div style={{
+                    <Paper sx={{
                         backgroundColor: '#0a111a',
                         borderRadius: '16px',
                         border: '1px solid rgba(255, 255, 255, 0.1)',
-                        padding: '32px',
+                        p: 4,
                         boxShadow: '0 20px 40px rgba(0,0,0,0.5)'
                     }}>
-                        <div style={{
+                        <Box sx={{
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'space-between',
-                            marginBottom: '24px',
-                            borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-                            paddingBottom: '16px'
+                            mb: 3,
+                            pb: 2,
+                            borderBottom: '1px solid rgba(255, 255, 255, 0.08)'
                         }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#94a3b8', fontSize: '0.85rem' }}>
-                                <span className="material-icons" style={{ fontSize: '16px', color: '#10b981' }}>sync</span>
-                                finance.xardbaiz.im / vector-search-preview (200 OK)
-                            </div>
-                            <span style={{ fontSize: '0.75rem', color: '#10b981', fontWeight: 600 }}>Qdrant Cosine Similarity</span>
-                        </div>
+                            <Stack direction="row" spacing={1} alignItems="center" sx={{ color: '#94a3b8', fontSize: '0.85rem' }}>
+                                <Box component="span" className="material-icons" sx={{ fontSize: 16, color: '#10b981' }}>sync</Box>
+                                <Typography variant="caption" sx={{ color: '#94a3b8' }}>finance.xardbaiz.im / vector-search-preview (200 OK)</Typography>
+                            </Stack>
+                            <Typography variant="caption" sx={{ color: '#10b981', fontWeight: 600 }}>Qdrant Cosine Similarity</Typography>
+                        </Box>
 
-                        <div style={{
+                        <Paper sx={{
                             display: 'flex',
                             alignItems: 'center',
-                            gap: '12px',
+                            gap: 1.5,
                             backgroundColor: '#131b2e',
                             borderRadius: '8px',
-                            padding: '12px 16px',
-                            marginBottom: '24px',
+                            p: 2,
+                            mb: 3,
                             border: '1px solid rgba(16, 185, 129, 0.3)'
                         }}>
-                            <span className="material-icons" style={{ color: '#10b981' }}>search</span>
-                            <span style={{ color: '#ffffff', fontWeight: 500 }}>{t.previewSearchInput}</span>
-                        </div>
+                            <Box component="span" className="material-icons" sx={{ color: '#10b981' }}>search</Box>
+                            <Typography sx={{ color: '#ffffff', fontWeight: 500 }}>{t.previewSearchInput}</Typography>
+                        </Paper>
 
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '16px' }}>
-                            <div style={{
-                                backgroundColor: '#171f33',
-                                borderRadius: '12px',
-                                padding: '20px',
-                                border: '1px solid rgba(255,255,255,0.08)'
-                            }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                                    <span style={{ fontWeight: 700, color: '#ffffff' }}>YOU.US</span>
-                                    <span style={{
-                                        fontSize: '0.75rem',
-                                        color: '#34d399',
-                                        backgroundColor: 'rgba(16, 185, 129, 0.15)',
-                                        padding: '2px 8px',
-                                        borderRadius: '10px'
-                                    }}>{t.previewMatch79}</span>
-                                </div>
-                                <div style={{ color: '#bbcabf', fontSize: '0.9rem', marginBottom: '12px' }}>Clear Secure Inc</div>
-                                <div style={{ color: '#10b981', fontWeight: 600, fontSize: '0.95rem' }}>{t.previewTargetUpside1}</div>
-                            </div>
+                        <Grid container spacing={2}>
+                            <Grid item xs={12} sm={6}>
+                                <Paper sx={{
+                                    backgroundColor: '#171f33',
+                                    borderRadius: '12px',
+                                    p: 2.5,
+                                    border: '1px solid rgba(255,255,255,0.08)'
+                                }}>
+                                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                                        <Typography sx={{ fontWeight: 700, color: '#ffffff' }}>YOU.US</Typography>
+                                        <Chip label={t.previewMatch79} size="small" sx={{ fontSize: '0.75rem', color: '#34d399', backgroundColor: 'rgba(16, 185, 129, 0.15)' }} />
+                                    </Box>
+                                    <Typography sx={{ color: '#bbcabf', fontSize: '0.9rem', mb: 1.5 }}>Clear Secure Inc</Typography>
+                                    <Typography sx={{ color: '#10b981', fontWeight: 600, fontSize: '0.95rem' }}>{t.previewTargetUpside1}</Typography>
+                                </Paper>
+                            </Grid>
 
-                            <div style={{
-                                backgroundColor: '#171f33',
-                                borderRadius: '12px',
-                                padding: '20px',
-                                border: '1px solid rgba(255,255,255,0.08)'
-                            }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                                    <span style={{ fontWeight: 700, color: '#ffffff' }}>ADBE.US</span>
-                                    <span style={{
-                                        fontSize: '0.75rem',
-                                        color: '#34d399',
-                                        backgroundColor: 'rgba(16, 185, 129, 0.15)',
-                                        padding: '2px 8px',
-                                        borderRadius: '10px'
-                                    }}>{t.previewMatch79}</span>
-                                </div>
-                                <div style={{ color: '#bbcabf', fontSize: '0.9rem', marginBottom: '12px' }}>Adobe Systems Inc</div>
-                                <div style={{ color: '#10b981', fontWeight: 600, fontSize: '0.95rem' }}>{t.previewTargetUpside2}</div>
-                            </div>
-                        </div>
+                            <Grid item xs={12} sm={6}>
+                                <Paper sx={{
+                                    backgroundColor: '#171f33',
+                                    borderRadius: '12px',
+                                    p: 2.5,
+                                    border: '1px solid rgba(255,255,255,0.08)'
+                                }}>
+                                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                                        <Typography sx={{ fontWeight: 700, color: '#ffffff' }}>ADBE.US</Typography>
+                                        <Chip label={t.previewMatch79} size="small" sx={{ fontSize: '0.75rem', color: '#34d399', backgroundColor: 'rgba(16, 185, 129, 0.15)' }} />
+                                    </Box>
+                                    <Typography sx={{ color: '#bbcabf', fontSize: '0.9rem', mb: 1.5 }}>Adobe Systems Inc</Typography>
+                                    <Typography sx={{ color: '#10b981', fontWeight: 600, fontSize: '0.95rem' }}>{t.previewTargetUpside2}</Typography>
+                                </Paper>
+                            </Grid>
+                        </Grid>
 
-                        <div style={{ textAlign: 'center', marginTop: '32px' }}>
-                            <a href="/ideas" style={{
+                        <Box sx={{ textAlign: 'center', mt: 4 }}>
+                            <Link href="/ideas" underline="none" sx={{
                                 color: '#10b981',
                                 fontWeight: 600,
-                                textDecoration: 'none',
                                 fontSize: '0.95rem',
                                 display: 'inline-flex',
                                 alignItems: 'center',
-                                gap: '6px'
+                                gap: 0.75
                             }}>
                                 {t.previewCatalogBtn}
-                                <span className="material-icons" style={{ fontSize: '18px' }}>arrow_forward</span>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </section>
+                                <Box component="span" className="material-icons" sx={{ fontSize: 18 }}>arrow_forward</Box>
+                            </Link>
+                        </Box>
+                    </Paper>
+                </Container>
+            </Box>
 
             {/* Pipeline Steps */}
-            <section id="pipeline" style={{ padding: '80px 24px', maxWidth: '1280px', margin: '0 auto' }}>
-                <div style={{ textAlign: 'center', marginBottom: '56px' }}>
-                    <div style={{
-                        display: 'inline-block',
+            <Container maxWidth="lg" component="section" id="pipeline" sx={{ py: 10 }}>
+                <Box sx={{ textAlign: 'center', mb: 7 }}>
+                    <Typography variant="overline" sx={{
                         fontSize: '0.75rem',
                         fontWeight: 600,
                         letterSpacing: '0.06em',
-                        textTransform: 'uppercase',
                         color: '#10b981',
-                        marginBottom: '12px'
+                        display: 'block',
+                        mb: 1.5
                     }}>
                         {t.pipelineBadge}
-                    </div>
-                    <h2 style={{ fontSize: '2.25rem', fontWeight: 700, margin: '0 0 16px 0', color: '#ffffff' }}>
+                    </Typography>
+                    <Typography variant="h2" sx={{ fontSize: '2.25rem', fontWeight: 700, mb: 2, color: '#ffffff' }}>
                         {t.pipelineTitle}
-                    </h2>
-                    <p style={{ color: '#bbcabf', fontSize: '1rem', maxWidth: '750px', margin: '0 auto' }}>
+                    </Typography>
+                    <Typography sx={{ color: '#bbcabf', fontSize: '1rem', maxWidth: 750, mx: 'auto' }}>
                         {t.pipelineSubtitle}
-                    </p>
-                </div>
+                    </Typography>
+                </Box>
 
-                <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-                    gap: '24px'
-                }}>
+                <Grid container spacing={3}>
                     {[
                         { icon: 'cloud_download', step: '01', title: t.step1Title, sub: t.step1Sub, desc: t.step1Desc, tag: t.step1Tag },
                         { icon: 'psychology', step: '02', title: t.step2Title, sub: t.step2Sub, desc: t.step2Desc, tag: t.step2Tag },
                         { icon: 'sell', step: '03', title: t.step3Title, sub: t.step3Sub, desc: t.step3Desc, tag: t.step3Tag },
                         { icon: 'hub', step: '04', title: t.step4Title, sub: t.step4Sub, desc: t.step4Desc, tag: t.step4Tag }
                     ].map((step, idx) => (
-                        <div key={idx} style={{
-                            backgroundColor: '#171f33',
-                            borderRadius: '16px',
-                            border: '1px solid rgba(255, 255, 255, 0.08)',
-                            padding: '28px',
-                            position: 'relative'
-                        }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                                <span className="material-icons" style={{ fontSize: '32px', color: '#10b981' }}>{step.icon}</span>
-                                <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#475569' }}>Step {step.step}</span>
-                            </div>
-                            <h3 style={{ fontSize: '1.25rem', fontWeight: 600, color: '#ffffff', margin: '0 0 4px 0' }}>{step.title}</h3>
-                            <div style={{ fontSize: '0.85rem', color: '#10b981', fontWeight: 500, marginBottom: '16px' }}>{step.sub}</div>
-                            <p style={{ fontSize: '0.9rem', color: '#bbcabf', lineHeight: 1.5, margin: '0 0 20px 0' }}>{step.desc}</p>
-                            <span style={{
-                                fontSize: '0.75rem',
-                                color: '#95d3ba',
-                                backgroundColor: '#0b513d',
-                                padding: '4px 10px',
-                                borderRadius: '12px',
-                                fontWeight: 600
+                        <Grid item xs={12} sm={6} md={3} key={idx}>
+                            <Card sx={{
+                                backgroundColor: '#171f33',
+                                borderRadius: '16px',
+                                border: '1px solid rgba(255, 255, 255, 0.08)',
+                                height: '100%'
                             }}>
-                                {step.tag}
-                            </span>
-                        </div>
+                                <CardContent sx={{ p: 3.5 }}>
+                                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2.5 }}>
+                                        <Box component="span" className="material-icons" sx={{ fontSize: 32, color: '#10b981' }}>{step.icon}</Box>
+                                        <Typography sx={{ fontSize: '0.85rem', fontWeight: 700, color: '#475569' }}>Step {step.step}</Typography>
+                                    </Box>
+                                    <Typography variant="h6" sx={{ fontSize: '1.25rem', fontWeight: 600, color: '#ffffff', mb: 0.5 }}>{step.title}</Typography>
+                                    <Typography sx={{ fontSize: '0.85rem', color: '#10b981', fontWeight: 500, mb: 2 }}>{step.sub}</Typography>
+                                    <Typography sx={{ fontSize: '0.9rem', color: '#bbcabf', lineHeight: 1.5, mb: 2.5 }}>{step.desc}</Typography>
+                                    <Chip label={step.tag} size="small" sx={{ fontSize: '0.75rem', color: '#95d3ba', backgroundColor: '#0b513d', fontWeight: 600 }} />
+                                </CardContent>
+                            </Card>
+                        </Grid>
                     ))}
-                </div>
-            </section>
+                </Grid>
+            </Container>
 
             {/* About & Transparency */}
-            <section id="about" style={{
+            <Box component="section" id="about" sx={{
                 backgroundColor: '#131b2e',
                 borderTop: '1px solid rgba(255, 255, 255, 0.08)',
                 borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-                padding: '80px 24px'
+                py: 10
             }}>
-                <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
-                    <div style={{ textAlign: 'center', marginBottom: '48px' }}>
-                        <div style={{
-                            display: 'inline-block',
+                <Container maxWidth="lg">
+                    <Box sx={{ textAlign: 'center', mb: 6 }}>
+                        <Typography variant="overline" sx={{
                             fontSize: '0.75rem',
                             fontWeight: 600,
                             letterSpacing: '0.06em',
-                            textTransform: 'uppercase',
                             color: '#10b981',
-                            marginBottom: '12px'
+                            display: 'block',
+                            mb: 1.5
                         }}>
                             {t.aboutBadge}
-                        </div>
-                        <h2 style={{ fontSize: '2.25rem', fontWeight: 700, margin: '0 0 16px 0', color: '#ffffff' }}>
+                        </Typography>
+                        <Typography variant="h2" sx={{ fontSize: '2.25rem', fontWeight: 700, mb: 2, color: '#ffffff' }}>
                             {t.aboutTitle}
-                        </h2>
-                        <p style={{ color: '#bbcabf', fontSize: '1rem', maxWidth: '800px', margin: '0 auto' }}>
+                        </Typography>
+                        <Typography sx={{ color: '#bbcabf', fontSize: '1rem', maxWidth: 800, mx: 'auto' }}>
                             {t.aboutSubtitle}
-                        </p>
-                    </div>
+                        </Typography>
+                    </Box>
 
-                    <div style={{
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-                        gap: '24px',
-                        marginBottom: '48px'
-                    }}>
-                        <div style={{ backgroundColor: '#171f33', padding: '24px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.08)' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#10b981', fontWeight: 600, marginBottom: '8px' }}>
-                                <span className="material-icons">verified_user</span>
-                                {t.aboutFeat1Title}
-                            </div>
-                            <div style={{ color: '#bbcabf', fontSize: '0.9rem' }}>{t.aboutFeat1Desc}</div>
-                        </div>
-                        <div style={{ backgroundColor: '#171f33', padding: '24px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.08)' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#ffb95f', fontWeight: 600, marginBottom: '8px' }}>
-                                <span className="material-icons">dataset</span>
-                                {t.aboutFeat2Title}
-                            </div>
-                            <div style={{ color: '#bbcabf', fontSize: '0.9rem' }}>{t.aboutFeat2Desc}</div>
-                        </div>
-                        <div style={{ backgroundColor: '#171f33', padding: '24px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.08)' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#10b981', fontWeight: 600, marginBottom: '8px' }}>
-                                <span className="material-icons">manage_search</span>
-                                {t.aboutFeat3Title}
-                            </div>
-                            <div style={{ color: '#bbcabf', fontSize: '0.9rem' }}>{t.aboutFeat3Desc}</div>
-                        </div>
-                    </div>
+                    <Grid container spacing={3} sx={{ mb: 6 }}>
+                        <Grid item xs={12} md={4}>
+                            <Paper sx={{ backgroundColor: '#171f33', p: 3, borderRadius: '12px', border: '1px solid rgba(255,255,255,0.08)' }}>
+                                <Stack direction="row" spacing={1} alignItems="center" sx={{ color: '#10b981', fontWeight: 600, mb: 1 }}>
+                                    <Box component="span" className="material-icons">verified_user</Box>
+                                    <Typography sx={{ color: '#10b981', fontWeight: 600 }}>{t.aboutFeat1Title}</Typography>
+                                </Stack>
+                                <Typography sx={{ color: '#bbcabf', fontSize: '0.9rem' }}>{t.aboutFeat1Desc}</Typography>
+                            </Paper>
+                        </Grid>
 
-                    <div style={{ textAlign: 'center' }}>
-                        <div style={{ color: '#94a3b8', fontSize: '0.875rem', marginBottom: '16px' }}>{t.techStackTitle}</div>
-                        <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                        <Grid item xs={12} md={4}>
+                            <Paper sx={{ backgroundColor: '#171f33', p: 3, borderRadius: '12px', border: '1px solid rgba(255,255,255,0.08)' }}>
+                                <Stack direction="row" spacing={1} alignItems="center" sx={{ color: '#ffb95f', fontWeight: 600, mb: 1 }}>
+                                    <Box component="span" className="material-icons">dataset</Box>
+                                    <Typography sx={{ color: '#ffb95f', fontWeight: 600 }}>{t.aboutFeat2Title}</Typography>
+                                </Stack>
+                                <Typography sx={{ color: '#bbcabf', fontSize: '0.9rem' }}>{t.aboutFeat2Desc}</Typography>
+                            </Paper>
+                        </Grid>
+
+                        <Grid item xs={12} md={4}>
+                            <Paper sx={{ backgroundColor: '#171f33', p: 3, borderRadius: '12px', border: '1px solid rgba(255,255,255,0.08)' }}>
+                                <Stack direction="row" spacing={1} alignItems="center" sx={{ color: '#10b981', fontWeight: 600, mb: 1 }}>
+                                    <Box component="span" className="material-icons">manage_search</Box>
+                                    <Typography sx={{ color: '#10b981', fontWeight: 600 }}>{t.aboutFeat3Title}</Typography>
+                                </Stack>
+                                <Typography sx={{ color: '#bbcabf', fontSize: '0.9rem' }}>{t.aboutFeat3Desc}</Typography>
+                            </Paper>
+                        </Grid>
+                    </Grid>
+
+                    <Box sx={{ textAlign: 'center' }}>
+                        <Typography sx={{ color: '#94a3b8', fontSize: '0.875rem', mb: 2 }}>{t.techStackTitle}</Typography>
+                        <Stack direction="row" spacing={1.5} justifyContent="center" flexWrap="wrap" useFlexGap>
                             {['Node.js', 'Preact', 'Material UI', 'Qdrant', 'OpenAI', 'Supabase'].map((st, i) => (
-                                <span key={i} style={{
-                                    backgroundColor: '#0a111a',
-                                    border: '1px solid rgba(255,255,255,0.1)',
-                                    color: '#ffffff',
-                                    padding: '6px 14px',
-                                    borderRadius: '8px',
-                                    fontSize: '0.85rem',
-                                    fontWeight: 500
-                                }}>
-                                    {st}
-                                </span>
+                                <Chip
+                                    key={i}
+                                    label={st}
+                                    sx={{
+                                        backgroundColor: '#0a111a',
+                                        border: '1px solid rgba(255,255,255,0.1)',
+                                        color: '#ffffff',
+                                        fontSize: '0.85rem',
+                                        fontWeight: 500
+                                    }}
+                                />
                             ))}
-                        </div>
-                    </div>
-                </div>
-            </section>
+                        </Stack>
+                    </Box>
+                </Container>
+            </Box>
 
             {/* CTA Section */}
-            <section style={{ padding: '80px 24px', textAlign: 'center', maxWidth: '900px', margin: '0 auto' }}>
-                <h2 style={{ fontSize: '2.5rem', fontWeight: 700, color: '#ffffff', margin: '0 0 16px 0' }}>
+            <Container maxWidth="md" component="section" sx={{ py: 10, textAlign: 'center' }}>
+                <Typography variant="h2" sx={{ fontSize: '2.5rem', fontWeight: 700, color: '#ffffff', mb: 2 }}>
                     {t.ctaSectionTitle}
-                </h2>
-                <p style={{ color: '#bbcabf', fontSize: '1.1rem', marginBottom: '32px' }}>
+                </Typography>
+                <Typography sx={{ color: '#bbcabf', fontSize: '1.1rem', mb: 4 }}>
                     {t.ctaSectionSub}
-                </p>
-                <a href="/ideas" style={{
-                    backgroundColor: '#10b981',
-                    color: '#05080e',
-                    padding: '16px 36px',
-                    borderRadius: '8px',
-                    fontWeight: 700,
-                    fontSize: '1.05rem',
-                    textDecoration: 'none',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    boxShadow: '0 0 28px rgba(16, 185, 129, 0.4)'
-                }}>
+                </Typography>
+                <Button
+                    component="a"
+                    href="/ideas"
+                    variant="contained"
+                    sx={{
+                        backgroundColor: '#10b981',
+                        color: '#05080e',
+                        py: 2,
+                        px: 4.5,
+                        borderRadius: '8px',
+                        fontWeight: 700,
+                        fontSize: '1.05rem',
+                        textTransform: 'none',
+                        boxShadow: '0 0 28px rgba(16, 185, 129, 0.4)',
+                        '&:hover': { backgroundColor: '#34d399' }
+                    }}
+                    endIcon={<Box component="span" className="material-icons" sx={{ fontSize: 22 }}>trending_flat</Box>}
+                >
                     {t.ctaExploreIdeas}
-                    <span className="material-icons" style={{ fontSize: '22px' }}>trending_flat</span>
-                </a>
-            </section>
+                </Button>
+            </Container>
 
             {/* Footer */}
-            <footer style={{
+            <Box component="footer" sx={{
                 backgroundColor: '#060e20',
                 borderTop: '1px solid rgba(255, 255, 255, 0.08)',
-                padding: '60px 24px 32px 24px',
+                pt: 7.5,
+                pb: 4,
                 color: '#bbcabf',
                 fontSize: '0.875rem'
             }}>
-                <div style={{
-                    maxWidth: '1280px',
-                    margin: '0 auto',
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
-                    gap: '40px',
-                    marginBottom: '48px'
-                }}>
-                    <div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#ffffff', fontWeight: 700, fontSize: '1.1rem', marginBottom: '12px' }}>
-                            <span className="material-icons" style={{ color: '#10b981' }}>insights</span>
-                            {t.brandName}
-                        </div>
-                        <p style={{ lineHeight: 1.6, margin: 0 }}>
-                            {t.footerTagline}
-                        </p>
-                    </div>
+                <Container maxWidth="lg">
+                    <Grid container spacing={5} sx={{ mb: 6 }}>
+                        <Grid item xs={12} md={4}>
+                            <Stack direction="row" spacing={1} alignItems="center" sx={{ color: '#ffffff', fontWeight: 700, fontSize: '1.1rem', mb: 1.5 }}>
+                                <Box component="span" className="material-icons" sx={{ color: '#10b981' }}>insights</Box>
+                                <Typography sx={{ color: '#ffffff', fontWeight: 700, fontSize: '1.1rem' }}>{t.brandName}</Typography>
+                            </Stack>
+                            <Typography variant="body2" sx={{ lineHeight: 1.6, color: '#bbcabf' }}>
+                                {t.footerTagline}
+                            </Typography>
+                        </Grid>
 
-                    <div>
-                        <div style={{ color: '#ffffff', fontWeight: 600, marginBottom: '12px' }}>{t.footerNavTitle}</div>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                            <a href="/" style={{ color: '#bbcabf', textDecoration: 'none' }}>{t.navHome}</a>
-                            <a href="/ideas" style={{ color: '#bbcabf', textDecoration: 'none' }}>{t.navIdeas}</a>
-                            <a href="#pipeline" style={{ color: '#bbcabf', textDecoration: 'none' }}>{t.navPipeline}</a>
-                            <a href="#about" style={{ color: '#bbcabf', textDecoration: 'none' }}>{t.navAbout}</a>
-                        </div>
-                    </div>
+                        <Grid item xs={12} md={4}>
+                            <Typography sx={{ color: '#ffffff', fontWeight: 600, mb: 1.5 }}>{t.footerNavTitle}</Typography>
+                            <Stack spacing={1}>
+                                <Link href="/" underline="none" sx={{ color: '#bbcabf' }}>{t.navHome}</Link>
+                                <Link href="/ideas" underline="none" sx={{ color: '#bbcabf' }}>{t.navIdeas}</Link>
+                                <Link href="#pipeline" underline="none" sx={{ color: '#bbcabf' }}>{t.navPipeline}</Link>
+                                <Link href="#about" underline="none" sx={{ color: '#bbcabf' }}>{t.navAbout}</Link>
+                            </Stack>
+                        </Grid>
 
-                    <div>
-                        <div style={{ color: '#ffffff', fontWeight: 600, marginBottom: '12px' }}>{t.footerGithubTitle}</div>
-                        <p style={{ lineHeight: 1.6, margin: '0 0 12px 0' }}>
-                            {t.footerGithubText}
-                        </p>
-                        <a href="https://github.com/xardbaiz/invest-idea-api" target="_blank" rel="noopener noreferrer" style={{
-                            color: '#10b981',
-                            textDecoration: 'none',
-                            fontWeight: 600,
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '6px'
-                        }}>
-                            <span className="material-icons" style={{ fontSize: '18px' }}>terminal</span>
-                            {t.githubRepo}
-                        </a>
-                    </div>
-                </div>
+                        <Grid item xs={12} md={4}>
+                            <Typography sx={{ color: '#ffffff', fontWeight: 600, mb: 1.5 }}>{t.footerGithubTitle}</Typography>
+                            <Typography variant="body2" sx={{ lineHeight: 1.6, color: '#bbcabf', mb: 1.5 }}>
+                                {t.footerGithubText}
+                            </Typography>
+                            <Link
+                                href="https://github.com/xardbaiz/invest-idea-api"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                underline="none"
+                                sx={{
+                                    color: '#10b981',
+                                    fontWeight: 600,
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: 0.75
+                                }}
+                            >
+                                <Box component="span" className="material-icons" sx={{ fontSize: 18 }}>terminal</Box>
+                                {t.githubRepo}
+                            </Link>
+                        </Grid>
+                    </Grid>
 
-                <div style={{
-                    maxWidth: '1280px',
-                    margin: '0 auto',
-                    borderTop: '1px solid rgba(255, 255, 255, 0.05)',
-                    paddingTop: '24px',
-                    fontSize: '0.8rem',
-                    color: '#64748b'
-                }}>
-                    <div style={{ marginBottom: '12px' }}>
-                        <strong style={{ color: '#ffb95f' }}>{t.disclaimerTitle}:</strong> {t.disclaimerText}
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
-                        <div>{t.copyright}</div>
-                        <div>{t.systemStatus}</div>
-                    </div>
-                </div>
-            </footer>
-        </div>
+                    <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.05)', mb: 3 }} />
+
+                    <Box sx={{ fontSize: '0.8rem', color: '#64748b' }}>
+                        <Typography variant="caption" sx={{ display: 'block', mb: 1.5, color: '#64748b' }}>
+                            <Box component="strong" sx={{ color: '#ffb95f' }}>{t.disclaimerTitle}:</Box> {t.disclaimerText}
+                        </Typography>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1.5 }}>
+                            <Typography variant="caption" sx={{ color: '#64748b' }}>{t.copyright}</Typography>
+                            <Typography variant="caption" sx={{ color: '#64748b' }}>{t.systemStatus}</Typography>
+                        </Box>
+                    </Box>
+                </Container>
+            </Box>
+        </Box>
     );
 }
