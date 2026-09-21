@@ -29,7 +29,7 @@ export function SearchForm({ query = '', from = '', to = '', limit = 10, lang = 
                             type="text"
                             name="query"
                             id="query"
-                            value={query}
+                            defaultValue={query}
                             placeholder={t.searchPlaceholderQuery}
                             style={{
                                 width: '100%',
@@ -52,7 +52,7 @@ export function SearchForm({ query = '', from = '', to = '', limit = 10, lang = 
                                 type="date"
                                 name="from"
                                 id="from"
-                                value={from}
+                                defaultValue={from}
                                 style={{
                                     width: '100%',
                                     padding: '10px 12px',
@@ -71,7 +71,7 @@ export function SearchForm({ query = '', from = '', to = '', limit = 10, lang = 
                                 type="date"
                                 name="to"
                                 id="to"
-                                value={to}
+                                defaultValue={to}
                                 style={{
                                     width: '100%',
                                     padding: '10px 12px',
@@ -90,7 +90,7 @@ export function SearchForm({ query = '', from = '', to = '', limit = 10, lang = 
                                 type="number"
                                 name="limit"
                                 id="limit"
-                                value={String(limit)}
+                                defaultValue={String(limit)}
                                 min="1"
                                 max="100"
                                 style={{
