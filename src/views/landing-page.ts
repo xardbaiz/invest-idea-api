@@ -1,5 +1,5 @@
-import { h } from 'preact';
-import { renderToString } from 'preact-render-to-string';
+import React from 'react';
+import { renderToString } from 'react-dom/server';
 import { LandingPage } from './ui/LandingPage.js';
 import { Language, getTranslations } from './ui/i18n/i18n.js';
 
@@ -12,7 +12,7 @@ export function renderLandingPage(options: RenderLandingPageOptions = {}): strin
     const t = getTranslations(lang);
 
     const pageHtml = renderToString(
-        h(LandingPage, { lang })
+        React.createElement(LandingPage as any, { lang })
     );
 
     return `<!DOCTYPE html>

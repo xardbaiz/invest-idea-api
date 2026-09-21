@@ -1,5 +1,5 @@
-import { h } from 'preact';
-import { renderToString } from 'preact-render-to-string';
+import React from 'react';
+import { renderToString } from 'react-dom/server';
 import { App } from './ui/App.js';
 import { IdeaItem } from './ui/IdeaRow.js';
 import { Language, getTranslations } from './ui/i18n/i18n.js';
@@ -19,7 +19,7 @@ export function renderIdeasPage(options: RenderIdeasPageOptions = {}): string {
     const t = getTranslations(lang);
 
     const pageHtml = renderToString(
-        h(App, {
+        React.createElement(App as any, {
             query,
             from,
             to,
