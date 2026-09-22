@@ -1,3 +1,4 @@
+import React from 'react';
 import { Language, getTranslations } from './i18n/i18n.js';
 
 interface HeaderProps {

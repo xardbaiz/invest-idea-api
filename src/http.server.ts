@@ -19,7 +19,7 @@ if (process.env.MCP_SERVER_HTTP_TRANSPORT_ENABLED === 'true') {
             'finance.xardbaiz.im', '.xardbaiz.im', '*.xardbaiz.im',
             'o6vsfcmvkoj3ebdrzanxm4rb.92.5.25.31.sslip.io', '92.5.25.31']
     });
-    app.use('/js', express.static(path.join(process.cwd(), 'dist', 'views', 'ui')));
+    app.use('/public', express.static(path.join(process.cwd(), 'dist', 'public')));
 
     const expressPort = process.env.PORT ?? 3000;
     const server = getServer();

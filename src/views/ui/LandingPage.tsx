@@ -1,5 +1,6 @@
-import {getTranslations, Language} from './i18n/i18n.js';
-import {Box, Button, Card, CardContent, Chip, Container, Divider, Link, Paper, Typography} from '@mui/material';
+import React from 'react';
+import { Box, Container, Typography, Button, Paper, Chip, Link, Divider } from '@mui/material';
+import { Language, getTranslations } from './i18n/i18n.js';
 
 interface LandingPageProps {
     lang?: Language;
@@ -9,377 +10,196 @@ export function LandingPage({ lang = 'en' }: LandingPageProps) {
     const t = getTranslations(lang);
 
     return (
-        <Box sx={{
-            backgroundColor: '#0b1326',
-            color: '#dae2fd',
-            fontFamily: "'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
-            minHeight: '100vh',
-            margin: 0,
-            padding: 0
-        }}>
-            {/* Header Navigation */}
-            <Box component="header" sx={{
-                position: 'sticky',
-                top: 0,
-                zIndex: 100,
-                backgroundColor: 'rgba(11, 19, 38, 0.85)',
-                backdropFilter: 'blur(12px)',
-                borderBottom: '1px solid rgba(255, 255, 255, 0.08)'
-            }}>
-                <Container maxWidth="xl">
-                    <Box sx={{
-                        py: 2,
-                        px: { xs: 1, sm: 2 },
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        flexWrap: 'wrap',
-                        gap: 2
-                    }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                            <Box component="span" className="material-icons" sx={{ color: '#10b981', fontSize: 28 }}>
-                                insights
-                            </Box>
-                            <Box>
-                                <Typography component="span" sx={{ fontWeight: 700, fontSize: '1.2rem', color: '#ffffff', letterSpacing: '-0.02em' }}>
-                                    {t.brandName}
-                                </Typography>
-                                <Chip
-                                    label="AI Pipeline: Active"
-                                    size="small"
-                                    sx={{
-                                        ml: 1,
-                                        fontSize: '0.75rem',
-                                        color: '#10b981',
-                                        backgroundColor: 'rgba(16, 185, 129, 0.12)',
-                                        border: '1px solid rgba(16, 185, 129, 0.3)',
-                                        height: 22
-                                    }}
-                                />
-                            </Box>
-                        </Box>
-
-                        <Box component="nav" sx={{ display: 'flex', gap: { xs: 1.5, sm: 3 }, alignItems: 'center', flexWrap: 'wrap' }}>
-                            <Link href="/" underline="none" sx={{ color: '#dae2fd', fontSize: '0.9rem', fontWeight: 500 }}>{t.navHome}</Link>
-                            <Link href="/ideas" underline="none" sx={{ color: '#bbcabf', fontSize: '0.9rem', fontWeight: 500 }}>{t.navIdeas}</Link>
-                            <Link href="#pipeline" underline="none" sx={{ color: '#bbcabf', fontSize: '0.9rem', fontWeight: 500 }}>{t.navPipeline}</Link>
-                            <Link href="#about" underline="none" sx={{ color: '#bbcabf', fontSize: '0.9rem', fontWeight: 500 }}>{t.navAbout}</Link>
-                            <Button
-                                component="a"
-                                href="/ideas"
-                                variant="contained"
-                                disableElevation
-                                sx={{
-                                    backgroundColor: '#10b981',
-                                    color: '#05080e',
-                                    fontWeight: 600,
-                                    textTransform: 'none',
-                                    borderRadius: '8px',
-                                    px: 2.2,
-                                    py: 1,
-                                    boxShadow: '0 0 20px rgba(16, 185, 129, 0.35)',
-                                    '&:hover': { backgroundColor: '#34d399' }
-                                }}
-                                endIcon={<Box component="span" className="material-icons" sx={{ fontSize: 16 }}>trending_flat</Box>}
-                            >
-                                {t.ctaExploreIdeas}
-                            </Button>
-                        </Box>
+        <Box sx={{ minHeight: '100vh', backgroundColor: '#0b1326', color: '#dae2fd' }}>
+            {/* Header / Nav */}
+            <Box component="header" sx={{ borderBottom: '1px solid rgba(255, 255, 255, 0.08)', py: 2 }}>
+                <Container maxWidth="lg" sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Box component="span" className="material-icons" sx={{ color: '#10b981', fontSize: 28 }}>insights</Box>
+                        <Typography variant="h6" sx={{ fontWeight: 700, color: '#ffffff', letterSpacing: '-0.02em' }}>
+                            {t.brandName}
+                        </Typography>
+                    </Box>
+                    <Box component="nav" sx={{ display: { xs: 'none', md: 'flex' }, gap: 3, alignItems: 'center' }}>
+                        <Link href="#features" underline="none" sx={{ color: '#bbcabf', fontSize: '0.9rem', fontWeight: 500, '&:hover': { color: '#ffffff' } }}>
+                            {t.navPipeline}
+                        </Link>
+                        <Link href="#about" underline="none" sx={{ color: '#bbcabf', fontSize: '0.9rem', fontWeight: 500, '&:hover': { color: '#ffffff' } }}>
+                            {t.navAbout}
+                        </Link>
+                        <Button
+                            component="a"
+                            href="/ideas"
+                            variant="contained"
+                            disableElevation
+                            sx={{
+                                backgroundColor: '#10b981',
+                                color: '#05080e',
+                                fontWeight: 700,
+                                textTransform: 'none',
+                                borderRadius: '8px',
+                                px: 2.5,
+                                '&:hover': { backgroundColor: '#34d399' }
+                            }}
+                        >
+                            {t.navIdeas}
+                        </Button>
                     </Box>
                 </Container>
             </Box>
 
             {/* Hero Section */}
-            <Container maxWidth="lg" component="section" sx={{ pt: { xs: 6, md: 10 }, pb: 8, textAlign: 'center' }}>
+            <Container maxWidth="md" sx={{ pt: { xs: 8, md: 12 }, pb: { xs: 8, md: 10 }, textAlign: 'center' }}>
                 <Chip
-                    icon={<Box component="span" className="material-icons" sx={{ fontSize: '18px !important', color: '#34d399' }}>bolt</Box>}
                     label={t.heroBadge}
+                    size="small"
                     sx={{
                         backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                        border: '1px solid rgba(16, 185, 129, 0.25)',
-                        color: '#34d399',
+                        color: '#10b981',
+                        border: '1px solid rgba(16, 185, 129, 0.3)',
                         fontWeight: 600,
-                        mb: 3,
-                        px: 1,
-                        py: 2
+                        fontSize: '0.8rem',
+                        mb: 3
                     }}
                 />
-
                 <Typography variant="h1" sx={{
-                    fontSize: { xs: '2.2rem', sm: '2.8rem', md: '3.2rem' },
-                    fontWeight: 700,
+                    fontSize: { xs: '2.5rem', md: '3.75rem' },
+                    fontWeight: 800,
                     lineHeight: 1.15,
-                    mb: 2.5,
                     color: '#ffffff',
+                    mb: 3,
                     letterSpacing: '-0.03em'
                 }}>
                     {t.heroTitle}
                 </Typography>
-
                 <Typography sx={{
-                    fontSize: '1.15rem',
-                    lineHeight: 1.6,
+                    fontSize: { xs: '1.05rem', md: '1.25rem' },
                     color: '#bbcabf',
-                    maxWidth: 840,
-                    mx: 'auto',
-                    mb: 4.5
+                    lineHeight: 1.6,
+                    mb: 5,
+                    maxWidth: 720,
+                    mx: 'auto'
                 }}>
                     {t.heroSubtitle}
                 </Typography>
-
-                <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap', mb: 4 }}>
+                <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
                     <Button
                         component="a"
                         href="/ideas"
                         variant="contained"
                         disableElevation
+                        size="large"
                         sx={{
                             backgroundColor: '#10b981',
                             color: '#05080e',
-                            py: 1.75,
-                            px: 3.5,
-                            borderRadius: '8px',
-                            fontWeight: 600,
+                            fontWeight: 700,
                             fontSize: '1rem',
                             textTransform: 'none',
-                            boxShadow: '0 0 24px rgba(16, 185, 129, 0.35)',
+                            borderRadius: '8px',
+                            px: 3.5,
+                            py: 1.5,
                             '&:hover': { backgroundColor: '#34d399' }
                         }}
-                        endIcon={<Box component="span" className="material-icons" sx={{ fontSize: 20 }}>trending_flat</Box>}
+                        endIcon={<Box component="span" className="material-icons">arrow_forward</Box>}
                     >
-                        {t.heroBtnSearch}
+                        {t.heroCtaPrimary}
                     </Button>
                     <Button
                         component="a"
                         href="#pipeline"
                         variant="outlined"
+                        size="large"
                         sx={{
-                            backgroundColor: 'rgba(16, 27, 39, 0.7)',
-                            color: '#f8fafc',
-                            py: 1.75,
-                            px: 3.5,
-                            borderRadius: '8px',
+                            borderColor: 'rgba(255, 255, 255, 0.15)',
+                            color: '#ffffff',
                             fontWeight: 600,
                             fontSize: '1rem',
                             textTransform: 'none',
-                            borderColor: 'rgba(255, 255, 255, 0.12)',
-                            '&:hover': { borderColor: 'rgba(16, 185, 129, 0.5)', backgroundColor: 'rgba(16, 185, 129, 0.08)' }
+                            borderRadius: '8px',
+                            px: 3,
+                            py: 1.5,
+                            '&:hover': { borderColor: '#10b981', backgroundColor: 'rgba(16, 185, 129, 0.05)' }
                         }}
-                        endIcon={<Box component="span" className="material-icons" sx={{ fontSize: 20 }}>south</Box>}
                     >
-                        {t.heroBtnPipeline}
+                        {t.heroCtaSecondary}
                     </Button>
                 </Box>
-
-                <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 1, color: '#94a3b8', fontSize: '0.875rem' }}>
-                    <Box component="span" className="material-icons" sx={{ color: '#10b981', fontSize: 18 }}>
-                        verified
-                    </Box>
-                    <Typography component="span" variant="body2" sx={{ color: '#94a3b8' }}>
-                        {t.heroStatus}
-                    </Typography>
-                </Box>
             </Container>
 
-            {/* Metrics Section */}
-            <Container maxWidth="lg" component="section" sx={{ mb: 10 }}>
-                <Box sx={{
-                    display: 'grid',
-                    gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' },
-                    gap: 2.5
-                }}>
-                    {[
-                        {val: '1251', lbl: t.stat1Label},
-                        {val: '15+', lbl: t.stat2Label},
-                        {val: '99.4%', lbl: t.stat3Label},
-                        { val: t.stat4Value, lbl: t.stat4Label },
-                    ].map((st, i) => (
-                        <Paper key={i} elevation={0} sx={{
-                            backgroundColor: '#171f33',
-                            border: '1px solid rgba(255, 255, 255, 0.08)',
-                            borderRadius: '16px',
-                            p: 3,
-                            textAlign: 'center'
-                        }}>
-                            <Typography sx={{ fontSize: '2rem', fontWeight: 700, color: '#10b981', mb: 0.75 }}>
-                                {st.val}
-                            </Typography>
-                            <Typography sx={{ fontSize: '0.875rem', color: '#bbcabf' }}>
-                                {st.lbl}
-                            </Typography>
-                        </Paper>
-                    ))}
-                </Box>
-            </Container>
-
-            {/* Interactive Search Preview */}
-            <Box component="section" sx={{
-                backgroundColor: '#131b2e',
-                borderTop: '1px solid rgba(255, 255, 255, 0.08)',
-                borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-                py: 10
-            }}>
+            {/* Stats Bar */}
+            <Box sx={{ backgroundColor: '#131c31', borderTop: '1px solid rgba(255, 255, 255, 0.08)', borderBottom: '1px solid rgba(255, 255, 255, 0.08)', py: 4 }}>
                 <Container maxWidth="lg">
-                    <Box sx={{ textAlign: 'center', mb: 6 }}>
-                        <Typography variant="overline" sx={{
-                            fontSize: '0.75rem',
-                            fontWeight: 600,
-                            letterSpacing: '0.06em',
-                            color: '#10b981',
-                            display: 'block',
-                            mb: 1.5
-                        }}>
-                            {t.previewBadge}
-                        </Typography>
-                        <Typography variant="h2" sx={{ fontSize: '2.25rem', fontWeight: 700, mb: 2, color: '#ffffff' }}>
-                            {t.previewTitle}
-                        </Typography>
-                        <Typography sx={{ color: '#bbcabf', fontSize: '1rem', maxWidth: 700, mx: 'auto' }}>
-                            {t.previewSubtitle}
-                        </Typography>
+                    <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' }, gap: 3, textAlign: 'center' }}>
+                        <Box>
+                            <Typography variant="h3" sx={{ fontWeight: 800, color: '#10b981', fontSize: '2.25rem' }}>10,000+</Typography>
+                            <Typography sx={{ color: '#bbcabf', fontSize: '0.875rem', mt: 0.5 }}>{t.stat1Label}</Typography>
+                        </Box>
+                        <Box>
+                            <Typography variant="h3" sx={{ fontWeight: 800, color: '#ffb95f', fontSize: '2.25rem' }}>&lt; 50ms</Typography>
+                            <Typography sx={{ color: '#bbcabf', fontSize: '0.875rem', mt: 0.5 }}>{t.stat2Label}</Typography>
+                        </Box>
+                        <Box>
+                            <Typography variant="h3" sx={{ fontWeight: 800, color: '#10b981', fontSize: '2.25rem' }}>98.4%</Typography>
+                            <Typography sx={{ color: '#bbcabf', fontSize: '0.875rem', mt: 0.5 }}>{t.stat3Label}</Typography>
+                        </Box>
                     </Box>
-
-                    <Paper elevation={0} sx={{
-                        backgroundColor: '#0a111a',
-                        borderRadius: '16px',
-                        border: '1px solid rgba(255, 255, 255, 0.1)',
-                        p: { xs: 2.5, sm: 4 },
-                        boxShadow: '0 20px 40px rgba(0,0,0,0.5)'
-                    }}>
-                        <Box sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            mb: 3,
-                            pb: 2,
-                            borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
-                            flexWrap: 'wrap',
-                            gap: 1
-                        }}>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#94a3b8' }}>
-                                <Box component="span" className="material-icons" sx={{ fontSize: 16, color: '#10b981' }}>sync</Box>
-                                <Typography variant="caption" sx={{ color: '#94a3b8' }}>finance.xardbaiz.im / vector-search-preview (200 OK)</Typography>
-                            </Box>
-                            <Typography variant="caption" sx={{ color: '#10b981', fontWeight: 600 }}>Qdrant Cosine Similarity</Typography>
-                        </Box>
-
-                        <Paper elevation={0} sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 1.5,
-                            backgroundColor: '#131b2e',
-                            borderRadius: '8px',
-                            p: 2,
-                            mb: 3,
-                            border: '1px solid rgba(16, 185, 129, 0.3)'
-                        }}>
-                            <Box component="span" className="material-icons" sx={{ color: '#10b981' }}>search</Box>
-                            <Typography sx={{ color: '#ffffff', fontWeight: 500 }}>{t.previewSearchInput}</Typography>
-                        </Paper>
-
-                        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' }, gap: 2 }}>
-                            <Paper elevation={0} sx={{
-                                backgroundColor: '#171f33',
-                                borderRadius: '12px',
-                                p: 2.5,
-                                border: '1px solid rgba(255,255,255,0.08)'
-                            }}>
-                                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                                    <Typography sx={{ fontWeight: 700, color: '#ffffff' }}>YOU.US</Typography>
-                                    <Chip label={t.previewMatch79} size="small" sx={{ fontSize: '0.75rem', color: '#34d399', backgroundColor: 'rgba(16, 185, 129, 0.15)' }} />
-                                </Box>
-                                <Typography sx={{ color: '#bbcabf', fontSize: '0.9rem', mb: 1.5 }}>Clear Secure Inc</Typography>
-                                <Typography sx={{ color: '#10b981', fontWeight: 600, fontSize: '0.95rem' }}>{t.previewTargetUpside1}</Typography>
-                            </Paper>
-
-                            <Paper elevation={0} sx={{
-                                backgroundColor: '#171f33',
-                                borderRadius: '12px',
-                                p: 2.5,
-                                border: '1px solid rgba(255,255,255,0.08)'
-                            }}>
-                                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                                    <Typography sx={{ fontWeight: 700, color: '#ffffff' }}>ADBE.US</Typography>
-                                    <Chip label={t.previewMatch79} size="small" sx={{ fontSize: '0.75rem', color: '#34d399', backgroundColor: 'rgba(16, 185, 129, 0.15)' }} />
-                                </Box>
-                                <Typography sx={{ color: '#bbcabf', fontSize: '0.9rem', mb: 1.5 }}>Adobe Systems Inc</Typography>
-                                <Typography sx={{ color: '#10b981', fontWeight: 600, fontSize: '0.95rem' }}>{t.previewTargetUpside2}</Typography>
-                            </Paper>
-                        </Box>
-
-                        <Box sx={{ textAlign: 'center', mt: 4 }}>
-                            <Link href="/ideas" underline="none" sx={{
-                                color: '#10b981',
-                                fontWeight: 600,
-                                fontSize: '0.95rem',
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: 0.75
-                            }}>
-                                {t.previewCatalogBtn}
-                                <Box component="span" className="material-icons" sx={{ fontSize: 18 }}>arrow_forward</Box>
-                            </Link>
-                        </Box>
-                    </Paper>
                 </Container>
             </Box>
 
-            {/* Pipeline Steps */}
-            <Container maxWidth="lg" component="section" id="pipeline" sx={{ py: 10 }}>
-                <Box sx={{ textAlign: 'center', mb: 7 }}>
-                    <Typography variant="overline" sx={{
-                        fontSize: '0.75rem',
-                        fontWeight: 600,
-                        letterSpacing: '0.06em',
-                        color: '#10b981',
-                        display: 'block',
-                        mb: 1.5
-                    }}>
-                        {t.pipelineBadge}
-                    </Typography>
-                    <Typography variant="h2" sx={{ fontSize: '2.25rem', fontWeight: 700, mb: 2, color: '#ffffff' }}>
-                        {t.pipelineTitle}
-                    </Typography>
-                    <Typography sx={{ color: '#bbcabf', fontSize: '1rem', maxWidth: 750, mx: 'auto' }}>
-                        {t.pipelineSubtitle}
-                    </Typography>
-                </Box>
+            {/* Pipeline Section */}
+            <Box id="pipeline" sx={{ py: 10 }}>
+                <Container maxWidth="lg">
+                    <Box sx={{ textAlign: 'center', mb: 8 }}>
+                        <Typography variant="overline" sx={{ fontSize: '0.75rem', fontWeight: 600, letterSpacing: '0.06em', color: '#10b981', display: 'block', mb: 1.5 }}>
+                            {t.pipelineBadge}
+                        </Typography>
+                        <Typography variant="h2" sx={{ fontSize: '2.25rem', fontWeight: 700, mb: 2, color: '#ffffff' }}>
+                            {t.pipelineTitle}
+                        </Typography>
+                        <Typography sx={{ color: '#bbcabf', fontSize: '1rem', maxWidth: 680, mx: 'auto' }}>
+                            {t.pipelineSubtitle}
+                        </Typography>
+                    </Box>
 
-                <Box sx={{
-                    display: 'grid',
-                    gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' },
-                    gap: 3
-                }}>
-                    {[
-                        { icon: 'cloud_download', step: '01', title: t.step1Title, sub: t.step1Sub, desc: t.step1Desc, tag: t.step1Tag },
-                        { icon: 'psychology', step: '02', title: t.step2Title, sub: t.step2Sub, desc: t.step2Desc, tag: t.step2Tag },
-                        { icon: 'sell', step: '03', title: t.step3Title, sub: t.step3Sub, desc: t.step3Desc, tag: t.step3Tag },
-                        { icon: 'hub', step: '04', title: t.step4Title, sub: t.step4Sub, desc: t.step4Desc, tag: t.step4Tag }
-                    ].map((step, idx) => (
-                        <Card key={idx} elevation={0} sx={{
-                            backgroundColor: '#171f33',
-                            borderRadius: '16px',
-                            border: '1px solid rgba(255, 255, 255, 0.08)',
-                            height: '100%'
-                        }}>
-                            <CardContent sx={{ p: 3.5 }}>
-                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2.5 }}>
-                                    <Box component="span" className="material-icons" sx={{ fontSize: 32, color: '#10b981' }}>{step.icon}</Box>
-                                    <Typography sx={{ fontSize: '0.85rem', fontWeight: 700, color: '#475569' }}>Step {step.step}</Typography>
-                                </Box>
-                                <Typography variant="h6" sx={{ fontSize: '1.25rem', fontWeight: 600, color: '#ffffff', mb: 0.5 }}>{step.title}</Typography>
-                                <Typography sx={{ fontSize: '0.85rem', color: '#10b981', fontWeight: 500, mb: 2 }}>{step.sub}</Typography>
-                                <Typography sx={{ fontSize: '0.9rem', color: '#bbcabf', lineHeight: 1.5, mb: 2.5 }}>{step.desc}</Typography>
-                                <Chip label={step.tag} size="small" sx={{ fontSize: '0.75rem', color: '#95d3ba', backgroundColor: '#0b513d', fontWeight: 600 }} />
-                            </CardContent>
-                        </Card>
-                    ))}
-                </Box>
-            </Container>
+                    <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' }, gap: 4 }}>
+                        <Paper elevation={0} sx={{ backgroundColor: '#171f33', p: 4, borderRadius: '12px', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
+                                <Box sx={{ width: 36, height: 36, borderRadius: '8px', backgroundColor: 'rgba(16, 185, 129, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#10b981', fontWeight: 700 }}>1</Box>
+                                <Typography variant="h6" sx={{ color: '#ffffff', fontWeight: 600 }}>{t.step1Title}</Typography>
+                            </Box>
+                            <Typography sx={{ color: '#bbcabf', fontSize: '0.925rem', lineHeight: 1.6 }}>{t.step1Desc}</Typography>
+                        </Paper>
 
-            {/* About & Transparency */}
-            <Box component="section" id="about" sx={{
-                backgroundColor: '#131b2e',
+                        <Paper elevation={0} sx={{ backgroundColor: '#171f33', p: 4, borderRadius: '12px', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
+                                <Box sx={{ width: 36, height: 36, borderRadius: '8px', backgroundColor: 'rgba(255, 185, 95, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ffb95f', fontWeight: 700 }}>2</Box>
+                                <Typography variant="h6" sx={{ color: '#ffffff', fontWeight: 600 }}>{t.step2Sub}</Typography>
+                            </Box>
+                            <Typography sx={{ color: '#bbcabf', fontSize: '0.925rem', lineHeight: 1.6 }}>{t.step2Desc}</Typography>
+                        </Paper>
+
+                        <Paper elevation={0} sx={{ backgroundColor: '#171f33', p: 4, borderRadius: '12px', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
+                                <Box sx={{ width: 36, height: 36, borderRadius: '8px', backgroundColor: 'rgba(16, 185, 129, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#10b981', fontWeight: 700 }}>3</Box>
+                                <Typography variant="h6" sx={{ color: '#ffffff', fontWeight: 600 }}>{t.step3Sub}</Typography>
+                            </Box>
+                            <Typography sx={{ color: '#bbcabf', fontSize: '0.925rem', lineHeight: 1.6 }}>{t.step3Desc}</Typography>
+                        </Paper>
+
+                        <Paper elevation={0} sx={{ backgroundColor: '#171f33', p: 4, borderRadius: '12px', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
+                                <Box sx={{ width: 36, height: 36, borderRadius: '8px', backgroundColor: 'rgba(255, 185, 95, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ffb95f', fontWeight: 700 }}>4</Box>
+                                <Typography variant="h6" sx={{ color: '#ffffff', fontWeight: 600 }}>{t.step4Sub}</Typography>
+                            </Box>
+                            <Typography sx={{ color: '#bbcabf', fontSize: '0.925rem', lineHeight: 1.6 }}>{t.step4Desc}</Typography>
+                        </Paper>
+                    </Box>
+                </Container>
+            </Box>
+
+            {/* About / Tech Section */}
+            <Box id="about" sx={{
+                backgroundColor: '#0a1120',
                 borderTop: '1px solid rgba(255, 255, 255, 0.08)',
                 borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
                 py: 10
@@ -433,7 +253,7 @@ export function LandingPage({ lang = 'en' }: LandingPageProps) {
                     <Box sx={{ textAlign: 'center' }}>
                         <Typography sx={{ color: '#94a3b8', fontSize: '0.875rem', mb: 2 }}>{t.techStackTitle}</Typography>
                         <Box sx={{ display: 'flex', gap: 1.5, justifyContent: 'center', flexWrap: 'wrap' }}>
-                            {['Node.js', 'Preact', 'Material UI', 'Qdrant', 'OpenAI', 'Supabase'].map((st, i) => (
+                            {['Node.js', 'React', 'Material UI', 'Qdrant', 'OpenAI', 'Supabase'].map((st, i) => (
                                 <Chip
                                     key={i}
                                     label={st}

@@ -1,3 +1,4 @@
+import React, { useState } from 'react';
 import { Language, getTranslations } from './i18n/i18n.js';
 
 export interface IdeaItem {
@@ -23,6 +24,8 @@ export function IdeaRow({ idea, index, lang = 'en' }: IdeaRowProps) {
     const rowId = `idea-${index}`;
     const descId = `desc-${index}`;
     const btnId = `btn-${index}`;
+
+    const [isExpanded, setIsExpanded] = useState(false);
 
     const text = idea.summary || idea.description || '';
     const isLong = text.length > 150;
@@ -69,15 +72,12 @@ export function IdeaRow({ idea, index, lang = 'en' }: IdeaRowProps) {
             <td style={{ padding: '16px', maxWidth: '400px', lineHeight: '1.5', color: '#444', whiteSpace: 'pre-line' }}>
                 {isLong ? (
                     <div>
-                        <span id={`${descId}-short`}>{shortText} </span>
-                        <span id={`${descId}-full`} style={{ display: 'none' }}>{text} </span>
+                        <span id={`${descId}-short`} style={{ display: isExpanded ? 'none' : 'inline' }}>{shortText} </span>
+                        <span id={`${descId}-full`} style={{ display: isExpanded ? 'inline' : 'none' }}>{text} </span>
                         <button
                             type="button"
                             id={btnId}
-                            data-toggle-btn=""
-                            data-desc-id={descId}
-                            data-expand-text={t.btnExpand}
-                            data-collapse-text={t.btnCollapse}
+                            onClick={() => setIsExpanded(!isExpanded)}
                             style={{
                                 background: 'none',
                                 border: 'none',
@@ -89,7 +89,7 @@ export function IdeaRow({ idea, index, lang = 'en' }: IdeaRowProps) {
                                 textDecoration: 'underline'
                             }}
                         >
-                            {t.btnExpand}
+                            {isExpanded ? t.btnCollapse : t.btnExpand}
                         </button>
                     </div>
                 ) : (

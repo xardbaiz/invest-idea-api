@@ -1,16 +1,17 @@
+import React from 'react';
+import { IdeaRow, IdeaItem } from './IdeaRow.js';
 import { Language, getTranslations } from './i18n/i18n.js';
-import { IdeaItem, IdeaRow } from './IdeaRow.js';
 
 interface IdeasTableProps {
     ideas: IdeaItem[];
-    searched: boolean;
+    searched?: boolean;
     lang?: Language;
 }
 
-export function IdeasTable({ ideas, searched, lang = 'en' }: IdeasTableProps) {
+export function IdeasTable({ ideas, searched = false, lang = 'en' }: IdeasTableProps) {
     const t = getTranslations(lang);
 
-    if (!searched && ideas.length === 0) {
+    if (!searched) {
         return (
             <div style={{
                 backgroundColor: '#ffffff',
@@ -21,9 +22,7 @@ export function IdeasTable({ ideas, searched, lang = 'en' }: IdeasTableProps) {
                 border: '1px solid #e0e0e0',
                 boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
             }}>
-                <p style={{ margin: 0, fontSize: '1.05rem' }}>
-                    {t.tablePromptInitial}
-                </p>
+                <p style={{ margin: 0, fontSize: '1.05rem' }}>{t.ideasSearchInitialPrompt}</p>
             </div>
         );
     }
@@ -38,10 +37,8 @@ export function IdeasTable({ ideas, searched, lang = 'en' }: IdeasTableProps) {
                 color: '#856404',
                 border: '1px solid #ffeba2'
             }}>
-                <h3 style={{ margin: '0 0 8px 0', fontSize: '1.2rem' }}>{t.tableNoResultsTitle}</h3>
-                <p style={{ margin: 0, fontSize: '0.95rem' }}>
-                    {t.tableNoResultsText}
-                </p>
+                <h3 style={{ margin: '0 0 8px 0', fontSize: '1.2rem' }}>{t.noIdeasFoundTitle}</h3>
+                <p style={{ margin: 0, fontSize: '0.95rem' }}>{t.noIdeasFoundDesc}</p>
             </div>
         );
     }
@@ -50,26 +47,26 @@ export function IdeasTable({ ideas, searched, lang = 'en' }: IdeasTableProps) {
         <div style={{
             backgroundColor: '#ffffff',
             borderRadius: '12px',
-            overflow: 'hidden',
             boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+            overflow: 'hidden',
             border: '1px solid #e0e0e0'
         }}>
             <div style={{ overflowX: 'auto' }}>
-                <table id="ideasTable" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.95rem' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.95rem' }}>
                     <thead>
-                        <tr style={{ backgroundColor: '#f5f5f5', borderBottom: '2px solid #e0e0e0' }}>
-                            <th style={{ padding: '16px', fontWeight: 600, color: '#333' }}>{t.thTicker}</th>
-                            <th style={{ padding: '16px', fontWeight: 600, color: '#333' }}>{t.thCompany}</th>
-                            <th style={{ padding: '16px', fontWeight: 600, color: '#333' }}>{t.thSummary}</th>
-                            <th style={{ padding: '16px', fontWeight: 600, color: '#333', textAlign: 'right' }}>{t.thCurrentPrice}</th>
-                            <th style={{ padding: '16px', fontWeight: 600, color: '#333', textAlign: 'right' }}>{t.thTargetPrice}</th>
-                            <th style={{ padding: '16px', fontWeight: 600, color: '#333', textAlign: 'center' }}>{t.thRelevance}</th>
-                            <th style={{ padding: '16px', fontWeight: 600, color: '#333', textAlign: 'right' }}>{t.thPublishDate}</th>
+                        <tr style={{ backgroundColor: '#f5f5f5', borderBottom: '2px solid #e0e0e0', color: '#555', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.05em' }}>
+                            <th style={{ padding: '16px' }}>{t.thTicker}</th>
+                            <th style={{ padding: '16px' }}>{t.thCompany}</th>
+                            <th style={{ padding: '16px' }}>{t.thSummary}</th>
+                            <th style={{ padding: '16px', textAlign: 'right' }}>{t.thCurrentPrice}</th>
+                            <th style={{ padding: '16px', textAlign: 'right' }}>{t.thTargetPrice}</th>
+                            <th style={{ padding: '16px', textAlign: 'center' }}>{t.thRelevance}</th>
+                            <th style={{ padding: '16px', textAlign: 'right' }}>{t.thDate}</th>
                         </tr>
                     </thead>
                     <tbody>
                         {ideas.map((idea, index) => (
-                            <IdeaRow key={idea.ticker ? `${idea.ticker}-${index}` : index} idea={idea} index={index} lang={lang} />
+                            <IdeaRow key={index} idea={idea} index={index} lang={lang} />
                         ))}
                     </tbody>
                 </table>

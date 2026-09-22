@@ -32,6 +32,7 @@ export function renderLandingPage(options: RenderLandingPageOptions = {}): strin
 </head>
 <body>
     <div id="root">${pageHtml}</div>
+    <script src="/public/bundle.js"></script>
 </body>
 </html>`;
 }
