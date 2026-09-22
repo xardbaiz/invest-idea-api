@@ -59,7 +59,7 @@
     "aboutFeat2Title": "Facts & Numbers",
     "aboutFeat2Desc": "Targets and upsides active now; P/E and multipliers in development (Coming Soon).",
     "aboutFeat3Title": "Natural Language",
-    "aboutFeat3Desc": "Semantic vector search with Qdrant & OpenAI.",
+    "aboutFeat3Desc": "Semantic vector search with Vector DB & AI.",
 
     "techStackTitle": "Technology Stack v2.4-production",
     "githubRepo": "GitHub Repository (MIT License)",
