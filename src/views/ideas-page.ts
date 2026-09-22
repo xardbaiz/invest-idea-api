@@ -44,7 +44,7 @@ export function renderIdeasPage(options: RenderIdeasPageOptions = {}): string {
 </head>
 <body>
     <div id="root">${pageHtml}</div>
-    <script src="/js/ideas-client.js"></script>
+    <script type="module" src="/js/ideas-client.js"></script>
 </body>
 </html>`;
 }

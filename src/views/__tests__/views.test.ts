@@ -42,7 +42,7 @@ describe("Views SSR and Localization Tests", () => {
             expect(html).toContain('lang="en"');
             expect(html).toContain('Search Investment Ideas');
             expect(html).toContain('value="AI"');
-            expect(html).toContain('<script src="/js/ideas-client.js"></script>');
+            expect(html).toContain('<script type="module" src="/js/ideas-client.js"></script>');
             expect(html).not.toContain('<[object Object]>');
         });
 

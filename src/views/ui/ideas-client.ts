@@ -1,9 +1,3 @@
-declare global {
-    interface Window {
-        toggleIdea?: (descId: string, btn: HTMLButtonElement) => void;
-    }
-}
-
 export function toggleIdea(descId: string, btn: HTMLButtonElement): void {
     const fullEl = document.getElementById(`${descId}-full`);
     const shortEl = document.getElementById(`${descId}-short`);
@@ -28,7 +22,7 @@ export function toggleIdea(descId: string, btn: HTMLButtonElement): void {
 
 export function initIdeaToggle(): void {
     if (typeof window !== 'undefined') {
-        window.toggleIdea = toggleIdea;
+        (window as any).toggleIdea = toggleIdea;
 
         document.addEventListener('click', (event: MouseEvent) => {
             const target = event.target as HTMLElement | null;
