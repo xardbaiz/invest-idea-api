@@ -38,6 +38,28 @@ export function IdeaRow({ idea, index, lang = 'en' }: IdeaRowProps) {
     const isGreenPrice = idea.currentPrice != null && idea.targetPrice != null && idea.currentPrice < idea.targetPrice;
     const currentToTargetPercentage = isGreenPrice ? ((idea.targetPrice! - idea.currentPrice!) / idea.currentPrice! * 100).toFixed(1) : null;
 
+    const inlineOnClick = `if(window.toggleIdea){window.toggleIdea('${descId}',this)}else{var f=document.getElementById('${descId}-full'),s=document.getElementById('${descId}-short');if(f.style.display==='none'||!f.style.display){f.style.display='inline';s.style.display='none';this.innerText='${t.btnCollapse}';}else{f.style.display='none';s.style.display='inline';this.innerText='${t.btnExpand}';}}`;
+
+    const buttonProps: Record<string, any> = {
+        type: 'button',
+        id: btnId,
+        'data-toggle-btn': '',
+        'data-desc-id': descId,
+        'data-expand-text': t.btnExpand,
+        'data-collapse-text': t.btnCollapse,
+        onclick: inlineOnClick,
+        style: {
+            background: 'none',
+            border: 'none',
+            color: '#1976d2',
+            cursor: 'pointer',
+            fontWeight: 'bold',
+            padding: 0,
+            fontSize: '0.85rem',
+            textDecoration: 'underline'
+        }
+    };
+
     return (
         <tr id={rowId} style={{ borderBottom: '1px solid #eee', transition: 'background-color 0.15s' }}>
             <td style={{ padding: '16px', fontWeight: 'bold' }}>
@@ -71,24 +93,7 @@ export function IdeaRow({ idea, index, lang = 'en' }: IdeaRowProps) {
                     <div>
                         <span id={`${descId}-short`}>{shortText} </span>
                         <span id={`${descId}-full`} style={{ display: 'none' }}>{text} </span>
-                        <button
-                            type="button"
-                            id={btnId}
-                            data-toggle-btn=""
-                            data-desc-id={descId}
-                            data-expand-text={t.btnExpand}
-                            data-collapse-text={t.btnCollapse}
-                            style={{
-                                background: 'none',
-                                border: 'none',
-                                color: '#1976d2',
-                                cursor: 'pointer',
-                                fontWeight: 'bold',
-                                padding: 0,
-                                fontSize: '0.85rem',
-                                textDecoration: 'underline'
-                            }}
-                        >
+                        <button {...buttonProps}>
                             {t.btnExpand}
                         </button>
                     </div>

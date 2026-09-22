@@ -1,7 +1,7 @@
 import {renderLandingPage} from "../landing-page.js";
 import {renderIdeasPage} from "../ideas-page.js";
 import {getLanguageFromHeader} from "../ui/i18n/i18n.js";
-import {initIdeaToggle} from "../ui/ideas-client.js";
+import {initIdeaToggle, toggleIdea} from "../ui/ideas-client.js";
 
 describe("Views SSR and Localization Tests", () => {
     describe("Language detection from Accept-Language header", () => {
@@ -42,7 +42,7 @@ describe("Views SSR and Localization Tests", () => {
             expect(html).toContain('lang="en"');
             expect(html).toContain('Search Investment Ideas');
             expect(html).toContain('value="AI"');
-            expect(html).toContain('<script type="module" src="/js/ideas-client.js"></script>');
+            expect(html).toContain('<script src="/js/ideas-client.js"></script>');
             expect(html).not.toContain('<[object Object]>');
         });
 
@@ -79,6 +79,7 @@ describe("Views SSR and Localization Tests", () => {
             elements = new Map();
             listeners = new Map();
 
+            (global as any).window = {};
             (global as any).document = {
                 readyState: 'complete',
                 addEventListener: (event: string, fn: Function) => {
@@ -91,9 +92,10 @@ describe("Views SSR and Localization Tests", () => {
 
         afterEach(() => {
             delete (global as any).document;
+            delete (global as any).window;
         });
 
-        it("should toggle short and full text visibility on click", () => {
+        it("should toggle short and full text visibility via toggleIdea function", () => {
             const btn = {
                 id: 'btn-0',
                 innerText: 'Expand',
@@ -116,16 +118,14 @@ describe("Views SSR and Localization Tests", () => {
 
             initIdeaToggle();
 
-            const clickListener = listeners.get('click')![0];
-
-            // Click to expand
-            clickListener({ target: btn });
+            // Toggle expand
+            toggleIdea('desc-0', btn as any);
             expect(fullEl.style.display).toBe('inline');
             expect(shortEl.style.display).toBe('none');
             expect(btn.innerText).toBe('Collapse');
 
-            // Click to collapse
-            clickListener({ target: btn });
+            // Toggle collapse
+            toggleIdea('desc-0', btn as any);
             expect(fullEl.style.display).toBe('none');
             expect(shortEl.style.display).toBe('inline');
             expect(btn.innerText).toBe('Expand');
@@ -154,14 +154,12 @@ describe("Views SSR and Localization Tests", () => {
 
             initIdeaToggle();
 
-            const clickListener = listeners.get('click')![0];
-
-            clickListener({ target: btn });
+            toggleIdea('desc-0', btn as any);
             expect(fullEl.style.display).toBe('inline');
             expect(shortEl.style.display).toBe('none');
             expect(btn.innerText).toBe('Свернуть');
 
-            clickListener({ target: btn });
+            toggleIdea('desc-0', btn as any);
             expect(fullEl.style.display).toBe('none');
             expect(shortEl.style.display).toBe('inline');
             expect(btn.innerText).toBe('Развернуть');
