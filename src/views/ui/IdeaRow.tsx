@@ -1,3 +1,4 @@
+import React, { useState } from 'react';
 import { Language, getTranslations } from './i18n/i18n.js';
 
 export interface IdeaItem {
@@ -24,6 +25,8 @@ export function IdeaRow({ idea, index, lang = 'en' }: IdeaRowProps) {
     const descId = `desc-${index}`;
     const btnId = `btn-${index}`;
 
+    const [isExpanded, setIsExpanded] = useState(false);
+
     const text = idea.summary || idea.description || '';
     const isLong = text.length > 150;
     const shortText = isLong ? text.substring(0, 150) + '...' : text;
@@ -37,8 +40,6 @@ export function IdeaRow({ idea, index, lang = 'en' }: IdeaRowProps) {
 
     const isGreenPrice = idea.currentPrice != null && idea.targetPrice != null && idea.currentPrice < idea.targetPrice;
     const currentToTargetPercentage = isGreenPrice ? ((idea.targetPrice! - idea.currentPrice!) / idea.currentPrice! * 100).toFixed(1) : null;
-
-    const toggleScript = `var f=document.getElementById('${descId}-full'), s=document.getElementById('${descId}-short'), b=document.getElementById('${btnId}'); if(f.style.display==='none'){f.style.display='inline'; s.style.display='none'; b.innerText='${t.btnCollapse}';}else{f.style.display='none'; s.style.display='inline'; b.innerText='${t.btnExpand}';}`;
 
     return (
         <tr id={rowId} style={{ borderBottom: '1px solid #eee', transition: 'background-color 0.15s' }}>
@@ -71,11 +72,12 @@ export function IdeaRow({ idea, index, lang = 'en' }: IdeaRowProps) {
             <td style={{ padding: '16px', maxWidth: '400px', lineHeight: '1.5', color: '#444', whiteSpace: 'pre-line' }}>
                 {isLong ? (
                     <div>
-                        <span id={`${descId}-short`}>{shortText} </span>
-                        <span id={`${descId}-full`} style={{ display: 'none' }}>{text} </span>
+                        <span id={`${descId}-short`} style={{ display: isExpanded ? 'none' : 'inline' }}>{shortText} </span>
+                        <span id={`${descId}-full`} style={{ display: isExpanded ? 'inline' : 'none' }}>{text} </span>
                         <button
                             type="button"
                             id={btnId}
+                            onClick={() => setIsExpanded(!isExpanded)}
                             style={{
                                 background: 'none',
                                 border: 'none',
@@ -86,9 +88,8 @@ export function IdeaRow({ idea, index, lang = 'en' }: IdeaRowProps) {
                                 fontSize: '0.85rem',
                                 textDecoration: 'underline'
                             }}
-                            onClick={toggleScript as any}
                         >
-                            {t.btnExpand}
+                            {isExpanded ? t.btnCollapse : t.btnExpand}
                         </button>
                     </div>
                 ) : (

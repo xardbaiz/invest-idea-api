@@ -1,3 +1,4 @@
+import React, { useState } from 'react';
 import { Language, getTranslations } from './i18n/i18n.js';
 
 interface SearchFormProps {
@@ -6,10 +7,33 @@ interface SearchFormProps {
     to?: string;
     limit?: number;
     lang?: Language;
+    onSearch?: (params: { query: string; from: string; to: string; limit: number }) => void;
+    loading?: boolean;
 }
 
-export function SearchForm({ query = '', from = '', to = '', limit = 10, lang = 'en' }: SearchFormProps) {
+export function SearchForm({
+    query: initialQuery = '',
+    from: initialFrom = '',
+    to: initialTo = '',
+    limit: initialLimit = 10,
+    lang = 'en',
+    onSearch,
+    loading = false
+}: SearchFormProps) {
     const t = getTranslations(lang);
+
+    const [query, setQuery] = useState(initialQuery);
+    const [from, setFrom] = useState(initialFrom);
+    const [to, setTo] = useState(initialTo);
+    const [limit, setLimit] = useState(initialLimit);
+
+    const handleSubmit = (e: React.FormEvent) => {
+        if (onSearch) {
+            e.preventDefault();
+            onSearch({ query, from, to, limit });
+        }
+    };
+
     return (
         <div style={{
             backgroundColor: '#ffffff',
@@ -19,7 +43,7 @@ export function SearchForm({ query = '', from = '', to = '', limit = 10, lang = 
             marginBottom: '32px',
             border: '1px solid #e0e0e0'
         }}>
-            <form id="searchForm" method="GET" action="/ideas">
+            <form id="searchForm" method="GET" action="/ideas" onSubmit={handleSubmit}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                     <div>
                         <label htmlFor="query" style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#444', marginBottom: '6px' }}>
@@ -29,7 +53,8 @@ export function SearchForm({ query = '', from = '', to = '', limit = 10, lang = 
                             type="text"
                             name="query"
                             id="query"
-                            defaultValue={query}
+                            value={query}
+                            onChange={(e) => setQuery(e.target.value)}
                             placeholder={t.searchPlaceholderQuery}
                             style={{
                                 width: '100%',
@@ -52,7 +77,8 @@ export function SearchForm({ query = '', from = '', to = '', limit = 10, lang = 
                                 type="date"
                                 name="from"
                                 id="from"
-                                defaultValue={from}
+                                value={from}
+                                onChange={(e) => setFrom(e.target.value)}
                                 style={{
                                     width: '100%',
                                     padding: '10px 12px',
@@ -71,7 +97,8 @@ export function SearchForm({ query = '', from = '', to = '', limit = 10, lang = 
                                 type="date"
                                 name="to"
                                 id="to"
-                                defaultValue={to}
+                                value={to}
+                                onChange={(e) => setTo(e.target.value)}
                                 style={{
                                     width: '100%',
                                     padding: '10px 12px',
@@ -90,7 +117,8 @@ export function SearchForm({ query = '', from = '', to = '', limit = 10, lang = 
                                 type="number"
                                 name="limit"
                                 id="limit"
-                                defaultValue={String(limit)}
+                                value={limit}
+                                onChange={(e) => setLimit(Number(e.target.value))}
                                 min="1"
                                 max="100"
                                 style={{
@@ -108,15 +136,16 @@ export function SearchForm({ query = '', from = '', to = '', limit = 10, lang = 
                         <button
                             type="submit"
                             id="submitBtn"
+                            disabled={loading}
                             style={{
-                                backgroundColor: '#1976d2',
+                                backgroundColor: loading ? '#90caf9' : '#1976d2',
                                 color: '#ffffff',
                                 border: 'none',
                                 borderRadius: '8px',
                                 padding: '12px 28px',
                                 fontSize: '1rem',
                                 fontWeight: 600,
-                                cursor: 'pointer',
+                                cursor: loading ? 'not-allowed' : 'pointer',
                                 display: 'inline-flex',
                                 alignItems: 'center',
                                 gap: '8px',
@@ -124,7 +153,7 @@ export function SearchForm({ query = '', from = '', to = '', limit = 10, lang = 
                             }}
                         >
                             <span className="material-icons" style={{ fontSize: '20px' }}>search</span>
-                            {t.searchBtn}
+                            {loading ? '...' : t.searchBtn}
                         </button>
                     </div>
                 </div>

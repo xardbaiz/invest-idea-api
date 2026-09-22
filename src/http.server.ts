@@ -1,3 +1,5 @@
+import express from 'express';
+import path from 'node:path';
 import {createMcpExpressApp} from "@modelcontextprotocol/express";
 import {getServer} from "./mcp.factory.js";
 import {NodeStreamableHTTPServerTransport} from "@modelcontextprotocol/node";
@@ -6,8 +8,6 @@ import {createVectorStoreService} from "./outbound/vector/vector-store.factory.j
 import {createAiService} from "./domain/services/ai.service.js";
 import {ApiService} from "./domain/services/api.service.js";
 import {ProviderUrlService} from "./domain/services/provider-url.service.js";
-import {renderIdeasPage} from "./views/ideas-page.js";
-import {renderLandingPage} from "./views/landing-page.js";
 import {getLanguageFromHeader} from "./views/ui/i18n/i18n.js";
 import 'dotenv/config';
 
@@ -17,6 +17,10 @@ if (process.env.MCP_SERVER_HTTP_TRANSPORT_ENABLED === 'true') {
             'finance.xardbaiz.im', '.xardbaiz.im', '*.xardbaiz.im',
             'o6vsfcmvkoj3ebdrzanxm4rb.92.5.25.31.sslip.io', '92.5.25.31']
     });
+
+    // Static assets from Vite build
+    app.use(express.static(path.join(process.cwd(), 'dist', 'public')));
+
     const expressPort = process.env.PORT ?? 3000;
     const server = getServer();
     const transport: NodeStreamableHTTPServerTransport = new NodeStreamableHTTPServerTransport({
@@ -75,12 +79,6 @@ if (process.env.MCP_SERVER_HTTP_TRANSPORT_ENABLED === 'true') {
         });
     }
 
-    // GET / -> Landing HTML Page
-    app.get('/', async (req: any, res: any) => {
-        const lang = getLanguageFromHeader(req.headers['accept-language']);
-        res.type('html').send(renderLandingPage({ lang }));
-    });
-
     // GET /api/ideas?query=...&from=YYYY-MM-DD&to=YYYY-MM-DD&limit=10
     app.get('/api/ideas', async (req: any, res: any) => {
         const {query, from, to, limit} = req.query;
@@ -95,40 +93,6 @@ if (process.env.MCP_SERVER_HTTP_TRANSPORT_ENABLED === 'true') {
         }
     });
 
-    // GET /ideas -> HTML Page
-    app.get('/ideas', async (req: any, res: any) => {
-        const { query, from, to, limit } = req.query;
-        const lang = getLanguageFromHeader(req.headers['accept-language']);
-
-        const defaultTo = new Date();
-        const defaultFrom = new Date(defaultTo);
-        defaultFrom.setMonth(defaultFrom.getMonth() - 2);
-
-        const toStr = to ? String(to) : defaultTo.toISOString().slice(0, 10);
-        const fromStr = from ? String(from) : defaultFrom.toISOString().slice(0, 10);
-        let ideas: any[] = [];
-        let searched = false;
-
-        if (query) {
-            searched = true;
-            try {
-                ideas = await searchIdeasWithQuotes(query, Number(limit) || 10, fromStr, toStr);
-            } catch (e: any) {
-                console.error('GET /ideas search error:', e);
-            }
-        }
-
-        res.type('html').send(renderIdeasPage({
-            query: query ? String(query) : '',
-            from: fromStr,
-            to: toStr,
-            limit: limit ? Number(limit) : 10,
-            ideas,
-            searched,
-            lang
-        }));
-    });
-
     // GET /api/:ticker/quota/details
     app.get('/api/:ticker/quota/details', async (req: any, res: any) => {
         const {ticker} = req.params;
@@ -140,6 +104,11 @@ if (process.env.MCP_SERVER_HTTP_TRANSPORT_ENABLED === 'true') {
             console.error('GET /api/:ticker/quota/details error:', e);
             res.status(500).send(`Error: ${e.message}`);
         }
+    });
+
+    // HTML WebUI pages served via client index.html
+    app.get(['/', '/ideas'], (req: any, res: any) => {
+        res.sendFile(path.join(process.cwd(), 'dist', 'public', 'index.html'));
     });
 
     app.get('/mcp', async (req: any, res: any) => {

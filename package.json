@@ -10,8 +10,9 @@
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "debug": "npx tsx src/index.ts",
     "http:debug": "npx tsx src/http.server.ts",
-    "build": "npx tsc",
-    "http:run": "node ./dist/http.server.js"
+    "build": "npx tsc && vite build",
+    "http:run": "node ./dist/http.server.js",
+    "build:client": "vite build"
   },
   "files": [
     "build"
@@ -42,19 +43,23 @@
     "better-sqlite3": "^12.6.2",
     "dotenv": "^17.3.1",
     "openai": "^6.27.0",
-    "preact": "^10.29.8",
-    "preact-render-to-string": "^6.7.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
     "vectra": "^0.15.0"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.13",
+    "@types/express": "^5.0.6",
     "@types/jest": "^30.0.0",
     "@types/node": "^25.4.0",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
+    "esbuild": "^0.28.2",
     "jest": "^30.3.0",
+    "jest-environment-jsdom": "^30.5.2",
     "ts-jest": "^29.4.9",
     "ts-node": "^10.9.2",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vite": "^8.3.0"
   }
 }

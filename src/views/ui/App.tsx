@@ -1,8 +1,9 @@
-import { Language, getTranslations } from './i18n/i18n.js';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Header } from './Header.js';
 import { SearchForm } from './SearchForm.js';
 import { IdeasTable } from './IdeasTable.js';
 import { IdeaItem } from './IdeaRow.js';
+import { Language, getTranslations } from './i18n/i18n.js';
 
 interface AppProps {
     query?: string;
@@ -14,8 +15,63 @@ interface AppProps {
     lang?: Language;
 }
 
-export function App({ query, from, to, limit, ideas = [], searched = false, lang = 'en' }: AppProps) {
+export function App({
+    query: initialQuery = '',
+    from: initialFrom = '',
+    to: initialTo = '',
+    limit: initialLimit = 10,
+    ideas: initialIdeas = [],
+    searched: initialSearched = false,
+    lang = 'en'
+}: AppProps) {
     const t = getTranslations(lang);
+
+    const [query, setQuery] = useState(initialQuery);
+    const [from, setFrom] = useState(initialFrom);
+    const [to, setTo] = useState(initialTo);
+    const [limit, setLimit] = useState(initialLimit);
+    const [ideas, setIdeas] = useState<IdeaItem[]>(initialIdeas);
+    const [searched, setSearched] = useState(initialSearched);
+    const [loading, setLoading] = useState(false);
+
+    const fetchIdeas = useCallback(async (searchParams: { query: string; from: string; to: string; limit: number }) => {
+        if (!searchParams.query) return;
+        setLoading(true);
+        setSearched(true);
+        try {
+            const url = `/api/ideas?query=${encodeURIComponent(searchParams.query)}&from=${encodeURIComponent(searchParams.from)}&to=${encodeURIComponent(searchParams.to)}&limit=${searchParams.limit}`;
+            const response = await fetch(url);
+            if (response.ok) {
+                const data = await response.json();
+                setIdeas(data);
+            } else {
+                console.error('Failed to fetch ideas:', response.statusText);
+            }
+        } catch (error) {
+            console.error('Error fetching ideas:', error);
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    const handleSearch = (params: { query: string; from: string; to: string; limit: number }) => {
+        setQuery(params.query);
+        setFrom(params.from);
+        setTo(params.to);
+        setLimit(params.limit);
+
+        // Update URL query parameters seamlessly
+        if (typeof window !== 'undefined' && window.history) {
+            const url = new URL(window.location.href);
+            url.searchParams.set('query', params.query);
+            url.searchParams.set('from', params.from);
+            url.searchParams.set('to', params.to);
+            url.searchParams.set('limit', String(params.limit));
+            window.history.pushState({}, '', url.toString());
+        }
+
+        fetchIdeas(params);
+    };
 
     return (
         <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '32px 16px', fontFamily: 'Roboto, Arial, sans-serif' }}>
@@ -25,9 +81,24 @@ export function App({ query, from, to, limit, ideas = [], searched = false, lang
                     {t.navHome}
                 </a>
             </div>
+
             <Header lang={lang} />
-            <SearchForm query={query} from={from} to={to} limit={limit} lang={lang} />
-            <IdeasTable ideas={ideas} searched={searched} lang={lang} />
+
+            <SearchForm
+                query={query}
+                from={from}
+                to={to}
+                limit={limit}
+                lang={lang}
+                onSearch={handleSearch}
+                loading={loading}
+            />
+
+            <IdeasTable
+                ideas={ideas}
+                searched={searched}
+                lang={lang}
+            />
         </div>
     );
 }
