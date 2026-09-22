@@ -38,8 +38,6 @@ export function IdeaRow({ idea, index, lang = 'en' }: IdeaRowProps) {
     const isGreenPrice = idea.currentPrice != null && idea.targetPrice != null && idea.currentPrice < idea.targetPrice;
     const currentToTargetPercentage = isGreenPrice ? ((idea.targetPrice! - idea.currentPrice!) / idea.currentPrice! * 100).toFixed(1) : null;
 
-    const toggleScript = `var f=document.getElementById('${descId}-full'), s=document.getElementById('${descId}-short'), b=document.getElementById('${btnId}'); if(f.style.display==='none'){f.style.display='inline'; s.style.display='none'; b.innerText='${t.btnCollapse}';}else{f.style.display='none'; s.style.display='inline'; b.innerText='${t.btnExpand}';}`;
-
     return (
         <tr id={rowId} style={{ borderBottom: '1px solid #eee', transition: 'background-color 0.15s' }}>
             <td style={{ padding: '16px', fontWeight: 'bold' }}>
@@ -76,6 +74,10 @@ export function IdeaRow({ idea, index, lang = 'en' }: IdeaRowProps) {
                         <button
                             type="button"
                             id={btnId}
+                            data-toggle-btn=""
+                            data-desc-id={descId}
+                            data-expand-text={t.btnExpand}
+                            data-collapse-text={t.btnCollapse}
                             style={{
                                 background: 'none',
                                 border: 'none',
@@ -86,7 +88,6 @@ export function IdeaRow({ idea, index, lang = 'en' }: IdeaRowProps) {
                                 fontSize: '0.85rem',
                                 textDecoration: 'underline'
                             }}
-                            onClick={toggleScript as any}
                         >
                             {t.btnExpand}
                         </button>
