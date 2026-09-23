@@ -3,7 +3,7 @@ import {Repository} from "./outbound/persistence/repository.js";
 import 'dotenv/config';
 import {createRepository} from "./outbound/persistence/repository.factory.js";
 import {createVectorStoreService} from "./outbound/vector/vector-store.factory.js";
-import {getServer} from "./mcp.factory.js";
+import {getMcpServer} from "./mcp.factory.js";
 import {StdioServerTransport} from "@modelcontextprotocol/server/stdio";
 
 // --- Configuration ---
@@ -20,7 +20,7 @@ if (process.env.SYNC_JOB_ENABLED === 'true') {
 if (process.env.MCP_SERVER_STDIO_TRANSPORT_ENABLED === 'true') {
     try {
         const stdioTransport = new StdioServerTransport();
-        await getServer().connect(stdioTransport);
+        await getMcpServer().connect(stdioTransport);
         console.info("MCP Server started on Stdio transport");
     } catch (err) {
         console.error("Failed to start MCP StdIO server:", err);

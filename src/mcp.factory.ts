@@ -5,7 +5,7 @@ import {createAiService} from "./domain/services/ai.service.js";
 import {ApiService} from "./domain/services/api.service.js";
 import {z} from "zod";
 
-export const getServer = () => {
+export const getMcpServer = () => {
     const repo = createRepository();
     const vectorStore = createVectorStoreService();
     const aiService = createAiService();

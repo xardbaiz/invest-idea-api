@@ -1,28 +1,26 @@
 import express from 'express';
 import path from 'node:path';
 import {createMcpExpressApp} from "@modelcontextprotocol/express";
-import {getServer} from "./mcp.factory.js";
+import {getMcpServer} from "./mcp.factory.js";
 import {NodeStreamableHTTPServerTransport} from "@modelcontextprotocol/node";
 import {createRepository} from "./outbound/persistence/repository.factory.js";
 import {createVectorStoreService} from "./outbound/vector/vector-store.factory.js";
 import {createAiService} from "./domain/services/ai.service.js";
 import {ApiService} from "./domain/services/api.service.js";
 import {ProviderUrlService} from "./domain/services/provider-url.service.js";
-import {getLanguageFromHeader} from "./views/ui/i18n/i18n.js";
 import 'dotenv/config';
 
 if (process.env.MCP_SERVER_HTTP_TRANSPORT_ENABLED === 'true') {
     const app = createMcpExpressApp({
-        allowedHosts: ['localhost', '127.0.0.1', 'invest-idea-api.onrender.com', 'onrender.com',
-            'finance.xardbaiz.im', '.xardbaiz.im', '*.xardbaiz.im',
-            'o6vsfcmvkoj3ebdrzanxm4rb.92.5.25.31.sslip.io', '92.5.25.31']
+        allowedHosts: [],
+        allowedOrigins: [],
     });
 
     // Static assets from Vite build
     app.use(express.static(path.join(process.cwd(), 'dist', 'public')));
 
     const expressPort = process.env.PORT ?? 3000;
-    const server = getServer();
+    const server = getMcpServer();
     const transport: NodeStreamableHTTPServerTransport = new NodeStreamableHTTPServerTransport({
         sessionIdGenerator: undefined,
     });
