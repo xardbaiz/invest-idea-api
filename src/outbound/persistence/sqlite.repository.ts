@@ -1,6 +1,6 @@
 import Database from 'better-sqlite3';
 import {InvestmentIdea} from "../../domain/models.js";
-import {Repository} from "./repository.js";
+import {CompanyInfo, Repository} from "./repository.js";
 
 export class SqlLiteIdeaRepository implements Repository {
     private db: Database.Database;
@@ -70,6 +70,46 @@ export class SqlLiteIdeaRepository implements Repository {
               AND publish_date <= ?
         `).all(from, to);
         return rows.map(r => r.title);
+    }
+
+    async findUniqueCompanies(query: string): Promise<CompanyInfo[]> {
+        if (!query || !query.trim()) return [];
+        const pattern = `%${query.trim()}%`;
+        const rows: any[] = this.db.prepare(`
+            SELECT DISTINCT ticker, company_name
+            FROM ideas
+            WHERE (ticker LIKE ? OR company_name LIKE ?)
+              AND ((ticker IS NOT NULL AND ticker != '') OR (company_name IS NOT NULL AND company_name != ''))
+            LIMIT 20
+        `).all(pattern, pattern);
+
+        const result: CompanyInfo[] = [];
+        const seen = new Set<string>();
+
+        for (const row of rows) {
+            const ticker = row.ticker || '';
+            const companyName = row.company_name || '';
+            const key = `${ticker}:${companyName}`;
+            if (!seen.has(key)) {
+                seen.add(key);
+                result.push({ ticker, companyName });
+            }
+        }
+
+        return result;
+    }
+
+    async findIdeasByCompany(companyOrTicker: string): Promise<InvestmentIdea[]> {
+        if (!companyOrTicker || !companyOrTicker.trim()) return [];
+        const val = companyOrTicker.trim();
+        const rows: any[] = this.db.prepare(`
+            SELECT *
+            FROM ideas
+            WHERE ticker = ? OR company_name = ?
+            ORDER BY publish_date DESC
+        `).all(val, val);
+
+        return rows.map(row => this.toIdea(row));
     }
 
     private toIdea(row: any): InvestmentIdea {
