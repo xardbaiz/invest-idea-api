@@ -8,11 +8,11 @@
   },
   "scripts": {
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
-    "debug": "npx tsx src/index.ts",
-    "http:debug": "npx tsx src/http.server.ts",
+    "build:client": "vite build",
     "build": "npx tsc && vite build",
+    "debug": "npx tsx src/index.ts",
     "http:run": "node ./dist/http.server.js",
-    "build:client": "vite build"
+    "run": "node ./dist/index.js"
   },
   "files": [
     "build"

@@ -5,7 +5,7 @@ import {VectorStoreService} from "../../outbound/vector/qdrant.service.js";
 import {INVEST_IDEA_DETAILS_MARK} from "../constants.js";
 import {ChatMessage, InvestmentIdea} from "../models.js";
 // @ts-ignore
-import summaryPromptMessages from "./summary.messages.json";
+import summaryPromptMessages from './summary.messages.json' with {type: 'json'};
 
 const embeddingSourcePrefix = process.env.EMBEDDING_SOURCE_PREFIX;
 

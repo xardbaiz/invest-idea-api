@@ -27,3 +27,7 @@ if (process.env.MCP_SERVER_STDIO_TRANSPORT_ENABLED === 'true') {
         process.exit(1);
     }
 }
+
+if (process.env.HTTP_SERVER_ENABLED === 'true') {
+    await import('./http.server.js');
+}
