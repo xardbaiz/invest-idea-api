@@ -4,6 +4,10 @@ export class TradernetClient {
     private readonly host = 'https://tradernet.com';
     private readonly apiUrl = this.host + '/api';
 
+    getLogoByTicker(ticker: string): string {
+        return `${this.host}/logos/get-logo-by-ticker?ticker=${encodeURIComponent(ticker.toLowerCase())}`;
+    }
+
     async fetchIdeas(skip: number, take: number): Promise<InvestmentIdea[]> {
         const response = await fetch(this.apiUrl, {
             method: "POST",

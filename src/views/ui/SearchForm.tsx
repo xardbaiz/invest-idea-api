@@ -1,13 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Language, getTranslations } from './i18n/i18n.js';
 
+export interface CompanyEntry {
+    ticker: string;
+    companyName: string;
+    logoUrl?: string;
+}
+
 interface SearchFormProps {
-    query?: string;
-    from?: string;
-    to?: string;
-    limit?: number;
+    query: string;
+    from: string;
+    to: string;
+    limit: number;
     lang?: Language;
-    onSearch?: (params: { query: string; from: string; to: string; limit: number }) => void;
+    onSearch: (params: { query: string; from: string; to: string; limit: number }) => void;
+    onSelectCompany?: (company: CompanyEntry) => void;
     loading?: boolean;
 }
 
@@ -18,6 +25,7 @@ export function SearchForm({
     limit: initialLimit = 10,
     lang = 'en',
     onSearch,
+    onSelectCompany,
     loading = false
 }: SearchFormProps) {
     const t = getTranslations(lang);
@@ -27,11 +35,70 @@ export function SearchForm({
     const [to, setTo] = useState(initialTo);
     const [limit, setLimit] = useState(initialLimit);
 
-    const handleSubmit = (e: React.FormEvent) => {
-        if (onSearch) {
-            e.preventDefault();
-            onSearch({ query, from, to, limit });
+    const [suggestions, setSuggestions] = useState<CompanyEntry[]>([]);
+    const [showDropdown, setShowDropdown] = useState(false);
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        setQuery(initialQuery);
+    }, [initialQuery]);
+
+    useEffect(() => {
+        setFrom(initialFrom);
+    }, [initialFrom]);
+
+    useEffect(() => {
+        setTo(initialTo);
+    }, [initialTo]);
+
+    useEffect(() => {
+        setLimit(initialLimit);
+    }, [initialLimit]);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+                setShowDropdown(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    const handleQueryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const val = e.target.value;
+        setQuery(val);
+
+        if (val.trim().length > 0) {
+            fetch(`/api/companies?query=${encodeURIComponent(val)}`)
+                .then((res) => (res.ok ? res.json() : []))
+                .then((data: CompanyEntry[]) => {
+                    setSuggestions(data);
+                    setShowDropdown(data.length > 0);
+                })
+                .catch(() => {
+                    setSuggestions([]);
+                    setShowDropdown(false);
+                });
+        } else {
+            setSuggestions([]);
+            setShowDropdown(false);
         }
+    };
+
+    const handleCompanyClick = (company: CompanyEntry) => {
+        const displayVal = company.ticker || company.companyName;
+        setQuery(displayVal);
+        setShowDropdown(false);
+        if (onSelectCompany) {
+            onSelectCompany(company);
+        }
+    };
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        setShowDropdown(false);
+        onSearch({ query, from, to, limit });
     };
 
     return (
@@ -45,7 +112,7 @@ export function SearchForm({
         }}>
             <form id="searchForm" method="GET" action="/ideas" onSubmit={handleSubmit}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                    <div>
+                    <div ref={containerRef} style={{ position: 'relative' }}>
                         <label htmlFor="query" style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#444', marginBottom: '6px' }}>
                             {t.searchLabelQuery}
                         </label>
@@ -54,8 +121,12 @@ export function SearchForm({
                             name="query"
                             id="query"
                             value={query}
-                            onChange={(e) => setQuery(e.target.value)}
+                            onChange={handleQueryChange}
+                            onFocus={() => {
+                                if (suggestions.length > 0) setShowDropdown(true);
+                            }}
                             placeholder={t.searchPlaceholderQuery}
+                            autoComplete="off"
                             style={{
                                 width: '100%',
                                 padding: '12px 16px',
@@ -67,6 +138,71 @@ export function SearchForm({
                                 transition: 'border-color 0.2s'
                             }}
                         />
+
+                        {showDropdown && suggestions.length > 0 && (
+                            <ul style={{
+                                position: 'absolute',
+                                top: '100%',
+                                left: 0,
+                                right: 0,
+                                zIndex: 1000,
+                                backgroundColor: '#ffffff',
+                                border: '1px solid #e0e0e0',
+                                borderRadius: '8px',
+                                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                                marginTop: '4px',
+                                listStyle: 'none',
+                                padding: '8px 0',
+                                margin: 0,
+                                maxHeight: '240px',
+                                overflowY: 'auto'
+                            }}>
+                                {suggestions.map((company, index) => {
+                                    return (
+                                        <li
+                                            key={index}
+                                            onClick={() => handleCompanyClick(company)}
+                                            style={{
+                                                padding: '10px 16px',
+                                                cursor: 'pointer',
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                gap: '12px',
+                                                transition: 'background-color 0.15s'
+                                            }}
+                                            onMouseEnter={(e) => {
+                                                (e.currentTarget as HTMLElement).style.backgroundColor = '#f5f5f5';
+                                            }}
+                                            onMouseLeave={(e) => {
+                                                (e.currentTarget as HTMLElement).style.backgroundColor = '#ffffff';
+                                            }}
+                                        >
+                                            {company.logoUrl && (
+                                                <img
+                                                    src={company.logoUrl}
+                                                    alt=""
+                                                    style={{
+                                                        width: '20px',
+                                                        height: '20px',
+                                                        objectFit: 'contain',
+                                                        borderRadius: '3px',
+                                                        backgroundColor: '#f0f0f0',
+                                                        flexShrink: 0
+                                                    }}
+                                                    onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
+                                                />
+                                            )}
+                                            <div style={{ fontSize: '0.95rem' }}>
+                                                <span style={{ fontWeight: 600, color: '#1976d2' }}>{company.ticker}</span>
+                                                {company.companyName && (
+                                                    <span style={{ color: '#555', marginLeft: '8px' }}>— {company.companyName}</span>
+                                                )}
+                                            </div>
+                                        </li>
+                                    );
+                                })}
+                            </ul>
+                        )}
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px' }}>
                         <div>

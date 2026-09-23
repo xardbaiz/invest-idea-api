@@ -1,6 +1,6 @@
 import {createClient, SupabaseClient} from '@supabase/supabase-js';
 import {InvestmentIdea} from "../../domain/models.js";
-import {Repository} from "./repository.js";
+import {CompanyInfo, Repository} from "./repository.js";
 
 const IDEAS_TABLE = 'ideas';
 
@@ -59,6 +59,48 @@ export class SupabaseIdeaRepository implements Repository {
 
         if (error) throw new Error(`Supabase findTitlesByDateRange failed: ${error.message}`);
         return (data ?? []).map(r => r.title);
+    }
+
+    async findUniqueCompanies(query: string): Promise<CompanyInfo[]> {
+        if (!query || !query.trim()) return [];
+        const pattern = `%${query.trim()}%`;
+        const {data, error} = await this.client
+            .from(IDEAS_TABLE)
+            .select('ticker, company_name')
+            .or(`ticker.ilike.${pattern},company_name.ilike.${pattern}`)
+            .limit(50);
+
+        if (error) throw new Error(`Supabase findUniqueCompanies failed: ${error.message}`);
+
+        const result: CompanyInfo[] = [];
+        const seen = new Set<string>();
+
+        for (const r of data ?? []) {
+            const ticker = r.ticker || '';
+            const companyName = r.company_name || '';
+            if (!ticker && !companyName) continue;
+            const key = `${ticker}:${companyName}`;
+            if (!seen.has(key)) {
+                seen.add(key);
+                result.push({ ticker, companyName });
+            }
+        }
+
+        return result.slice(0, 20);
+    }
+
+    async findIdeasByCompany(companyOrTicker: string): Promise<InvestmentIdea[]> {
+        if (!companyOrTicker || !companyOrTicker.trim()) return [];
+        const val = companyOrTicker.trim();
+        const {data, error} = await this.client
+            .from(IDEAS_TABLE)
+            .select('*')
+            .or(`ticker.eq.${val},company_name.eq.${val}`)
+            .order('publish_date', {ascending: false});
+
+        if (error) throw new Error(`Supabase findIdeasByCompany failed: ${error.message}`);
+
+        return (data ?? []).map((row: any) => this.toIdea(row));
     }
 
     private toIdea(row: any): InvestmentIdea {

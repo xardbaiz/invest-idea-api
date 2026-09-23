@@ -9,6 +9,7 @@ export interface IdeaItem {
     targetPrice?: number | null;
     currentPrice?: number | null;
     url?: string | null;
+    logoUrl?: string | null;
     publishDate?: string | null;
     similarity?: number | null;
 }
@@ -44,27 +45,44 @@ export function IdeaRow({ idea, index, lang = 'en' }: IdeaRowProps) {
     return (
         <tr id={rowId} style={{ borderBottom: '1px solid #eee', transition: 'background-color 0.15s' }}>
             <td style={{ padding: '16px', fontWeight: 'bold' }}>
-                {idea.url ? (
-                    <a
-                        href={idea.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={{
-                            fontWeight: 'bold',
-                            fontSize: '1rem',
-                            color: '#1976d2',
-                            textDecoration: 'none',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '4px'
-                        }}
-                    >
-                        {idea.ticker}
-                        <span className="material-icons" style={{ fontSize: '14px' }}>open_in_new</span>
-                    </a>
-                ) : (
-                    <span>{idea.ticker || '—'}</span>
-                )}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    {idea.logoUrl && (
+                        <img
+                            src={idea.logoUrl}
+                            alt=""
+                            style={{
+                                width: '20px',
+                                height: '20px',
+                                objectFit: 'contain',
+                                borderRadius: '3px',
+                                backgroundColor: '#f0f0f0',
+                                flexShrink: 0
+                            }}
+                            onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
+                        />
+                    )}
+                    {idea.url ? (
+                        <a
+                            href={idea.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                                fontWeight: 'bold',
+                                fontSize: '1rem',
+                                color: '#1976d2',
+                                textDecoration: 'none',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px'
+                            }}
+                        >
+                            {idea.ticker}
+                            <span className="material-icons" style={{ fontSize: '14px' }}>open_in_new</span>
+                        </a>
+                    ) : (
+                        <span>{idea.ticker || '—'}</span>
+                    )}
+                </div>
             </td>
             <td style={{ padding: '16px', fontWeight: 500, color: '#333' }}>
                 {idea.companyName || '—'}

@@ -17,6 +17,8 @@ describe("ApiService Integration Tests", () => {
             findById: jest.fn(),
             findByIds: jest.fn(),
             findTitlesByDateRange: jest.fn(),
+            findUniqueCompanies: jest.fn(),
+            findIdeasByCompany: jest.fn(),
         } as unknown as jest.Mocked<Repository>;
 
         mockVectorStore = {
@@ -129,5 +131,35 @@ describe("ApiService Integration Tests", () => {
         const results = await apiService.searchIdeas(query, 10);
 
         expect(results.map(r => r.idea.ticker)).toEqual(["B", "C", "A"]);
+    });
+
+    it("should return logo URL for ticker", () => {
+        const logoUrl = apiService.getLogoByTicker("MSFT");
+        expect(logoUrl).toBe("https://tradernet.com/logos/get-logo-by-ticker?ticker=msft");
+    });
+
+    it("should search unique companies from repository and attach logoUrl", async () => {
+        const mockCompanies = [{ ticker: "AAPL", companyName: "Apple Inc." }];
+        mockRepo.findUniqueCompanies.mockResolvedValue(mockCompanies);
+
+        const companies = await apiService.searchCompanies("App");
+        expect(companies).toEqual([{
+            ticker: "AAPL",
+            companyName: "Apple Inc.",
+            logoUrl: "https://tradernet.com/logos/get-logo-by-ticker?ticker=aapl"
+        }]);
+        expect(mockRepo.findUniqueCompanies).toHaveBeenCalledWith("App");
+    });
+
+    it("should get ideas by company from repository", async () => {
+        const mockIdea: InvestmentIdea = {
+            id: "1", provider: "tradernet", ticker: "AAPL", companyName: "Apple Inc.",
+            title: "Idea", description: "Desc", targetPrice: 200, currency: "USD", publishDate: "2023-01-01"
+        };
+        mockRepo.findIdeasByCompany.mockResolvedValue([mockIdea]);
+
+        const ideas = await apiService.getIdeasByCompany("AAPL");
+        expect(ideas).toEqual([mockIdea]);
+        expect(mockRepo.findIdeasByCompany).toHaveBeenCalledWith("AAPL");
     });
 });

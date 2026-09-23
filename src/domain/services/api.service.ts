@@ -1,7 +1,7 @@
 import {AiService} from "./ai.service.js";
-import {Repository} from "../../outbound/persistence/repository.js";
+import {CompanyInfo, Repository} from "../../outbound/persistence/repository.js";
 import {VectorStoreService} from "../../outbound/vector/qdrant.service.js";
-import {QuoteDetails, SearchResult} from "../models.js";
+import {InvestmentIdea, QuoteDetails, SearchResult} from "../models.js";
 import {TradernetClient} from "../../outbound/clients/tradernet.js";
 
 export class ApiService {
@@ -11,6 +11,22 @@ export class ApiService {
         private readonly vectorStore: VectorStoreService,
         private readonly tradernetClient: TradernetClient = new TradernetClient(),
     ) {
+    }
+
+    getLogoByTicker(ticker: string): string {
+        return this.tradernetClient.getLogoByTicker(ticker);
+    }
+
+    async searchCompanies(query: string): Promise<CompanyInfo[]> {
+        const companies = await this.repo.findUniqueCompanies(query);
+        return companies.map(c => ({
+            ...c,
+            logoUrl: c.ticker ? this.getLogoByTicker(c.ticker) : undefined,
+        }));
+    }
+
+    async getIdeasByCompany(companyOrTicker: string): Promise<InvestmentIdea[]> {
+        return this.repo.findIdeasByCompany(companyOrTicker);
     }
 
     async searchIdeas(query: string, limit: number = 10, from?: string, to?: string): Promise<SearchResult[]> {
