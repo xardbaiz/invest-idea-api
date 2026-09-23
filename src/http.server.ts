@@ -1,83 +1,26 @@
-import express from 'express';
+import express, {Express} from 'express';
 import path from 'node:path';
-import {createMcpExpressApp} from "@modelcontextprotocol/express";
-import {getServer} from "./mcp.factory.js";
+import {getMcpServer} from "./mcp.factory.js";
 import {NodeStreamableHTTPServerTransport} from "@modelcontextprotocol/node";
 import {createRepository} from "./outbound/persistence/repository.factory.js";
 import {createVectorStoreService} from "./outbound/vector/vector-store.factory.js";
 import {createAiService} from "./domain/services/ai.service.js";
 import {ApiService} from "./domain/services/api.service.js";
 import {ProviderUrlService} from "./domain/services/provider-url.service.js";
-import {getLanguageFromHeader} from "./views/ui/i18n/i18n.js";
 import 'dotenv/config';
 
-if (process.env.MCP_SERVER_HTTP_TRANSPORT_ENABLED === 'true') {
-    const app = createMcpExpressApp({
-        allowedHosts: ['localhost', '127.0.0.1', 'invest-idea-api.onrender.com', 'onrender.com',
-            'finance.xardbaiz.im', '.xardbaiz.im', '*.xardbaiz.im',
-            'o6vsfcmvkoj3ebdrzanxm4rb.92.5.25.31.sslip.io', '92.5.25.31']
-    });
-
-    // Static assets from Vite build
-    app.use(express.static(path.join(process.cwd(), 'dist', 'public')));
-
-    const expressPort = process.env.PORT ?? 3000;
-    const server = getServer();
-    const transport: NodeStreamableHTTPServerTransport = new NodeStreamableHTTPServerTransport({
-        sessionIdGenerator: undefined,
-    });
-    await server.connect(transport);
-
-    app.post('/mcp', async (req: any, res: any) => {
-        try {
-            await transport.handleRequest(req, res, req.body);
-            res.on('close', () => {
-                console.log('Request closed');
-                transport.close();
-                server.close();
-            });
-        } catch (error) {
-            console.error('Error handling MCP request:', error);
-            if (!res.headersSent) {
-                res.status(500).json({
-                    jsonrpc: '2.0',
-                    error: {
-                        code: -32_603,
-                        message: 'Internal server error'
-                    },
-                    id: null
-                });
-            }
-        }
-    });
-
+if (process.env.HTTP_SERVER_ENABLED === 'true') {
     const repo = createRepository();
     const vectorStore = createVectorStoreService();
     const aiService = createAiService();
     const apiService = new ApiService(repo, aiService, vectorStore);
     const providerUrlService = new ProviderUrlService();
 
-    async function searchIdeasWithQuotes(query: string, limit: number, from?: string, to?: string) {
-        const results = await apiService.searchIdeas(query, limit, from, to);
-        const tickers = results.map(r => r.idea.ticker).filter(Boolean) as string[];
-        const quotes = tickers.length ? await apiService.getQuoteDetails(tickers).catch(() => []) : [];
-        const quoteMap = new Map(quotes.map(q => [q.ticker, q]));
-        return results.map(r => {
-            const q = r.idea.ticker ? quoteMap.get(r.idea.ticker) : undefined;
-            const currentPrice = q?.bap || q?.bbp || q?.ClosePrice || q?.ltp || null;
-            return {
-                ...r,
-                ticker: r.idea.ticker,
-                companyName: r.idea.companyName,
-                summary: r.idea.summary || r.idea.description,
-                targetPrice: r.idea.targetPrice,
-                currentPrice,
-                url: providerUrlService.getIdeaUrl(r.idea.provider, r.idea.id),
-                publishDate: r.idea.publishDate,
-                similarity: typeof r.distance === 'number' ? (1 - r.distance) : null,
-            };
-        });
-    }
+    const app: Express = express();
+    app.disable('x-powered-by');
+
+    // Static assets from Vite build
+    app.use(express.static(path.join(process.cwd(), 'dist', 'public')));
 
     // GET /api/ideas?query=...&from=YYYY-MM-DD&to=YYYY-MM-DD&limit=10
     app.get('/api/ideas', async (req: any, res: any) => {
@@ -111,33 +54,88 @@ if (process.env.MCP_SERVER_HTTP_TRANSPORT_ENABLED === 'true') {
         res.sendFile(path.join(process.cwd(), 'dist', 'public', 'index.html'));
     });
 
-    app.get('/mcp', async (req: any, res: any) => {
-        console.log('Received GET MCP request');
-        res.writeHead(405).end(
-            JSON.stringify({
-                jsonrpc: '2.0',
-                error: {
-                    code: -32_000,
-                    message: 'App is healthy, but method not allowed.'
-                },
-                id: null
-            })
-        );
-    });
+    async function searchIdeasWithQuotes(query: string, limit: number, from?: string, to?: string) {
+        const results = await apiService.searchIdeas(query, limit, from, to);
+        const tickers = results.map(r => r.idea.ticker).filter(Boolean) as string[];
+        const quotes = tickers.length ? await apiService.getQuoteDetails(tickers).catch(() => []) : [];
+        const quoteMap = new Map(quotes.map(q => [q.ticker, q]));
+        return results.map(r => {
+            const q = r.idea.ticker ? quoteMap.get(r.idea.ticker) : undefined;
+            const currentPrice = q?.bap || q?.bbp || q?.ClosePrice || q?.ltp || null;
+            return {
+                ...r,
+                ticker: r.idea.ticker,
+                companyName: r.idea.companyName,
+                summary: r.idea.summary || r.idea.description,
+                targetPrice: r.idea.targetPrice,
+                currentPrice,
+                url: providerUrlService.getIdeaUrl(r.idea.provider, r.idea.id),
+                publishDate: r.idea.publishDate,
+                similarity: typeof r.distance === 'number' ? (1 - r.distance) : null,
+            };
+        });
+    }
 
+    if (process.env.MCP_SERVER_HTTP_TRANSPORT_ENABLED === 'true') {
+        const mcpServer = getMcpServer();
+        const transport: NodeStreamableHTTPServerTransport = new NodeStreamableHTTPServerTransport({
+            sessionIdGenerator: undefined,
+        });
+        await mcpServer.connect(transport);
+        console.log(`MCP Stateless Streamable HTTP Server initialized`);
+
+        app.post('/mcp', async (req: any, res: any) => {
+            try {
+                await transport.handleRequest(req, res, req.body);
+                res.on('close', () => {
+                    console.log('Request closed');
+                    transport.close();
+                    mcpServer.close();
+                });
+            } catch (error) {
+                console.error('Error handling MCP request:', error);
+                if (!res.headersSent) {
+                    res.status(500).json({
+                        jsonrpc: '2.0',
+                        error: {
+                            code: -32_603,
+                            message: 'Internal server error'
+                        },
+                        id: null
+                    });
+                }
+            }
+        });
+
+        app.get('/mcp', async (req: any, res: any) => {
+            console.log('Received GET MCP request');
+            res.writeHead(405).end(
+                JSON.stringify({
+                    jsonrpc: '2.0',
+                    error: {
+                        code: -32_000,
+                        message: 'App is healthy, but method not allowed.'
+                    },
+                    id: null
+                })
+            );
+        });
+    }
+
+    const expressPort = process.env.PORT ?? 3000;
     app.listen(expressPort, (error: any) => {
         if (error) {
             console.error('Failed to start server:', error);
             // eslint-disable-next-line unicorn/no-process-exit
             process.exit(1);
         }
-        console.log(`MCP Stateless Streamable HTTP Server listening on port ${expressPort}`);
+        console.log(`HTTP Server listening on port ${expressPort}`);
+    });
+
+    // Handle server shutdown
+    process.on('SIGINT', async () => {
+        console.log('Shutting down server...');
+        // eslint-disable-next-line unicorn/no-process-exit
+        process.exit(0);
     });
 }
-
-// Handle server shutdown
-process.on('SIGINT', async () => {
-    console.log('Shutting down server...');
-    // eslint-disable-next-line unicorn/no-process-exit
-    process.exit(0);
-});
