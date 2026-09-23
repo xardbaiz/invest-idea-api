@@ -114,6 +114,7 @@ if (process.env.HTTP_SERVER_ENABLED === 'true') {
                 targetPrice: idea.targetPrice,
                 currentPrice,
                 url: providerUrlService.getIdeaUrl(idea.provider, idea.id),
+                logoUrl: idea.ticker ? apiService.getLogoByTicker(idea.ticker) : null,
                 publishDate: idea.publishDate,
                 similarity: null,
             };
@@ -136,6 +137,7 @@ if (process.env.HTTP_SERVER_ENABLED === 'true') {
                 targetPrice: r.idea.targetPrice,
                 currentPrice,
                 url: providerUrlService.getIdeaUrl(r.idea.provider, r.idea.id),
+                logoUrl: r.idea.ticker ? apiService.getLogoByTicker(r.idea.ticker) : null,
                 publishDate: r.idea.publishDate,
                 similarity: typeof r.distance === 'number' ? (1 - r.distance) : null,
             };

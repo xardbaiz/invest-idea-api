@@ -9,6 +9,7 @@ export interface IdeaItem {
     targetPrice?: number | null;
     currentPrice?: number | null;
     url?: string | null;
+    logoUrl?: string | null;
     publishDate?: string | null;
     similarity?: number | null;
 }
@@ -41,17 +42,13 @@ export function IdeaRow({ idea, index, lang = 'en' }: IdeaRowProps) {
     const isGreenPrice = idea.currentPrice != null && idea.targetPrice != null && idea.currentPrice < idea.targetPrice;
     const currentToTargetPercentage = isGreenPrice ? ((idea.targetPrice! - idea.currentPrice!) / idea.currentPrice! * 100).toFixed(1) : null;
 
-    const logoUrl = idea.ticker
-        ? `https://tradernet.com/logos/get-logo-by-ticker?ticker=${encodeURIComponent(idea.ticker.toLowerCase())}`
-        : null;
-
     return (
         <tr id={rowId} style={{ borderBottom: '1px solid #eee', transition: 'background-color 0.15s' }}>
             <td style={{ padding: '16px', fontWeight: 'bold' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    {logoUrl && (
+                    {idea.logoUrl && (
                         <img
-                            src={logoUrl}
+                            src={idea.logoUrl}
                             alt=""
                             style={{
                                 width: '20px',

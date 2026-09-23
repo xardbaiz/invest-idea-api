@@ -138,12 +138,16 @@ describe("ApiService Integration Tests", () => {
         expect(logoUrl).toBe("https://tradernet.com/logos/get-logo-by-ticker?ticker=msft");
     });
 
-    it("should search unique companies from repository", async () => {
+    it("should search unique companies from repository and attach logoUrl", async () => {
         const mockCompanies = [{ ticker: "AAPL", companyName: "Apple Inc." }];
         mockRepo.findUniqueCompanies.mockResolvedValue(mockCompanies);
 
         const companies = await apiService.searchCompanies("App");
-        expect(companies).toEqual(mockCompanies);
+        expect(companies).toEqual([{
+            ticker: "AAPL",
+            companyName: "Apple Inc.",
+            logoUrl: "https://tradernet.com/logos/get-logo-by-ticker?ticker=aapl"
+        }]);
         expect(mockRepo.findUniqueCompanies).toHaveBeenCalledWith("App");
     });
 

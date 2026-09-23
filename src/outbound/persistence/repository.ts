@@ -3,6 +3,7 @@ import {InvestmentIdea} from "../../domain/models.js";
 export interface CompanyInfo {
     ticker: string;
     companyName: string;
+    logoUrl?: string;
 }
 
 export interface Repository {

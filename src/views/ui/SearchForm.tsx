@@ -4,6 +4,7 @@ import { Language, getTranslations } from './i18n/i18n.js';
 export interface CompanyEntry {
     ticker: string;
     companyName: string;
+    logoUrl?: string;
 }
 
 interface SearchFormProps {
@@ -157,10 +158,6 @@ export function SearchForm({
                                 overflowY: 'auto'
                             }}>
                                 {suggestions.map((company, index) => {
-                                    const logoUrl = company.ticker
-                                        ? `https://tradernet.com/logos/get-logo-by-ticker?ticker=${encodeURIComponent(company.ticker.toLowerCase())}`
-                                        : null;
-
                                     return (
                                         <li
                                             key={index}
@@ -180,9 +177,9 @@ export function SearchForm({
                                                 (e.currentTarget as HTMLElement).style.backgroundColor = '#ffffff';
                                             }}
                                         >
-                                            {logoUrl && (
+                                            {company.logoUrl && (
                                                 <img
-                                                    src={logoUrl}
+                                                    src={company.logoUrl}
                                                     alt=""
                                                     style={{
                                                         width: '20px',

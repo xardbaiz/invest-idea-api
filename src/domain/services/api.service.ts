@@ -18,7 +18,11 @@ export class ApiService {
     }
 
     async searchCompanies(query: string): Promise<CompanyInfo[]> {
-        return this.repo.findUniqueCompanies(query);
+        const companies = await this.repo.findUniqueCompanies(query);
+        return companies.map(c => ({
+            ...c,
+            logoUrl: c.ticker ? this.getLogoByTicker(c.ticker) : undefined,
+        }));
     }
 
     async getIdeasByCompany(companyOrTicker: string): Promise<InvestmentIdea[]> {
