@@ -1,5 +1,5 @@
 import {SyncScheduler} from "../sync-scheduler.js";
-import {AiService} from "../ai.service.js";
+import {GenkitAiService} from "../ai.service.js";
 import {TradernetClient} from "../../../outbound/clients/tradernet.js";
 import {Repository} from "../../../outbound/persistence/repository.js";
 import {VectorStoreService} from "../../../outbound/vector/qdrant.service.js";
@@ -10,7 +10,7 @@ describe("SyncScheduler Integration Tests", () => {
     let syncScheduler: SyncScheduler;
     let mockRepo: jest.Mocked<Repository>;
     let mockVectorStore: jest.Mocked<VectorStoreService>;
-    let mockAiService: jest.Mocked<AiService>;
+    let mockAiService: jest.Mocked<GenkitAiService>;
     let mockTradernetClient: jest.Mocked<TradernetClient>;
 
     beforeEach(() => {
@@ -31,7 +31,7 @@ describe("SyncScheduler Integration Tests", () => {
         mockAiService = {
             generateEmbedding: jest.fn(),
             generateSummary: jest.fn(),
-        };
+        } as unknown as jest.Mocked<GenkitAiService>;
 
         mockTradernetClient = {
             fetchIdeas: jest.fn(),

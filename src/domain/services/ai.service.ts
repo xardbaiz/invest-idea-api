@@ -15,12 +15,7 @@ export interface TopicSuggestion {
     count: number;
 }
 
-export interface AiService {
-    generateEmbedding(text: string): Promise<number[]>;
-    generateSummary(messages: ChatMessage[], input: string): Promise<string>;
-}
-
-export class GenkitAiService implements AiService {
+export class GenkitAiService {
     private readonly ai: Genkit;
     private readonly embeddingModelName: string;
     private readonly llmModelName: string;
@@ -71,31 +66,49 @@ export class GenkitAiService implements AiService {
 
         return response.text?.trim() ?? '';
     }
+
+    static createAiService(): GenkitAiService {
+        return createAiService();
+    }
 }
 
-export function createAiService(): AiService {
-    const provider = (process.env.AI_PROVIDER ?? (process.env.GEMINI_API_KEY ? 'gemini' : 'openai')).toLowerCase();
+function normalizeModelName(modelEnv?: string, defaultModel?: string): { provider?: string; model: string } {
+    const raw = modelEnv ?? defaultModel ?? '';
+    if (!raw) return { model: '' };
 
-    if (provider === 'gemini') {
-        const apiKey = process.env.GEMINI_API_KEY ?? '';
-        const embeddingModel = process.env.GEMINI_EMBEDDING_MODEL ?? process.env.EMBEDDING_MODEL ?? textEmbedding004.name;
-        const llmModel = process.env.GEMINI_LLM_MODEL ?? process.env.LLM_MODEL ?? gemini15Flash.name;
-
-        const ai = genkit({
-            plugins: [googleAI({ apiKey })],
-        });
-
-        return new GenkitAiService(ai, embeddingModel, llmModel);
+    if (raw.startsWith('gemini/')) {
+        return { provider: 'gemini', model: raw.replace(/^gemini\//, 'googleai/') };
     }
+    if (raw.startsWith('openai/')) {
+        return { provider: 'openai', model: raw };
+    }
+    return { model: raw };
+}
 
-    const openAiApiKey = process.env.OPENAI_API_KEY ?? process.env.LMSTUDIO_API_KEY ?? 'lmstudio';
-    const openAiBaseUrl = process.env.OPENAI_BASE_URL ?? process.env.LMSTUDIO_BASE_URL ?? 'http://127.0.0.1:1234/v1';
-    const embeddingModel = process.env.EMBEDDING_MODEL ?? textEmbedding3Small.name;
-    const llmModel = process.env.LLM_MODEL ?? gpt4oMini.name;
+export function createAiService(): GenkitAiService {
+    const llmEnv = process.env.LLM_MODEL;
+    const embEnv = process.env.EMBEDDING_MODEL;
 
-    const ai = genkit({
-        plugins: [openAI({ apiKey: openAiApiKey, baseURL: openAiBaseUrl })],
-    });
+    const normLlm = normalizeModelName(llmEnv);
+    const normEmb = normalizeModelName(embEnv);
 
-    return new GenkitAiService(ai, embeddingModel, llmModel);
+    const detectedProvider = normLlm.provider ?? normEmb.provider;
+    const provider = (detectedProvider ?? process.env.AI_PROVIDER ?? (process.env.GEMINI_API_KEY ? 'gemini' : 'openai')).toLowerCase();
+
+    const isGemini = provider === 'gemini';
+
+    const plugins = isGemini
+        ? [googleAI({ apiKey: process.env.GEMINI_API_KEY ?? '' })]
+        : [openAI({
+            apiKey: process.env.OPENAI_API_KEY ?? process.env.LMSTUDIO_API_KEY ?? 'lmstudio',
+            baseURL: process.env.OPENAI_BASE_URL ?? process.env.LMSTUDIO_BASE_URL ?? 'http://127.0.0.1:1234/v1',
+        })];
+
+    const defaultEmbedding = isGemini ? textEmbedding004.name : textEmbedding3Small.name;
+    const defaultLlm = isGemini ? gemini15Flash.name : gpt4oMini.name;
+
+    const embeddingModel = normEmb.model || (isGemini ? process.env.GEMINI_EMBEDDING_MODEL : undefined) || defaultEmbedding;
+    const llmModel = normLlm.model || (isGemini ? process.env.GEMINI_LLM_MODEL : undefined) || defaultLlm;
+
+    return new GenkitAiService(genkit({ plugins }), embeddingModel, llmModel);
 }

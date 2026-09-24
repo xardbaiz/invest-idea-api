@@ -1,4 +1,4 @@
-import {AiService} from "./ai.service.js";
+import {GenkitAiService} from "./ai.service.js";
 import {CompanyInfo, Repository} from "../../outbound/persistence/repository.js";
 import {VectorStoreService} from "../../outbound/vector/qdrant.service.js";
 import {InvestmentIdea, QuoteDetails, SearchResult} from "../models.js";
@@ -7,7 +7,7 @@ import {TradernetClient} from "../../outbound/clients/tradernet.js";
 export class ApiService {
     constructor(
         private readonly repo: Repository,
-        private readonly aiService: AiService,
+        private readonly aiService: GenkitAiService,
         private readonly vectorStore: VectorStoreService,
         private readonly tradernetClient: TradernetClient = new TradernetClient(),
     ) {

@@ -5,7 +5,7 @@ import { textEmbedding004, gemini15Flash } from "@genkit-ai/googleai";
 import { textEmbedding3Small, gpt4oMini } from "genkitx-openai";
 import { EMBEDDING_DIMENSION } from "../../constants.js";
 
-describe("AiService & GenkitAiService Unit Tests", () => {
+describe("GenkitAiService Unit Tests", () => {
     let originalEnv: NodeJS.ProcessEnv;
 
     beforeEach(() => {
@@ -17,7 +17,7 @@ describe("AiService & GenkitAiService Unit Tests", () => {
         jest.restoreAllMocks();
     });
 
-    describe("GenkitAiService", () => {
+    describe("GenkitAiService core methods", () => {
         let mockGenkit: jest.Mocked<Genkit>;
 
         beforeEach(() => {
@@ -81,46 +81,53 @@ describe("AiService & GenkitAiService Unit Tests", () => {
         });
     });
 
-    describe("createAiService Factory", () => {
+    describe("createAiService Factory & Model Env Vars", () => {
         it("should create Gemini-configured GenkitAiService when AI_PROVIDER=gemini", () => {
             process.env.AI_PROVIDER = "gemini";
             process.env.GEMINI_API_KEY = "test-gemini-key";
 
-            const service = createAiService() as GenkitAiService;
+            const service = createAiService();
             expect(service).toBeInstanceOf(GenkitAiService);
             expect(service["embeddingModelName"]).toBe(textEmbedding004.name);
             expect(service["llmModelName"]).toBe(gemini15Flash.name);
         });
 
-        it("should fallback to gemini provider when GEMINI_API_KEY is present", () => {
-            delete process.env.AI_PROVIDER;
-            process.env.GEMINI_API_KEY = "test-gemini-key";
-
-            const service = createAiService() as GenkitAiService;
-            expect(service).toBeInstanceOf(GenkitAiService);
-            expect(service["embeddingModelName"]).toBe(textEmbedding004.name);
-            expect(service["llmModelName"]).toBe(gemini15Flash.name);
-        });
-
-        it("should create OpenAI-configured GenkitAiService by default", () => {
+        it("should parse gemini/ model prefix from LLM_MODEL and EMBEDDING_MODEL env vars", () => {
             delete process.env.AI_PROVIDER;
             delete process.env.GEMINI_API_KEY;
 
-            const service = createAiService() as GenkitAiService;
+            process.env.LLM_MODEL = "gemini/gemini-2.0-flash";
+            process.env.EMBEDDING_MODEL = "gemini/text-embedding-004";
+
+            const service = GenkitAiService.createAiService();
+            expect(service).toBeInstanceOf(GenkitAiService);
+            expect(service["llmModelName"]).toBe("googleai/gemini-2.0-flash");
+            expect(service["embeddingModelName"]).toBe("googleai/text-embedding-004");
+        });
+
+        it("should parse openai/ model prefix from LLM_MODEL and EMBEDDING_MODEL env vars", () => {
+            delete process.env.AI_PROVIDER;
+            delete process.env.GEMINI_API_KEY;
+
+            process.env.LLM_MODEL = "openai/gpt-4o";
+            process.env.EMBEDDING_MODEL = "openai/text-embedding-3-large";
+
+            const service = createAiService();
+            expect(service).toBeInstanceOf(GenkitAiService);
+            expect(service["llmModelName"]).toBe("openai/gpt-4o");
+            expect(service["embeddingModelName"]).toBe("openai/text-embedding-3-large");
+        });
+
+        it("should fallback to OpenAI-configured GenkitAiService by default", () => {
+            delete process.env.AI_PROVIDER;
+            delete process.env.GEMINI_API_KEY;
+            delete process.env.LLM_MODEL;
+            delete process.env.EMBEDDING_MODEL;
+
+            const service = createAiService();
             expect(service).toBeInstanceOf(GenkitAiService);
             expect(service["embeddingModelName"]).toBe(textEmbedding3Small.name);
             expect(service["llmModelName"]).toBe(gpt4oMini.name);
-        });
-
-        it("should respect custom model environment variables for openai", () => {
-            delete process.env.AI_PROVIDER;
-            delete process.env.GEMINI_API_KEY;
-            process.env.EMBEDDING_MODEL = "lmstudio/embedding-model";
-            process.env.LLM_MODEL = "lmstudio/llm-model";
-
-            const service = createAiService() as GenkitAiService;
-            expect(service["embeddingModelName"]).toBe("lmstudio/embedding-model");
-            expect(service["llmModelName"]).toBe("lmstudio/llm-model");
         });
     });
 });

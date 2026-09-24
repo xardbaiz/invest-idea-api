@@ -1,5 +1,5 @@
 import {ApiService} from "../api.service.js";
-import {AiService} from "../ai.service.js";
+import {GenkitAiService} from "../ai.service.js";
 import {Repository} from "../../../outbound/persistence/repository.js";
 import {VectorStoreService} from "../../../outbound/vector/qdrant.service.js";
 import {jest} from "@jest/globals";
@@ -7,7 +7,7 @@ import {InvestmentIdea} from "../../models.js";
 
 describe("ApiService Integration Tests", () => {
     let apiService: ApiService;
-    let mockAiService: jest.Mocked<AiService>;
+    let mockAiService: jest.Mocked<GenkitAiService>;
     let mockRepo: jest.Mocked<Repository>;
     let mockVectorStore: jest.Mocked<VectorStoreService>;
 
@@ -31,7 +31,7 @@ describe("ApiService Integration Tests", () => {
         mockAiService = {
             generateEmbedding: jest.fn(),
             generateSummary: jest.fn(),
-        };
+        } as unknown as jest.Mocked<GenkitAiService>;
 
         apiService = new ApiService(mockRepo, mockAiService, mockVectorStore);
     });
