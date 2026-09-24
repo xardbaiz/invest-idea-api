@@ -33,6 +33,8 @@
     "@cfworker/json-schema": "^4.1.1",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
+    "@genkit-ai/compat-oai": "^1.42.0",
+    "@genkit-ai/google-genai": "^1.42.0",
     "@genkit-ai/googleai": "^1.28.0",
     "@modelcontextprotocol/express": "^2.0.0-alpha.2",
     "@modelcontextprotocol/node": "^2.0.0-alpha.2",
