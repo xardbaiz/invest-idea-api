@@ -33,7 +33,7 @@
     "@cfworker/json-schema": "^4.1.1",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
-    "@google/genai": "^2.22.0",
+    "@genkit-ai/googleai": "^1.28.0",
     "@modelcontextprotocol/express": "^2.0.0-alpha.2",
     "@modelcontextprotocol/node": "^2.0.0-alpha.2",
     "@modelcontextprotocol/server": "^2.0.0-alpha.2",
@@ -42,7 +42,8 @@
     "@supabase/supabase-js": "^2.101.1",
     "better-sqlite3": "^12.6.2",
     "dotenv": "^17.3.1",
-    "openai": "^6.27.0",
+    "genkit": "^1.42.0",
+    "genkitx-openai": "^0.30.0",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "vectra": "^0.15.0"

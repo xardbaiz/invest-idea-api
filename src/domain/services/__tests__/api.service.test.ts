@@ -1,5 +1,5 @@
 import {ApiService} from "../api.service.js";
-import {OpenAiService} from "../ai.service.js";
+import {AiService} from "../ai.service.js";
 import {Repository} from "../../../outbound/persistence/repository.js";
 import {VectorStoreService} from "../../../outbound/vector/qdrant.service.js";
 import {jest} from "@jest/globals";
@@ -7,7 +7,7 @@ import {InvestmentIdea} from "../../models.js";
 
 describe("ApiService Integration Tests", () => {
     let apiService: ApiService;
-    let aiService: OpenAiService;
+    let mockAiService: jest.Mocked<AiService>;
     let mockRepo: jest.Mocked<Repository>;
     let mockVectorStore: jest.Mocked<VectorStoreService>;
 
@@ -28,22 +28,12 @@ describe("ApiService Integration Tests", () => {
             searchSimilar: jest.fn(),
         } as unknown as jest.Mocked<VectorStoreService>;
 
-        aiService = new OpenAiService("test-key", "https://api.openai.com/v1");
-
-        // Mock OpenAI calls within AiService
-        // @ts-ignore
-        aiService.openai = {
-            embeddings: {
-                create: jest.fn(),
-            },
-            chat: {
-                completions: {
-                    create: jest.fn(),
-                },
-            },
+        mockAiService = {
+            generateEmbedding: jest.fn(),
+            generateSummary: jest.fn(),
         };
 
-        apiService = new ApiService(mockRepo, aiService, mockVectorStore);
+        apiService = new ApiService(mockRepo, mockAiService, mockVectorStore);
     });
 
     it("should search ideas correctly", async () => {
@@ -61,10 +51,7 @@ describe("ApiService Integration Tests", () => {
             publishDate: "2023-01-01",
         };
 
-        // @ts-ignore
-        aiService.openai.embeddings.create.mockResolvedValue({
-            data: [{embedding}]
-        });
+        mockAiService.generateEmbedding.mockResolvedValue(embedding);
 
         mockVectorStore.searchSimilar.mockResolvedValue([{ideaId: "tradernet_1", distance: 0.9}]);
         mockRepo.findByIds.mockResolvedValue([idea]);
@@ -72,13 +59,7 @@ describe("ApiService Integration Tests", () => {
         const results = await apiService.searchIdeas(query, 10, "2023-01-01", "2023-01-31");
 
         expect(results).toEqual([{idea, distance: 0.9}]);
-        // @ts-ignore
-        expect(aiService.openai.embeddings.create).toHaveBeenCalledWith({
-            dimensions: expect.any(Number),
-            model: expect.any(String),
-            input: query,
-            encoding_format: "float"
-        });
+        expect(mockAiService.generateEmbedding).toHaveBeenCalledWith(query);
         expect(mockVectorStore.searchSimilar).toHaveBeenCalledWith(embedding, 10, "2023-01-01", "2023-01-31");
         expect(mockRepo.findByIds).toHaveBeenCalledWith(["tradernet_1"]);
     });
@@ -104,8 +85,7 @@ describe("ApiService Integration Tests", () => {
         const results = await apiService.searchIdeas(query, 10, "2023-01-01", "2023-01-31");
 
         expect(results).toEqual([{idea, distance: 0.9}]);
-        // @ts-ignore
-        expect(aiService.openai.embeddings.create).not.toHaveBeenCalled();
+        expect(mockAiService.generateEmbedding).not.toHaveBeenCalled();
         expect(mockVectorStore.searchSimilar).toHaveBeenCalledWith(query, 10, "2023-01-01", "2023-01-31");
     });
 
@@ -117,10 +97,7 @@ describe("ApiService Integration Tests", () => {
         const ideaB: InvestmentIdea = { id: "B", provider: "p", ticker: "B", title: "Idea B", companyName: "B", targetPrice: 20, currency: "USD", description: "B", publishDate: "2023-05-01" };
         const ideaC: InvestmentIdea = { id: "C", provider: "p", ticker: "C", title: "Idea C", companyName: "C", targetPrice: 30, currency: "USD", description: "C", publishDate: "2023-01-01" };
 
-        // @ts-ignore
-        aiService.openai.embeddings.create.mockResolvedValue({
-            data: [{embedding}]
-        });
+        mockAiService.generateEmbedding.mockResolvedValue(embedding);
         mockVectorStore.searchSimilar.mockResolvedValue([
             { ideaId: "A", distance: 0.8 },
             { ideaId: "B", distance: 0.95 },
