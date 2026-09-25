@@ -57,13 +57,23 @@ export function App({
         }
     }, []);
 
+    useEffect(() => {
+        if (initialQuery && initialIdeas.length === 0) {
+            fetchIdeas({
+                query: initialQuery,
+                from: initialFrom || defaultFrom,
+                to: initialTo || defaultTo,
+                limit: initialLimit
+            });
+        }
+    }, [initialQuery, initialFrom, initialTo, initialLimit, initialIdeas.length, defaultFrom, defaultTo, fetchIdeas]);
+
     const handleSearch = (params: { query: string; from: string; to: string; limit: number }) => {
         setQuery(params.query);
         setFrom(params.from);
         setTo(params.to);
         setLimit(params.limit);
 
-        // Update URL query parameters seamlessly
         if (typeof window !== 'undefined' && window.history) {
             const url = new URL(window.location.href);
             url.searchParams.set('query', params.query);
@@ -130,6 +140,7 @@ export function App({
             <IdeasTable
                 ideas={ideas}
                 searched={searched}
+                loading={loading}
                 lang={lang}
             />
         </div>

@@ -30,6 +30,11 @@ describe('IdeasTable and IdeaRow Components', () => {
         expect(fromDate).toMatch(/^\d{4}-\d{2}-01$/);
     });
 
+    it('renders loading spinner when loading is true', () => {
+        const html = renderToString(<IdeasTable ideas={[]} searched={true} loading={true} />);
+        expect(html).toContain('Loading ideas...');
+    });
+
     it('renders initial search prompt when not searched', () => {
         const html = renderToString(<IdeasTable ideas={[]} searched={false} />);
         expect(html).toContain('Enter a search query');

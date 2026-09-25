@@ -5,11 +5,49 @@ import { Language, getTranslations } from './i18n/i18n.js';
 interface IdeasTableProps {
     ideas: IdeaItem[];
     searched?: boolean;
+    loading?: boolean;
     lang?: Language;
 }
 
-export function IdeasTable({ ideas, searched = false, lang = 'en' }: IdeasTableProps) {
+export function IdeasTable({ ideas, searched = false, loading = false, lang = 'en' }: IdeasTableProps) {
     const t = getTranslations(lang);
+
+    if (loading) {
+        return (
+            <div style={{
+                backgroundColor: '#ffffff',
+                borderRadius: '12px',
+                padding: '48px 24px',
+                textAlign: 'center',
+                color: '#1976d2',
+                border: '1px solid #e0e0e0',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '16px'
+            }}>
+                <div style={{
+                    width: '36px',
+                    height: '36px',
+                    border: '4px solid #e3f2fd',
+                    borderTop: '4px solid #1976d2',
+                    borderRadius: '50%',
+                    animation: 'spin 0.8s linear infinite'
+                }} />
+                <style>{`
+                    @keyframes spin {
+                        0% { transform: rotate(0deg); }
+                        100% { transform: rotate(360deg); }
+                    }
+                `}</style>
+                <p style={{ margin: 0, fontSize: '1rem', fontWeight: 500, color: '#555' }}>
+                    {lang === 'ru' ? 'Загрузка идей...' : 'Loading ideas...'}
+                </p>
+            </div>
+        );
+    }
 
     if (!searched) {
         return (
