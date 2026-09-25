@@ -1,3 +1,4 @@
+import { CircularProgress } from "@mui/material";
 import React from 'react';
 import { IdeaRow, IdeaItem } from './IdeaRow.js';
 import { Language, getTranslations } from './i18n/i18n.js';
@@ -5,24 +6,49 @@ import { Language, getTranslations } from './i18n/i18n.js';
 interface IdeasTableProps {
     ideas: IdeaItem[];
     searched?: boolean;
+    loading?: boolean;
     lang?: Language;
 }
 
-export function IdeasTable({ ideas, searched = false, lang = 'en' }: IdeasTableProps) {
+export function IdeasTable({ ideas, searched = false, loading = false, lang = 'en' }: IdeasTableProps) {
     const t = getTranslations(lang);
+
+    if (loading) {
+        return (
+            <div style={{
+                backgroundColor: '#ffffff',
+                borderRadius: '12px',
+                padding: '48px 24px',
+                textAlign: 'center',
+                color: '#1976d2',
+                border: '1px solid #e0e0e0',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '16px'
+            }}>
+                <CircularProgress size={36} />
+                <p style={{ margin: 0, fontSize: '1rem', fontWeight: 500, color: '#555' }}>
+                    {lang === 'ru' ? 'Загрузка идей...' : 'Loading ideas...'}
+                </p>
+            </div>
+        );
+    }
 
     if (!searched) {
         return (
             <div style={{
                 backgroundColor: '#ffffff',
                 borderRadius: '12px',
-                padding: '32px',
+                padding: '24px 16px',
                 textAlign: 'center',
                 color: '#666',
                 border: '1px solid #e0e0e0',
                 boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
             }}>
-                <p style={{ margin: 0, fontSize: '1.05rem' }}>{t.ideasSearchInitialPrompt}</p>
+                <p style={{ margin: 0, fontSize: '1rem' }}>{t.ideasSearchInitialPrompt}</p>
             </div>
         );
     }
@@ -32,13 +58,13 @@ export function IdeasTable({ ideas, searched = false, lang = 'en' }: IdeasTableP
             <div style={{
                 backgroundColor: '#fff8e1',
                 borderRadius: '12px',
-                padding: '32px',
+                padding: '24px 16px',
                 textAlign: 'center',
                 color: '#856404',
                 border: '1px solid #ffeba2'
             }}>
-                <h3 style={{ margin: '0 0 8px 0', fontSize: '1.2rem' }}>{t.noIdeasFoundTitle}</h3>
-                <p style={{ margin: 0, fontSize: '0.95rem' }}>{t.noIdeasFoundDesc}</p>
+                <h3 style={{ margin: '0 0 8px 0', fontSize: '1.1rem' }}>{t.noIdeasFoundTitle}</h3>
+                <p style={{ margin: 0, fontSize: '0.9rem' }}>{t.noIdeasFoundDesc}</p>
             </div>
         );
     }
@@ -49,19 +75,16 @@ export function IdeasTable({ ideas, searched = false, lang = 'en' }: IdeasTableP
             borderRadius: '12px',
             boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
             overflow: 'hidden',
-            border: '1px solid #e0e0e0'
+            border: '1px solid #e0e0e0',
+            width: '100%'
         }}>
-            <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.95rem' }}>
+            <div style={{ overflowX: 'auto', width: '100%' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
                     <thead>
-                        <tr style={{ backgroundColor: '#f5f5f5', borderBottom: '2px solid #e0e0e0', color: '#555', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.05em' }}>
-                            <th style={{ padding: '16px' }}>{t.thTicker}</th>
-                            <th style={{ padding: '16px' }}>{t.thCompany}</th>
-                            <th style={{ padding: '16px' }}>{t.thSummary}</th>
-                            <th style={{ padding: '16px', textAlign: 'right' }}>{t.thCurrentPrice}</th>
-                            <th style={{ padding: '16px', textAlign: 'right' }}>{t.thTargetPrice}</th>
-                            <th style={{ padding: '16px', textAlign: 'center' }}>{t.thRelevance}</th>
-                            <th style={{ padding: '16px', textAlign: 'right' }}>{t.thDate}</th>
+                        <tr style={{ backgroundColor: '#f5f5f5', borderBottom: '2px solid #e0e0e0', color: '#555', textTransform: 'uppercase', fontSize: '0.7rem', letterSpacing: '0.04em' }}>
+                            <th style={{ padding: '12px 10px', width: '22%', minWidth: '110px' }}>{t.thTicker} / {t.thCompany}</th>
+                            <th style={{ padding: '12px 10px', width: '52%' }}>{t.thSummary}</th>
+                            <th style={{ padding: '12px 10px', width: '26%', minWidth: '130px', textAlign: 'right' }}>{t.thCurrentPrice} / {t.thTargetPrice} / {t.thRelevance}</th>
                         </tr>
                     </thead>
                     <tbody>
