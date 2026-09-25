@@ -1,3 +1,4 @@
+import { CircularProgress } from "@mui/material";
 import React from 'react';
 import { IdeaRow, IdeaItem } from './IdeaRow.js';
 import { Language, getTranslations } from './i18n/i18n.js';
@@ -28,20 +29,7 @@ export function IdeasTable({ ideas, searched = false, loading = false, lang = 'e
                 justifyContent: 'center',
                 gap: '16px'
             }}>
-                <div style={{
-                    width: '36px',
-                    height: '36px',
-                    border: '4px solid #e3f2fd',
-                    borderTop: '4px solid #1976d2',
-                    borderRadius: '50%',
-                    animation: 'spin 0.8s linear infinite'
-                }} />
-                <style>{`
-                    @keyframes spin {
-                        0% { transform: rotate(0deg); }
-                        100% { transform: rotate(360deg); }
-                    }
-                `}</style>
+                <CircularProgress size={36} />
                 <p style={{ margin: 0, fontSize: '1rem', fontWeight: 500, color: '#555' }}>
                     {lang === 'ru' ? 'Загрузка идей...' : 'Loading ideas...'}
                 </p>
