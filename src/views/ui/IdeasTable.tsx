@@ -55,13 +55,9 @@ export function IdeasTable({ ideas, searched = false, lang = 'en' }: IdeasTableP
                 <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.95rem' }}>
                     <thead>
                         <tr style={{ backgroundColor: '#f5f5f5', borderBottom: '2px solid #e0e0e0', color: '#555', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.05em' }}>
-                            <th style={{ padding: '16px' }}>{t.thTicker}</th>
-                            <th style={{ padding: '16px' }}>{t.thCompany}</th>
-                            <th style={{ padding: '16px' }}>{t.thSummary}</th>
-                            <th style={{ padding: '16px', textAlign: 'right' }}>{t.thCurrentPrice}</th>
-                            <th style={{ padding: '16px', textAlign: 'right' }}>{t.thTargetPrice}</th>
-                            <th style={{ padding: '16px', textAlign: 'center' }}>{t.thRelevance}</th>
-                            <th style={{ padding: '16px', textAlign: 'right' }}>{t.thDate}</th>
+                            <th style={{ padding: '16px', width: '28%', minWidth: '150px' }}>{t.thTicker} / {t.thCompany}</th>
+                            <th style={{ padding: '16px', width: '44%', minWidth: '220px' }}>{t.thSummary}</th>
+                            <th style={{ padding: '16px', width: '28%', minWidth: '180px' }}>{t.thCurrentPrice} / {t.thTargetPrice} / {t.thRelevance}</th>
                         </tr>
                     </thead>
                     <tbody>

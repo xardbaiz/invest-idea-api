@@ -20,6 +20,20 @@ interface IdeaRowProps {
     lang?: Language;
 }
 
+function formatSummaryText(text: string): React.ReactNode {
+    if (!text) return text;
+    const regex = /(Sector:|Business:|Idea:|Сектор:|Бизнес:|Идея:)/g;
+    const parts = text.split(regex);
+    if (parts.length === 1) return text;
+
+    return parts.map((part, index) => {
+        if (part.match(regex)) {
+            return <strong key={index} style={{ fontWeight: 700, color: '#111' }}>{part}</strong>;
+        }
+        return part;
+    });
+}
+
 export function IdeaRow({ idea, index, lang = 'en' }: IdeaRowProps) {
     const t = getTranslations(lang);
     const rowId = `idea-${index}`;
@@ -42,112 +56,157 @@ export function IdeaRow({ idea, index, lang = 'en' }: IdeaRowProps) {
     const isGreenPrice = idea.currentPrice != null && idea.targetPrice != null && idea.currentPrice < idea.targetPrice;
     const currentToTargetPercentage = isGreenPrice ? ((idea.targetPrice! - idea.currentPrice!) / idea.currentPrice! * 100).toFixed(1) : null;
 
+    const subLabelStyle: React.CSSProperties = {
+        fontSize: '0.7rem',
+        color: '#777',
+        textTransform: 'uppercase',
+        fontWeight: 600,
+        letterSpacing: '0.04em',
+        marginBottom: '2px'
+    };
+
     return (
         <tr id={rowId} style={{ borderBottom: '1px solid #eee', transition: 'background-color 0.15s' }}>
-            <td style={{ padding: '16px', fontWeight: 'bold' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    {idea.logoUrl && (
-                        <img
-                            src={idea.logoUrl}
-                            alt=""
-                            style={{
-                                width: '20px',
-                                height: '20px',
-                                objectFit: 'contain',
-                                borderRadius: '3px',
-                                backgroundColor: '#f0f0f0',
-                                flexShrink: 0
-                            }}
-                            onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
-                        />
-                    )}
-                    {idea.url ? (
-                        <a
-                            href={idea.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            style={{
-                                fontWeight: 'bold',
-                                fontSize: '1rem',
-                                color: '#1976d2',
-                                textDecoration: 'none',
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '4px'
-                            }}
-                        >
-                            {idea.ticker}
-                            <span className="material-icons" style={{ fontSize: '14px' }}>open_in_new</span>
-                        </a>
+            {/* Group 1: Ticker, Company, Publish Date */}
+            <td style={{ padding: '16px', verticalAlign: 'top' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <div>
+                        <div style={subLabelStyle}>{t.thTicker}</div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            {idea.logoUrl && (
+                                <img
+                                    src={idea.logoUrl}
+                                    alt=""
+                                    style={{
+                                        width: '20px',
+                                        height: '20px',
+                                        objectFit: 'contain',
+                                        borderRadius: '3px',
+                                        backgroundColor: '#f0f0f0',
+                                        flexShrink: 0
+                                    }}
+                                    onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
+                                />
+                            )}
+                            {idea.url ? (
+                                <a
+                                    href={idea.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    style={{
+                                        fontWeight: 'bold',
+                                        fontSize: '1rem',
+                                        color: '#1976d2',
+                                        textDecoration: 'none',
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: '4px'
+                                    }}
+                                >
+                                    {idea.ticker || '—'}
+                                    <span className="material-icons" style={{ fontSize: '14px' }}>open_in_new</span>
+                                </a>
+                            ) : (
+                                <span style={{ fontWeight: 'bold', fontSize: '1rem' }}>{idea.ticker || '—'}</span>
+                            )}
+                        </div>
+                    </div>
+
+                    <div>
+                        <div style={subLabelStyle}>{t.thCompany}</div>
+                        <div style={{ fontWeight: 500, color: '#333', fontSize: '0.9rem' }}>
+                            {idea.companyName || '—'}
+                        </div>
+                    </div>
+
+                    <div>
+                        <div style={subLabelStyle}>{t.thPublishDate}</div>
+                        <div style={{ color: '#666', fontSize: '0.85rem' }}>
+                            {formattedDate}
+                        </div>
+                    </div>
+                </div>
+            </td>
+
+            {/* Group 2: Summary */}
+            <td style={{ padding: '16px', verticalAlign: 'top', lineHeight: '1.5', color: '#444', whiteSpace: 'pre-line' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <div style={subLabelStyle}>{t.thSummary}</div>
+                    {isLong ? (
+                        <div>
+                            <span id={`${descId}-short`} style={{ display: isExpanded ? 'none' : 'inline' }}>
+                                {formatSummaryText(shortText)}{' '}
+                            </span>
+                            <span id={`${descId}-full`} style={{ display: isExpanded ? 'inline' : 'none' }}>
+                                {formatSummaryText(text)}{' '}
+                            </span>
+                            <button
+                                type="button"
+                                id={btnId}
+                                onClick={() => setIsExpanded(!isExpanded)}
+                                style={{
+                                    background: 'none',
+                                    border: 'none',
+                                    color: '#1976d2',
+                                    cursor: 'pointer',
+                                    fontWeight: 'bold',
+                                    padding: 0,
+                                    fontSize: '0.85rem',
+                                    textDecoration: 'underline'
+                                }}
+                            >
+                                {isExpanded ? t.btnCollapse : t.btnExpand}
+                            </button>
+                        </div>
                     ) : (
-                        <span>{idea.ticker || '—'}</span>
+                        <span>{formatSummaryText(text) || '—'}</span>
                     )}
                 </div>
             </td>
-            <td style={{ padding: '16px', fontWeight: 500, color: '#333' }}>
-                {idea.companyName || '—'}
-            </td>
-            <td style={{ padding: '16px', maxWidth: '400px', lineHeight: '1.5', color: '#444', whiteSpace: 'pre-line' }}>
-                {isLong ? (
+
+            {/* Group 3: Current Price, Target Price, Relevance */}
+            <td style={{ padding: '16px', verticalAlign: 'top' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                     <div>
-                        <span id={`${descId}-short`} style={{ display: isExpanded ? 'none' : 'inline' }}>{shortText} </span>
-                        <span id={`${descId}-full`} style={{ display: isExpanded ? 'inline' : 'none' }}>{text} </span>
-                        <button
-                            type="button"
-                            id={btnId}
-                            onClick={() => setIsExpanded(!isExpanded)}
-                            style={{
-                                background: 'none',
-                                border: 'none',
-                                color: '#1976d2',
-                                cursor: 'pointer',
-                                fontWeight: 'bold',
-                                padding: 0,
-                                fontSize: '0.85rem',
-                                textDecoration: 'underline'
-                            }}
-                        >
-                            {isExpanded ? t.btnCollapse : t.btnExpand}
-                        </button>
+                        <div style={subLabelStyle}>{t.thCurrentPrice}</div>
+                        <div style={{
+                            fontWeight: 600,
+                            fontSize: '0.9rem',
+                            color: isGreenPrice ? '#2e7d32' : '#333'
+                        }}>
+                            {idea.currentPrice != null ? `$${idea.currentPrice.toFixed(2)}` : '—'}
+                        </div>
                     </div>
-                ) : (
-                    <span>{text || '—'}</span>
-                )}
-            </td>
-            <td style={{
-                padding: '16px',
-                textAlign: 'right',
-                whiteSpace: 'nowrap',
-                fontWeight: 600,
-                color: isGreenPrice ? '#2e7d32' : undefined
-            }}>
-                {idea.currentPrice != null ? `$${idea.currentPrice.toFixed(2)}` : '—'}
-            </td>
-            <td style={{
-                padding: '16px',
-                textAlign: 'right',
-                whiteSpace: 'nowrap',
-                fontWeight: 600,
-                color: isGreenPrice ? '#2e7d32' : undefined
-            }}>
-                {idea.targetPrice != null ? `$${idea.targetPrice}${isGreenPrice ? ` (+${currentToTargetPercentage}%)` : ''}` : '—'}
-            </td>
-            <td style={{ padding: '16px', textAlign: 'center', whiteSpace: 'nowrap' }}>
-                <span style={{
-                    display: 'inline-block',
-                    padding: '4px 10px',
-                    borderRadius: '12px',
-                    fontSize: '0.85rem',
-                    fontWeight: 600,
-                    backgroundColor: idea.similarity && idea.similarity > 0.7 ? '#e8f5e9' : '#f5f5f5',
-                    color: idea.similarity && idea.similarity > 0.7 ? '#2e7d32' : '#616161',
-                    border: `1px solid ${idea.similarity && idea.similarity > 0.7 ? '#c8e6c9' : '#e0e0e0'}`
-                }}>
-                    {similarityPercent}
-                </span>
-            </td>
-            <td style={{ padding: '16px', textAlign: 'right', whiteSpace: 'nowrap', color: '#666', fontSize: '0.875rem' }}>
-                {formattedDate}
+
+                    <div>
+                        <div style={subLabelStyle}>{t.thTargetPrice}</div>
+                        <div style={{
+                            fontWeight: 600,
+                            fontSize: '0.9rem',
+                            color: isGreenPrice ? '#2e7d32' : '#333'
+                        }}>
+                            {idea.targetPrice != null ? `$${idea.targetPrice}${isGreenPrice ? ` (+${currentToTargetPercentage}%)` : ''}` : '—'}
+                        </div>
+                    </div>
+
+                    <div>
+                        <div style={subLabelStyle}>{t.thRelevance}</div>
+                        <div>
+                            <span style={{
+                                display: 'inline-block',
+                                padding: '3px 8px',
+                                borderRadius: '12px',
+                                fontSize: '0.8rem',
+                                fontWeight: 600,
+                                backgroundColor: idea.similarity && idea.similarity > 0.7 ? '#e8f5e9' : '#f5f5f5',
+                                color: idea.similarity && idea.similarity > 0.7 ? '#2e7d32' : '#616161',
+                                border: `1px solid ${idea.similarity && idea.similarity > 0.7 ? '#c8e6c9' : '#e0e0e0'}`
+                            }}>
+                                {similarityPercent}
+                            </span>
+                        </div>
+                    </div>
+                </div>
             </td>
         </tr>
     );
