@@ -1,5 +1,5 @@
 import {SyncScheduler} from "../sync-scheduler.js";
-import {OpenAiService} from "../ai.service.js";
+import {GenkitAiService} from "../ai.service.js";
 import {TradernetClient} from "../../../outbound/clients/tradernet.js";
 import {Repository} from "../../../outbound/persistence/repository.js";
 import {VectorStoreService} from "../../../outbound/vector/qdrant.service.js";
@@ -10,7 +10,7 @@ describe("SyncScheduler Integration Tests", () => {
     let syncScheduler: SyncScheduler;
     let mockRepo: jest.Mocked<Repository>;
     let mockVectorStore: jest.Mocked<VectorStoreService>;
-    let aiService: OpenAiService;
+    let mockAiService: jest.Mocked<GenkitAiService>;
     let mockTradernetClient: jest.Mocked<TradernetClient>;
 
     beforeEach(() => {
@@ -28,25 +28,17 @@ describe("SyncScheduler Integration Tests", () => {
             searchSimilar: jest.fn(),
         } as unknown as jest.Mocked<VectorStoreService>;
 
-        aiService = new OpenAiService("test-key", "https://api.openai.com/v1");
-        // @ts-ignore
-        aiService.openai = {
-            embeddings: {
-                create: jest.fn(),
-            },
-            chat: {
-                completions: {
-                    create: jest.fn(),
-                },
-            },
-        };
+        mockAiService = {
+            generateEmbedding: jest.fn(),
+            generateSummary: jest.fn(),
+        } as unknown as jest.Mocked<GenkitAiService>;
 
         mockTradernetClient = {
             fetchIdeas: jest.fn(),
             getDetails: jest.fn(),
         } as unknown as jest.Mocked<TradernetClient>;
 
-        syncScheduler = new SyncScheduler(mockRepo, mockVectorStore, aiService, mockTradernetClient);
+        syncScheduler = new SyncScheduler(mockRepo, mockVectorStore, mockAiService, mockTradernetClient);
     });
 
     afterEach(() => {
@@ -71,14 +63,8 @@ describe("SyncScheduler Integration Tests", () => {
         mockTradernetClient.getDetails.mockResolvedValue("Some details");
         mockVectorStore.hasEmbedding.mockResolvedValue(false);
 
-        // @ts-ignore
-        aiService.openai.chat.completions.create.mockResolvedValue({
-            choices: [{ message: { content: "Sector: Tech\nBusiness: Apple\nIdea: Buy" } }]
-        });
-        // @ts-ignore
-        aiService.openai.embeddings.create.mockResolvedValue({
-            data: [{embedding: [0.1, 0.2]}]
-        });
+        mockAiService.generateSummary.mockResolvedValue("Sector: Tech\nBusiness: Apple\nIdea: Buy");
+        mockAiService.generateEmbedding.mockResolvedValue([0.1, 0.2]);
 
         // @ts-ignore
         const processed = await syncScheduler.syncAndEmbed(1);
@@ -86,13 +72,7 @@ describe("SyncScheduler Integration Tests", () => {
         expect(processed).toBe(1);
         expect(idea.summary).toBe("Sector: Tech\nBusiness: Apple\nIdea: Buy");
         expect(mockRepo.upsert).toHaveBeenCalledWith(idea);
-        // @ts-ignore
-        expect(aiService.openai.embeddings.create).toHaveBeenCalledWith({
-            dimensions: expect.any(Number),
-            model: expect.any(String),
-            input: "Sector: Tech\nBusiness: Apple\nIdea: Buy",
-            encoding_format: "float"
-        });
+        expect(mockAiService.generateEmbedding).toHaveBeenCalledWith("Sector: Tech\nBusiness: Apple\nIdea: Buy");
         expect(mockVectorStore.saveEmbedding).toHaveBeenCalledWith("tradernet_123", "Sector: Tech\nBusiness: Apple\nIdea: Buy", [0.1, 0.2], "2023-01-01");
     });
 
@@ -119,8 +99,7 @@ describe("SyncScheduler Integration Tests", () => {
         const processed = await syncScheduler.syncAndEmbed(1);
 
         expect(processed).toBe(1);
-        // @ts-ignore
-        expect(aiService.openai.embeddings.create).not.toHaveBeenCalled();
+        expect(mockAiService.generateEmbedding).not.toHaveBeenCalled();
         expect(mockVectorStore.saveEmbedding).toHaveBeenCalledWith("tradernet_123", "Sector: Tech\nBusiness: Apple\nIdea: Buy", "2023-01-01");
     });
 
@@ -147,10 +126,8 @@ describe("SyncScheduler Integration Tests", () => {
 
         expect(processed).toBe(1);
         expect(mockRepo.upsert).not.toHaveBeenCalled();
-        // @ts-ignore
-        expect(aiService.openai.chat.completions.create).not.toHaveBeenCalled();
-        // @ts-ignore
-        expect(aiService.openai.embeddings.create).not.toHaveBeenCalled();
+        expect(mockAiService.generateSummary).not.toHaveBeenCalled();
+        expect(mockAiService.generateEmbedding).not.toHaveBeenCalled();
         expect(mockVectorStore.saveEmbedding).not.toHaveBeenCalled();
     });
 });

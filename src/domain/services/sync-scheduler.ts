@@ -1,4 +1,4 @@
-import {AiService, createAiService} from "./ai.service.js";
+import {GenkitAiService, createAiService} from "./ai.service.js";
 import {TradernetClient} from "../../outbound/clients/tradernet.js";
 import {Repository} from "../../outbound/persistence/repository.js";
 import {VectorStoreService} from "../../outbound/vector/qdrant.service.js";
@@ -17,7 +17,7 @@ export class SyncScheduler {
     constructor(
         private readonly repo: Repository,
         private readonly vectorStore: VectorStoreService,
-        private readonly aiService: AiService = createAiService(),
+        private readonly aiService: GenkitAiService = createAiService(),
         private readonly tradernetClient: TradernetClient = new TradernetClient(),
     ) {
     }
