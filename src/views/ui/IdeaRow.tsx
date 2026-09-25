@@ -130,38 +130,35 @@ export function IdeaRow({ idea, index, lang = 'en' }: IdeaRowProps) {
 
             {/* Group 2: Summary */}
             <td style={{ padding: '16px', verticalAlign: 'top', lineHeight: '1.5', color: '#444', whiteSpace: 'pre-line' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    <div style={subLabelStyle}>{t.thSummary}</div>
-                    {isLong ? (
-                        <div>
-                            <span id={`${descId}-short`} style={{ display: isExpanded ? 'none' : 'inline' }}>
-                                {formatSummaryText(shortText)}{' '}
-                            </span>
-                            <span id={`${descId}-full`} style={{ display: isExpanded ? 'inline' : 'none' }}>
-                                {formatSummaryText(text)}{' '}
-                            </span>
-                            <button
-                                type="button"
-                                id={btnId}
-                                onClick={() => setIsExpanded(!isExpanded)}
-                                style={{
-                                    background: 'none',
-                                    border: 'none',
-                                    color: '#1976d2',
-                                    cursor: 'pointer',
-                                    fontWeight: 'bold',
-                                    padding: 0,
-                                    fontSize: '0.85rem',
-                                    textDecoration: 'underline'
-                                }}
-                            >
-                                {isExpanded ? t.btnCollapse : t.btnExpand}
-                            </button>
-                        </div>
-                    ) : (
-                        <span>{formatSummaryText(text) || '—'}</span>
-                    )}
-                </div>
+                {isLong ? (
+                    <div>
+                        <span id={`${descId}-short`} style={{ display: isExpanded ? 'none' : 'inline' }}>
+                            {formatSummaryText(shortText)}{' '}
+                        </span>
+                        <span id={`${descId}-full`} style={{ display: isExpanded ? 'inline' : 'none' }}>
+                            {formatSummaryText(text)}{' '}
+                        </span>
+                        <button
+                            type="button"
+                            id={btnId}
+                            onClick={() => setIsExpanded(!isExpanded)}
+                            style={{
+                                background: 'none',
+                                border: 'none',
+                                color: '#1976d2',
+                                cursor: 'pointer',
+                                fontWeight: 'bold',
+                                padding: 0,
+                                fontSize: '0.85rem',
+                                textDecoration: 'underline'
+                            }}
+                        >
+                            {isExpanded ? t.btnCollapse : t.btnExpand}
+                        </button>
+                    </div>
+                ) : (
+                    <span>{formatSummaryText(text) || '—'}</span>
+                )}
             </td>
 
             {/* Group 3: Current Price, Target Price, Relevance */}
