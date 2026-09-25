@@ -57,7 +57,7 @@ export function IdeaRow({ idea, index, lang = 'en' }: IdeaRowProps) {
     const currentToTargetPercentage = isGreenPrice ? ((idea.targetPrice! - idea.currentPrice!) / idea.currentPrice! * 100).toFixed(1) : null;
 
     const subLabelStyle: React.CSSProperties = {
-        fontSize: '0.7rem',
+        fontSize: '0.68rem',
         color: '#777',
         textTransform: 'uppercase',
         fontWeight: 600,
@@ -68,18 +68,18 @@ export function IdeaRow({ idea, index, lang = 'en' }: IdeaRowProps) {
     return (
         <tr id={rowId} style={{ borderBottom: '1px solid #eee', transition: 'background-color 0.15s' }}>
             {/* Group 1: Ticker, Company, Publish Date */}
-            <td style={{ padding: '16px', verticalAlign: 'top' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <td style={{ padding: '12px 10px', verticalAlign: 'top' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                     <div>
                         <div style={subLabelStyle}>{t.thTicker}</div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                             {idea.logoUrl && (
                                 <img
                                     src={idea.logoUrl}
                                     alt=""
                                     style={{
-                                        width: '20px',
-                                        height: '20px',
+                                        width: '18px',
+                                        height: '18px',
                                         objectFit: 'contain',
                                         borderRadius: '3px',
                                         backgroundColor: '#f0f0f0',
@@ -95,33 +95,33 @@ export function IdeaRow({ idea, index, lang = 'en' }: IdeaRowProps) {
                                     rel="noopener noreferrer"
                                     style={{
                                         fontWeight: 'bold',
-                                        fontSize: '1rem',
+                                        fontSize: '0.95rem',
                                         color: '#1976d2',
                                         textDecoration: 'none',
                                         display: 'inline-flex',
                                         alignItems: 'center',
-                                        gap: '4px'
+                                        gap: '2px'
                                     }}
                                 >
                                     {idea.ticker || '—'}
-                                    <span className="material-icons" style={{ fontSize: '14px' }}>open_in_new</span>
+                                    <span className="material-icons" style={{ fontSize: '13px' }}>open_in_new</span>
                                 </a>
                             ) : (
-                                <span style={{ fontWeight: 'bold', fontSize: '1rem' }}>{idea.ticker || '—'}</span>
+                                <span style={{ fontWeight: 'bold', fontSize: '0.95rem' }}>{idea.ticker || '—'}</span>
                             )}
                         </div>
                     </div>
 
                     <div>
                         <div style={subLabelStyle}>{t.thCompany}</div>
-                        <div style={{ fontWeight: 500, color: '#333', fontSize: '0.9rem' }}>
+                        <div style={{ fontWeight: 500, color: '#333', fontSize: '0.85rem' }}>
                             {idea.companyName || '—'}
                         </div>
                     </div>
 
                     <div>
                         <div style={subLabelStyle}>{t.thPublishDate}</div>
-                        <div style={{ color: '#666', fontSize: '0.85rem' }}>
+                        <div style={{ color: '#666', fontSize: '0.82rem' }}>
                             {formattedDate}
                         </div>
                     </div>
@@ -129,7 +129,7 @@ export function IdeaRow({ idea, index, lang = 'en' }: IdeaRowProps) {
             </td>
 
             {/* Group 2: Summary */}
-            <td style={{ padding: '16px', verticalAlign: 'top', lineHeight: '1.5', color: '#444', whiteSpace: 'pre-line' }}>
+            <td style={{ padding: '12px 10px', verticalAlign: 'top', lineHeight: '1.45', color: '#444', whiteSpace: 'pre-line' }}>
                 {isLong ? (
                     <div>
                         <span id={`${descId}-short`} style={{ display: isExpanded ? 'none' : 'inline' }}>
@@ -149,7 +149,7 @@ export function IdeaRow({ idea, index, lang = 'en' }: IdeaRowProps) {
                                 cursor: 'pointer',
                                 fontWeight: 'bold',
                                 padding: 0,
-                                fontSize: '0.85rem',
+                                fontSize: '0.82rem',
                                 textDecoration: 'underline'
                             }}
                         >
@@ -161,39 +161,39 @@ export function IdeaRow({ idea, index, lang = 'en' }: IdeaRowProps) {
                 )}
             </td>
 
-            {/* Group 3: Current Price, Target Price, Relevance */}
-            <td style={{ padding: '16px', verticalAlign: 'top' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                    <div>
+            {/* Group 3: Current Price, Target Price, Relevance (Right-aligned) */}
+            <td style={{ padding: '12px 10px', verticalAlign: 'top', textAlign: 'right' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '10px' }}>
+                    <div style={{ textAlign: 'right' }}>
                         <div style={subLabelStyle}>{t.thCurrentPrice}</div>
                         <div style={{
                             fontWeight: 600,
-                            fontSize: '0.9rem',
+                            fontSize: '0.875rem',
                             color: isGreenPrice ? '#2e7d32' : '#333'
                         }}>
                             {idea.currentPrice != null ? `$${idea.currentPrice.toFixed(2)}` : '—'}
                         </div>
                     </div>
 
-                    <div>
+                    <div style={{ textAlign: 'right' }}>
                         <div style={subLabelStyle}>{t.thTargetPrice}</div>
                         <div style={{
                             fontWeight: 600,
-                            fontSize: '0.9rem',
+                            fontSize: '0.875rem',
                             color: isGreenPrice ? '#2e7d32' : '#333'
                         }}>
                             {idea.targetPrice != null ? `$${idea.targetPrice}${isGreenPrice ? ` (+${currentToTargetPercentage}%)` : ''}` : '—'}
                         </div>
                     </div>
 
-                    <div>
+                    <div style={{ textAlign: 'right' }}>
                         <div style={subLabelStyle}>{t.thRelevance}</div>
-                        <div>
+                        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                             <span style={{
                                 display: 'inline-block',
-                                padding: '3px 8px',
+                                padding: '2px 8px',
                                 borderRadius: '12px',
-                                fontSize: '0.8rem',
+                                fontSize: '0.78rem',
                                 fontWeight: 600,
                                 backgroundColor: idea.similarity && idea.similarity > 0.7 ? '#e8f5e9' : '#f5f5f5',
                                 color: idea.similarity && idea.similarity > 0.7 ? '#2e7d32' : '#616161',

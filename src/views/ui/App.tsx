@@ -103,7 +103,7 @@ export function App({
     };
 
     return (
-        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '32px 16px', fontFamily: 'Roboto, Arial, sans-serif' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '16px 8px', fontFamily: 'Roboto, Arial, sans-serif', boxSizing: 'border-box' }}>
             <div style={{ marginBottom: '16px' }}>
                 <a href="/" style={{ color: '#1976d2', textDecoration: 'none', fontWeight: 500, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
                     <span className="material-icons" style={{ fontSize: '18px' }}>arrow_back</span>
