@@ -7,6 +7,22 @@ export interface CompanyEntry {
     logoUrl?: string;
 }
 
+export function getDefaultToDate(): string {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+export function getDefaultFromDate(): string {
+    const now = new Date();
+    const dateTwoMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 2, 1);
+    const year = dateTwoMonthsAgo.getFullYear();
+    const month = String(dateTwoMonthsAgo.getMonth() + 1).padStart(2, '0');
+    return `${year}-${month}-01`;
+}
+
 interface SearchFormProps {
     query: string;
     from: string;
@@ -30,9 +46,12 @@ export function SearchForm({
 }: SearchFormProps) {
     const t = getTranslations(lang);
 
+    const defaultFrom = getDefaultFromDate();
+    const defaultTo = getDefaultToDate();
+
     const [query, setQuery] = useState(initialQuery);
-    const [from, setFrom] = useState(initialFrom);
-    const [to, setTo] = useState(initialTo);
+    const [from, setFrom] = useState(initialFrom || defaultFrom);
+    const [to, setTo] = useState(initialTo || defaultTo);
     const [limit, setLimit] = useState(initialLimit);
 
     const [suggestions, setSuggestions] = useState<CompanyEntry[]>([]);
@@ -44,12 +63,12 @@ export function SearchForm({
     }, [initialQuery]);
 
     useEffect(() => {
-        setFrom(initialFrom);
-    }, [initialFrom]);
+        setFrom(initialFrom || defaultFrom);
+    }, [initialFrom, defaultFrom]);
 
     useEffect(() => {
-        setTo(initialTo);
-    }, [initialTo]);
+        setTo(initialTo || defaultTo);
+    }, [initialTo, defaultTo]);
 
     useEffect(() => {
         setLimit(initialLimit);

@@ -19,8 +19,17 @@ jest.mock('../ui/i18n/i18n.js', () => ({
 }));
 
 import { IdeasTable } from '../ui/IdeasTable.js';
+import { getDefaultFromDate, getDefaultToDate } from '../ui/SearchForm.js';
 
 describe('IdeasTable and IdeaRow Components', () => {
+    it('calculates correct default dates for date picker', () => {
+        const toDate = getDefaultToDate();
+        const fromDate = getDefaultFromDate();
+
+        expect(toDate).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+        expect(fromDate).toMatch(/^\d{4}-\d{2}-01$/);
+    });
+
     it('renders initial search prompt when not searched', () => {
         const html = renderToString(<IdeasTable ideas={[]} searched={false} />);
         expect(html).toContain('Enter a search query');

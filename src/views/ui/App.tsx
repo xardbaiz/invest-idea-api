@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Header } from './Header.js';
-import { SearchForm, CompanyEntry } from './SearchForm.js';
+import { SearchForm, CompanyEntry, getDefaultFromDate, getDefaultToDate } from './SearchForm.js';
 import { IdeasTable } from './IdeasTable.js';
 import { IdeaItem } from './IdeaRow.js';
 import { Language, getTranslations } from './i18n/i18n.js';
@@ -26,9 +26,12 @@ export function App({
 }: AppProps) {
     const t = getTranslations(lang);
 
+    const defaultFrom = getDefaultFromDate();
+    const defaultTo = getDefaultToDate();
+
     const [query, setQuery] = useState(initialQuery);
-    const [from, setFrom] = useState(initialFrom);
-    const [to, setTo] = useState(initialTo);
+    const [from, setFrom] = useState(initialFrom || defaultFrom);
+    const [to, setTo] = useState(initialTo || defaultTo);
     const [limit, setLimit] = useState(initialLimit);
     const [ideas, setIdeas] = useState<IdeaItem[]>(initialIdeas);
     const [searched, setSearched] = useState(initialSearched);
