@@ -1,8 +1,22 @@
 import {InvestmentIdea, QuoteDetails} from "../../domain/models.js";
+import {InvestmentProvider} from "../../domain/services/investment-provider.js";
 
-export class TradernetClient {
+export class TradernetProvider implements InvestmentProvider {
+    readonly name = 'tradernet';
     private readonly host = 'https://tradernet.com';
     private readonly apiUrl = this.host + '/api';
+
+    getIdeaUrl(ideaId: string): string {
+        if (!ideaId) {
+            return '#';
+        }
+        const prefix = `${this.name}_`;
+        const rawId = ideaId.toLowerCase().startsWith(prefix)
+            ? ideaId.slice(prefix.length)
+            : ideaId;
+
+        return `https://freedom24.com/ideas/details/${rawId}`;
+    }
 
     getLogoByTicker(ticker: string): string {
         return `${this.host}/logos/get-logo-by-ticker?ticker=${encodeURIComponent(ticker.toLowerCase())}`;
@@ -26,7 +40,7 @@ export class TradernetClient {
 
         return (data.list || []).map((item: any): InvestmentIdea => ({
             id: `${item.id}`,
-            provider: 'tradernet',
+            provider: this.name,
             ticker: item.ticker,
             companyName: item.company,
             title: item.title,
@@ -98,3 +112,5 @@ export class TradernetClient {
         return floatStr ? Number.parseFloat(floatStr.replace(/\s/g, '')) : def;
     }
 }
+
+export const TradernetClient = TradernetProvider;

@@ -2,19 +2,27 @@ import {AiService} from "./ai.service.js";
 import {CompanyInfo, Repository} from "../../outbound/persistence/repository.js";
 import {VectorStoreService} from "../../outbound/vector/qdrant.service.js";
 import {InvestmentIdea, QuoteDetails, SearchResult} from "../models.js";
-import {TradernetClient} from "../../outbound/clients/tradernet.js";
+import {createDefaultProviderRegistry, ProviderRegistry} from "./provider.registry.js";
 
 export class ApiService {
     constructor(
         private readonly repo: Repository,
         private readonly aiService: AiService,
         private readonly vectorStore: VectorStoreService,
-        private readonly tradernetClient: TradernetClient = new TradernetClient(),
+        private readonly providerRegistry: ProviderRegistry = createDefaultProviderRegistry(),
     ) {
     }
 
-    getLogoByTicker(ticker: string): string {
-        return this.tradernetClient.getLogoByTicker(ticker);
+    getIdeaUrl(providerName?: string, ideaId?: string): string {
+        return this.providerRegistry.getIdeaUrl(providerName, ideaId);
+    }
+
+    getLogoByTicker(ticker: string, providerName: string = 'tradernet'): string {
+        const provider = this.providerRegistry.getProvider(providerName);
+        if (!provider) {
+            return '';
+        }
+        return provider.getLogoByTicker(ticker);
     }
 
     async searchCompanies(query: string): Promise<CompanyInfo[]> {
@@ -67,7 +75,11 @@ export class ApiService {
         });
     }
 
-    async getQuoteDetails(tickers: string[]): Promise<QuoteDetails[]> {
-        return this.tradernetClient.getQuoteDetails(tickers);
+    async getQuoteDetails(tickers: string[], providerName: string = 'tradernet'): Promise<QuoteDetails[]> {
+        const provider = this.providerRegistry.getProvider(providerName);
+        if (!provider) {
+            return [];
+        }
+        return provider.getQuoteDetails(tickers);
     }
 }
