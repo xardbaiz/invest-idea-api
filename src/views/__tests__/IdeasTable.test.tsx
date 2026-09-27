@@ -45,7 +45,7 @@ describe('IdeasTable and IdeaRow Components', () => {
         expect(html).toContain('No ideas found');
     });
 
-    it('renders 3 column groups and sub-headings', () => {
+    it('renders 2 header columns and summary row spanning 2 columns', () => {
         const mockIdea = {
             ticker: 'APPF.US',
             companyName: 'Appfolio Inc',
@@ -61,7 +61,6 @@ describe('IdeasTable and IdeaRow Components', () => {
 
         // Header check
         expect(html).toMatch(/Ticker.*Company/);
-        expect(html).toContain('Summary');
         expect(html).toMatch(/Current Price.*Target Price.*Relevance/);
 
         // Sub-cell content check
@@ -70,6 +69,9 @@ describe('IdeasTable and IdeaRow Components', () => {
         expect(html).toContain('$210.00');
         expect(html).toContain('$250 (+19.0%)');
         expect(html).toContain('85%');
+
+        // Check summary row spans 2 columns
+        expect(html).toMatch(/<td colSpan="2"[^>]*>/);
 
         // Bold formatting check for Sector:, Business:, Idea:
         expect(html).toMatch(/<strong[^>]*>Sector:<\/strong>/);
