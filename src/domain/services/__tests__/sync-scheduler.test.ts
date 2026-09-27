@@ -5,6 +5,7 @@ import {Repository} from "../../../outbound/persistence/repository.js";
 import {VectorStoreService} from "../../../outbound/vector/qdrant.service.js";
 import {jest} from "@jest/globals";
 import {InvestmentIdea} from "../../models.js";
+import {ProviderRegistry} from "../provider.registry.js";
 
 describe("SyncScheduler Integration Tests", () => {
     let syncScheduler: SyncScheduler;
@@ -12,6 +13,7 @@ describe("SyncScheduler Integration Tests", () => {
     let mockVectorStore: jest.Mocked<VectorStoreService>;
     let aiService: OpenAiService;
     let mockProvider: jest.Mocked<InvestmentProvider>;
+    let mockProviderRegistry: jest.Mocked<ProviderRegistry>;
 
     beforeEach(() => {
         mockRepo = {
@@ -50,7 +52,12 @@ describe("SyncScheduler Integration Tests", () => {
             getIdeaUrl: jest.fn(),
         } as unknown as jest.Mocked<InvestmentProvider>;
 
-        syncScheduler = new SyncScheduler(mockRepo, mockVectorStore, aiService);
+        mockProviderRegistry = {
+            getProviders: jest.fn(),
+        } as unknown as jest.Mocked<ProviderRegistry>;
+
+        mockProviderRegistry.getProviders.mockReturnValue([mockProvider]);
+        syncScheduler = new SyncScheduler(mockRepo, mockVectorStore, aiService, mockProviderRegistry);
     });
 
     afterEach(() => {
