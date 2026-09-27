@@ -82,9 +82,8 @@ export function IdeasTable({ ideas, searched = false, loading = false, lang = 'e
                 <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
                     <thead>
                         <tr style={{ backgroundColor: '#f5f5f5', borderBottom: '2px solid #e0e0e0', color: '#555', textTransform: 'uppercase', fontSize: '0.7rem', letterSpacing: '0.04em' }}>
-                            <th style={{ padding: '12px 10px', width: '22%', minWidth: '110px' }}>{t.thTicker} / {t.thCompany}</th>
-                            <th style={{ padding: '12px 10px', width: '52%' }}>{t.thSummary}</th>
-                            <th style={{ padding: '12px 10px', width: '26%', minWidth: '130px', textAlign: 'right' }}>{t.thCurrentPrice} / {t.thTargetPrice} / {t.thRelevance}</th>
+                            <th style={{ padding: '12px 10px', width: '50%' }}>{t.thTicker} / {t.thCompany}</th>
+                            <th style={{ padding: '12px 10px', width: '50%', textAlign: 'right' }}>{t.thCurrentPrice} / {t.thTargetPrice} / {t.thRelevance}</th>
                         </tr>
                     </thead>
                     <tbody>
