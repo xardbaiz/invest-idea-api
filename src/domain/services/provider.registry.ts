@@ -31,6 +31,10 @@ export class ProviderRegistry {
         }
         return provider.getIdeaUrl(ideaId);
     }
+
+    public getProviders(): InvestmentProvider[] {
+        return Array.from(this.providers.values());
+    }
 }
 
 export function createDefaultProviderRegistry(): ProviderRegistry {
