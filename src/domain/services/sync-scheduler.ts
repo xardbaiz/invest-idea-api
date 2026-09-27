@@ -1,5 +1,6 @@
 import {AiService, createAiService} from "./ai.service.js";
-import {TradernetClient} from "../../outbound/clients/tradernet.js";
+import {InvestmentProvider} from "./investment-provider.js";
+import {TradernetProvider} from "../../outbound/clients/tradernet.js";
 import {Repository} from "../../outbound/persistence/repository.js";
 import {VectorStoreService} from "../../outbound/vector/qdrant.service.js";
 import {INVEST_IDEA_DETAILS_MARK} from "../constants.js";
@@ -18,7 +19,7 @@ export class SyncScheduler {
         private readonly repo: Repository,
         private readonly vectorStore: VectorStoreService,
         private readonly aiService: AiService = createAiService(),
-        private readonly tradernetClient: TradernetClient = new TradernetClient(),
+        private readonly provider: InvestmentProvider = new TradernetProvider(),
     ) {
     }
 
@@ -55,7 +56,7 @@ export class SyncScheduler {
     }
 
     private async syncAndEmbed(size: number): Promise<number> {
-        const ideas = await this.tradernetClient.fetchIdeas(this.skip, size);
+        const ideas = await this.provider.fetchIdeas(this.skip, size);
 
         for (const idea of ideas) {
             const externalId = idea.id;
@@ -107,7 +108,7 @@ export class SyncScheduler {
     }
 
     private async enrichWithDetails(ideaExternalId: string, idea: InvestmentIdea) {
-        let details = await this.tradernetClient.getDetails(ideaExternalId);
+        let details = await this.provider.getDetails(ideaExternalId);
         if (details) {
             idea.description += `\n\n----${INVEST_IDEA_DETAILS_MARK}----\n\n` + details;
         }

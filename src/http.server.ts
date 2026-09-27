@@ -6,7 +6,6 @@ import {createRepository} from "./outbound/persistence/repository.factory.js";
 import {createVectorStoreService} from "./outbound/vector/vector-store.factory.js";
 import {createAiService} from "./domain/services/ai.service.js";
 import {ApiService} from "./domain/services/api.service.js";
-import {ProviderUrlService} from "./domain/services/provider-url.service.js";
 import 'dotenv/config';
 
 if (process.env.HTTP_SERVER_ENABLED === 'true') {
@@ -14,7 +13,6 @@ if (process.env.HTTP_SERVER_ENABLED === 'true') {
     const vectorStore = createVectorStoreService();
     const aiService = createAiService();
     const apiService = new ApiService(repo, aiService, vectorStore);
-    const providerUrlService = new ProviderUrlService();
 
     const app: Express = express();
     app.disable('x-powered-by');
@@ -113,7 +111,7 @@ if (process.env.HTTP_SERVER_ENABLED === 'true') {
                 summary: idea.summary || idea.description,
                 targetPrice: idea.targetPrice,
                 currentPrice,
-                url: providerUrlService.getIdeaUrl(idea.provider, idea.id),
+                url: apiService.getIdeaUrl(idea.provider, idea.id),
                 logoUrl: idea.ticker ? apiService.getLogoByTicker(idea.ticker) : null,
                 publishDate: idea.publishDate,
                 similarity: null,
@@ -136,7 +134,7 @@ if (process.env.HTTP_SERVER_ENABLED === 'true') {
                 summary: r.idea.summary || r.idea.description,
                 targetPrice: r.idea.targetPrice,
                 currentPrice,
-                url: providerUrlService.getIdeaUrl(r.idea.provider, r.idea.id),
+                url: apiService.getIdeaUrl(r.idea.provider, r.idea.id),
                 logoUrl: r.idea.ticker ? apiService.getLogoByTicker(r.idea.ticker) : null,
                 publishDate: r.idea.publishDate,
                 similarity: typeof r.distance === 'number' ? (1 - r.distance) : null,
