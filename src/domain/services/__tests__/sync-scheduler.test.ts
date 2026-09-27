@@ -50,7 +50,7 @@ describe("SyncScheduler Integration Tests", () => {
             getIdeaUrl: jest.fn(),
         } as unknown as jest.Mocked<InvestmentProvider>;
 
-        syncScheduler = new SyncScheduler(mockRepo, mockVectorStore, aiService, mockProvider);
+        syncScheduler = new SyncScheduler(mockRepo, mockVectorStore, aiService);
     });
 
     afterEach(() => {
@@ -77,7 +77,7 @@ describe("SyncScheduler Integration Tests", () => {
 
         // @ts-ignore
         aiService.openai.chat.completions.create.mockResolvedValue({
-            choices: [{ message: { content: "Sector: Tech\nBusiness: Apple\nIdea: Buy" } }]
+            choices: [{message: {content: "Sector: Tech\nBusiness: Apple\nIdea: Buy"}}]
         });
         // @ts-ignore
         aiService.openai.embeddings.create.mockResolvedValue({
