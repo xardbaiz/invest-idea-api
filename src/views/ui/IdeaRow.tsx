@@ -1,4 +1,14 @@
 import React, { useState } from 'react';
+import {
+    Box,
+    TableRow,
+    TableCell,
+    Typography,
+    Link,
+    Button,
+    Chip,
+    Avatar
+} from '@mui/material';
 import { Language, getTranslations } from './i18n/i18n.js';
 
 export interface IdeaItem {
@@ -28,7 +38,11 @@ function formatSummaryText(text: string): React.ReactNode {
 
     return parts.map((part, index) => {
         if (part.match(regex)) {
-            return <strong key={index} style={{ fontWeight: 700, color: '#111' }}>{part}</strong>;
+            return (
+                <Box component="strong" key={index} sx={{ fontWeight: 700, color: '#111' }}>
+                    {part}
+                </Box>
+            );
         }
         return part;
     });
@@ -56,159 +70,178 @@ export function IdeaRow({ idea, index, lang = 'en' }: IdeaRowProps) {
     const isGreenPrice = idea.currentPrice != null && idea.targetPrice != null && idea.currentPrice < idea.targetPrice;
     const currentToTargetPercentage = isGreenPrice ? ((idea.targetPrice! - idea.currentPrice!) / idea.currentPrice! * 100).toFixed(1) : null;
 
-    const subLabelStyle: React.CSSProperties = {
+    const subLabelSx = {
         fontSize: '0.68rem',
         color: '#777',
         textTransform: 'uppercase',
         fontWeight: 600,
         letterSpacing: '0.04em',
-        marginBottom: '2px'
+        mb: '2px'
     };
 
     return (
         <React.Fragment>
-            <tr id={rowId} style={{ transition: 'background-color 0.15s' }}>
+            <TableRow id={rowId} sx={{ transition: 'background-color 0.15s' }}>
                 {/* Group 1: Ticker, Company, Publish Date */}
-                <td style={{ padding: '12px 10px 4px 10px', verticalAlign: 'top' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                        <div>
-                            <div style={subLabelStyle}>{t.thTicker}</div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <TableCell sx={{ padding: '12px 10px 4px 10px', verticalAlign: 'top', borderBottom: 'none' }}>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                        <Box>
+                            <Typography sx={subLabelSx}>{t.thTicker}</Typography>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                                 {idea.logoUrl && (
-                                    <img
+                                    <Avatar
                                         src={idea.logoUrl}
                                         alt=""
-                                        style={{
-                                            width: '18px',
-                                            height: '18px',
-                                            objectFit: 'contain',
-                                            borderRadius: '3px',
-                                            backgroundColor: '#f0f0f0',
-                                            flexShrink: 0
+                                        variant="rounded"
+                                        sx={{
+                                            width: 18,
+                                            height: 18,
+                                            bgcolor: '#f0f0f0',
+                                            img: { objectFit: 'contain' }
                                         }}
-                                        onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
                                     />
                                 )}
                                 {idea.url ? (
-                                    <a
+                                    <Link
                                         href={idea.url}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        style={{
+                                        underline="none"
+                                        sx={{
                                             fontWeight: 'bold',
                                             fontSize: '0.95rem',
                                             color: '#1976d2',
-                                            textDecoration: 'none',
                                             display: 'inline-flex',
                                             alignItems: 'center',
                                             gap: '2px'
                                         }}
                                     >
                                         {idea.ticker || '—'}
-                                        <span className="material-icons" style={{ fontSize: '13px' }}>open_in_new</span>
-                                    </a>
+                                        <Box component="span" className="material-icons" sx={{ fontSize: '13px' }}>
+                                            open_in_new
+                                        </Box>
+                                    </Link>
                                 ) : (
-                                    <span style={{ fontWeight: 'bold', fontSize: '0.95rem' }}>{idea.ticker || '—'}</span>
+                                    <Typography component="span" sx={{ fontWeight: 'bold', fontSize: '0.95rem' }}>
+                                        {idea.ticker || '—'}
+                                    </Typography>
                                 )}
-                            </div>
-                        </div>
+                            </Box>
+                        </Box>
 
-                        <div>
-                            <div style={subLabelStyle}>{t.thCompany}</div>
-                            <div style={{ fontWeight: 500, color: '#333', fontSize: '0.85rem' }}>
+                        <Box>
+                            <Typography sx={subLabelSx}>{t.thCompany}</Typography>
+                            <Typography sx={{ fontWeight: 500, color: '#333', fontSize: '0.85rem' }}>
                                 {idea.companyName || '—'}
-                            </div>
-                        </div>
+                            </Typography>
+                        </Box>
 
-                        <div>
-                            <div style={subLabelStyle}>{t.thPublishDate}</div>
-                            <div style={{ color: '#666', fontSize: '0.82rem' }}>
+                        <Box>
+                            <Typography sx={subLabelSx}>{t.thPublishDate}</Typography>
+                            <Typography sx={{ color: '#666', fontSize: '0.82rem' }}>
                                 {formattedDate}
-                            </div>
-                        </div>
-                    </div>
-                </td>
+                            </Typography>
+                        </Box>
+                    </Box>
+                </TableCell>
 
                 {/* Group 3: Current Price, Target Price, Relevance (Right-aligned) */}
-                <td style={{ padding: '12px 10px 4px 10px', verticalAlign: 'top', textAlign: 'right' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '10px' }}>
-                        <div style={{ textAlign: 'right' }}>
-                            <div style={subLabelStyle}>{t.thCurrentPrice}</div>
-                            <div style={{
-                                fontWeight: 600,
-                                fontSize: '0.875rem',
-                                color: isGreenPrice ? '#2e7d32' : '#333'
-                            }}>
-                                {idea.currentPrice != null ? `$${idea.currentPrice.toFixed(2)}` : '—'}
-                            </div>
-                        </div>
-
-                        <div style={{ textAlign: 'right' }}>
-                            <div style={subLabelStyle}>{t.thTargetPrice}</div>
-                            <div style={{
-                                fontWeight: 600,
-                                fontSize: '0.875rem',
-                                color: isGreenPrice ? '#2e7d32' : '#333'
-                            }}>
-                                {idea.targetPrice != null ? `$${idea.targetPrice}${isGreenPrice ? ` (+${currentToTargetPercentage}%)` : ''}` : '—'}
-                            </div>
-                        </div>
-
-                        <div style={{ textAlign: 'right' }}>
-                            <div style={subLabelStyle}>{t.thRelevance}</div>
-                            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                                <span style={{
-                                    display: 'inline-block',
-                                    padding: '2px 8px',
-                                    borderRadius: '12px',
-                                    fontSize: '0.78rem',
+                <TableCell align="right" sx={{ padding: '12px 10px 4px 10px', verticalAlign: 'top', borderBottom: 'none' }}>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '10px' }}>
+                        <Box sx={{ textAlign: 'right' }}>
+                            <Typography sx={subLabelSx}>{t.thCurrentPrice}</Typography>
+                            <Typography
+                                sx={{
                                     fontWeight: 600,
-                                    backgroundColor: idea.similarity && idea.similarity > 0.7 ? '#e8f5e9' : '#f5f5f5',
-                                    color: idea.similarity && idea.similarity > 0.7 ? '#2e7d32' : '#616161',
-                                    border: `1px solid ${idea.similarity && idea.similarity > 0.7 ? '#c8e6c9' : '#e0e0e0'}`
-                                }}>
-                                    {similarityPercent}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                </td>
-            </tr>
+                                    fontSize: '0.875rem',
+                                    color: isGreenPrice ? '#2e7d32' : '#333'
+                                }}
+                            >
+                                {idea.currentPrice != null ? `$${idea.currentPrice.toFixed(2)}` : '—'}
+                            </Typography>
+                        </Box>
+
+                        <Box sx={{ textAlign: 'right' }}>
+                            <Typography sx={subLabelSx}>{t.thTargetPrice}</Typography>
+                            <Typography
+                                sx={{
+                                    fontWeight: 600,
+                                    fontSize: '0.875rem',
+                                    color: isGreenPrice ? '#2e7d32' : '#333'
+                                }}
+                            >
+                                {idea.targetPrice != null ? `$${idea.targetPrice}${isGreenPrice ? ` (+${currentToTargetPercentage}%)` : ''}` : '—'}
+                            </Typography>
+                        </Box>
+
+                        <Box sx={{ textAlign: 'right' }}>
+                            <Typography sx={subLabelSx}>{t.thRelevance}</Typography>
+                            <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                                <Chip
+                                    label={similarityPercent}
+                                    size="small"
+                                    sx={{
+                                        height: '22px',
+                                        fontSize: '0.78rem',
+                                        fontWeight: 600,
+                                        backgroundColor: idea.similarity && idea.similarity > 0.7 ? '#e8f5e9' : '#f5f5f5',
+                                        color: idea.similarity && idea.similarity > 0.7 ? '#2e7d32' : '#616161',
+                                        border: `1px solid ${idea.similarity && idea.similarity > 0.7 ? '#c8e6c9' : '#e0e0e0'}`
+                                    }}
+                                />
+                            </Box>
+                        </Box>
+                    </Box>
+                </TableCell>
+            </TableRow>
 
             {/* Summary Row spanning full width underneath */}
-            <tr style={{ borderBottom: '1px solid #eee', transition: 'background-color 0.15s' }}>
-                <td colSpan={2} style={{ padding: '4px 10px 12px 10px', verticalAlign: 'top', lineHeight: '1.45', color: '#444', whiteSpace: 'pre-line' }}>
+            <TableRow sx={{ borderBottom: '1px solid #eee', transition: 'background-color 0.15s' }}>
+                <TableCell
+                    colSpan={2}
+                    sx={{
+                        padding: '4px 10px 12px 10px',
+                        verticalAlign: 'top',
+                        lineHeight: '1.45',
+                        color: '#444',
+                        whiteSpace: 'pre-line'
+                    }}
+                >
                     {isLong ? (
-                        <div>
-                            <span id={`${descId}-short`} style={{ display: isExpanded ? 'none' : 'inline' }}>
+                        <Box>
+                            <Box component="span" id={`${descId}-short`} sx={{ display: isExpanded ? 'none' : 'inline' }}>
                                 {formatSummaryText(shortText)}{' '}
-                            </span>
-                            <span id={`${descId}-full`} style={{ display: isExpanded ? 'inline' : 'none' }}>
+                            </Box>
+                            <Box component="span" id={`${descId}-full`} sx={{ display: isExpanded ? 'inline' : 'none' }}>
                                 {formatSummaryText(text)}{' '}
-                            </span>
-                            <button
-                                type="button"
+                            </Box>
+                            <Button
                                 id={btnId}
                                 onClick={() => setIsExpanded(!isExpanded)}
-                                style={{
-                                    background: 'none',
-                                    border: 'none',
+                                variant="text"
+                                sx={{
+                                    minWidth: 'auto',
+                                    p: 0,
                                     color: '#1976d2',
-                                    cursor: 'pointer',
                                     fontWeight: 'bold',
-                                    padding: 0,
                                     fontSize: '0.82rem',
-                                    textDecoration: 'underline'
+                                    textTransform: 'none',
+                                    textDecoration: 'underline',
+                                    verticalAlign: 'baseline',
+                                    '&:hover': {
+                                        background: 'none',
+                                        textDecoration: 'underline'
+                                    }
                                 }}
                             >
                                 {isExpanded ? t.btnCollapse : t.btnExpand}
-                            </button>
-                        </div>
+                            </Button>
+                        </Box>
                     ) : (
-                        <span>{formatSummaryText(text) || '—'}</span>
+                        <Box component="span">{formatSummaryText(text) || '—'}</Box>
                     )}
-                </td>
-            </tr>
+                </TableCell>
+            </TableRow>
         </React.Fragment>
     );
 }

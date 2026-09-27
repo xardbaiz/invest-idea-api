@@ -1,4 +1,17 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
+import {
+    Box,
+    Paper,
+    TextField,
+    Button,
+    List,
+    ListItem,
+    ListItemButton,
+    ClickAwayListener,
+    Typography,
+    Avatar,
+    CircularProgress
+} from '@mui/material';
 import { Language, getTranslations } from './i18n/i18n.js';
 
 export interface CompanyEntry {
@@ -56,7 +69,6 @@ export function SearchForm({
 
     const [suggestions, setSuggestions] = useState<CompanyEntry[]>([]);
     const [showDropdown, setShowDropdown] = useState(false);
-    const containerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         setQuery(initialQuery);
@@ -73,16 +85,6 @@ export function SearchForm({
     useEffect(() => {
         setLimit(initialLimit);
     }, [initialLimit]);
-
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-                setShowDropdown(false);
-            }
-        };
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
 
     const handleQueryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const val = e.target.value;
@@ -121,198 +123,171 @@ export function SearchForm({
     };
 
     return (
-        <div style={{
-            backgroundColor: '#ffffff',
-            borderRadius: '12px',
-            padding: '24px',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-            marginBottom: '32px',
-            border: '1px solid #e0e0e0'
-        }}>
+        <Paper
+            elevation={1}
+            sx={{
+                p: { xs: 2.5, sm: 3 },
+                mb: 4,
+                borderRadius: '12px',
+                backgroundColor: '#ffffff',
+                border: '1px solid #e0e0e0',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
+            }}
+        >
             <form id="searchForm" method="GET" action="/ideas" onSubmit={handleSubmit}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                    <div ref={containerRef} style={{ position: 'relative' }}>
-                        <label htmlFor="query" style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#444', marginBottom: '6px' }}>
-                            {t.searchLabelQuery}
-                        </label>
-                        <input
-                            type="text"
-                            name="query"
-                            id="query"
-                            value={query}
-                            onChange={handleQueryChange}
-                            onFocus={() => {
-                                if (suggestions.length > 0) setShowDropdown(true);
-                            }}
-                            placeholder={t.searchPlaceholderQuery}
-                            autoComplete="off"
-                            style={{
-                                width: '100%',
-                                padding: '12px 16px',
-                                fontSize: '1rem',
-                                border: '1px solid #ccc',
-                                borderRadius: '8px',
-                                boxSizing: 'border-box',
-                                outline: 'none',
-                                transition: 'border-color 0.2s'
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <ClickAwayListener onClickAway={() => setShowDropdown(false)}>
+                        <Box sx={{ position: 'relative' }}>
+                            <TextField
+                                id="query"
+                                name="query"
+                                label={t.searchLabelQuery}
+                                placeholder={t.searchPlaceholderQuery}
+                                value={query}
+                                onChange={handleQueryChange}
+                                onFocus={() => {
+                                    if (suggestions.length > 0) setShowDropdown(true);
+                                }}
+                                fullWidth
+                                variant="outlined"
+                                slotProps={{
+                                    htmlInput: { autoComplete: 'off' }
+                                }}
+                            />
+
+                            {showDropdown && suggestions.length > 0 && (
+                                <Paper
+                                    elevation={3}
+                                    sx={{
+                                        position: 'absolute',
+                                        top: '100%',
+                                        left: 0,
+                                        right: 0,
+                                        zIndex: 1000,
+                                        mt: 0.5,
+                                        maxHeight: 240,
+                                        overflowY: 'auto',
+                                        borderRadius: '8px',
+                                        border: '1px solid #e0e0e0'
+                                    }}
+                                >
+                                    <List disablePadding>
+                                        {suggestions.map((company, index) => (
+                                            <ListItem disablePadding key={index}>
+                                                <ListItemButton
+                                                    onClick={() => handleCompanyClick(company)}
+                                                    sx={{ py: 1.25, px: 2, gap: 1.5 }}
+                                                >
+                                                    {company.logoUrl && (
+                                                        <Avatar
+                                                            src={company.logoUrl}
+                                                            alt=""
+                                                            variant="rounded"
+                                                            sx={{
+                                                                width: 20,
+                                                                height: 20,
+                                                                bgcolor: '#f0f0f0',
+                                                                img: { objectFit: 'contain' }
+                                                            }}
+                                                        />
+                                                    )}
+                                                    <Typography variant="body2" sx={{ fontSize: '0.95rem' }}>
+                                                        <Box
+                                                            component="span"
+                                                            sx={{ fontWeight: 600, color: '#1976d2' }}
+                                                        >
+                                                            {company.ticker}
+                                                        </Box>
+                                                        {company.companyName && (
+                                                            <Box
+                                                                component="span"
+                                                                sx={{ color: '#555', ml: 1 }}
+                                                            >
+                                                                — {company.companyName}
+                                                            </Box>
+                                                        )}
+                                                    </Typography>
+                                                </ListItemButton>
+                                            </ListItem>
+                                        ))}
+                                    </List>
+                                </Paper>
+                            )}
+                        </Box>
+                    </ClickAwayListener>
+
+                    <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' }, gap: 2 }}>
+                        <TextField
+                            id="from"
+                            name="from"
+                            label={t.searchLabelFrom}
+                            type="date"
+                            value={from}
+                            onChange={(e) => setFrom(e.target.value)}
+                            fullWidth
+                            slotProps={{
+                                inputLabel: { shrink: true }
                             }}
                         />
+                        <TextField
+                            id="to"
+                            name="to"
+                            label={t.searchLabelTo}
+                            type="date"
+                            value={to}
+                            onChange={(e) => setTo(e.target.value)}
+                            fullWidth
+                            slotProps={{
+                                inputLabel: { shrink: true }
+                            }}
+                        />
+                        <TextField
+                            id="limit"
+                            name="limit"
+                            label={t.searchLabelLimit}
+                            type="number"
+                            value={limit}
+                            onChange={(e) => setLimit(Number(e.target.value))}
+                            fullWidth
+                            slotProps={{
+                                htmlInput: { min: 1, max: 100 }
+                            }}
+                        />
+                    </Box>
 
-                        {showDropdown && suggestions.length > 0 && (
-                            <ul style={{
-                                position: 'absolute',
-                                top: '100%',
-                                left: 0,
-                                right: 0,
-                                zIndex: 1000,
-                                backgroundColor: '#ffffff',
-                                border: '1px solid #e0e0e0',
-                                borderRadius: '8px',
-                                boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                                marginTop: '4px',
-                                listStyle: 'none',
-                                padding: '8px 0',
-                                margin: 0,
-                                maxHeight: '240px',
-                                overflowY: 'auto'
-                            }}>
-                                {suggestions.map((company, index) => {
-                                    return (
-                                        <li
-                                            key={index}
-                                            onClick={() => handleCompanyClick(company)}
-                                            style={{
-                                                padding: '10px 16px',
-                                                cursor: 'pointer',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                gap: '12px',
-                                                transition: 'background-color 0.15s'
-                                            }}
-                                            onMouseEnter={(e) => {
-                                                (e.currentTarget as HTMLElement).style.backgroundColor = '#f5f5f5';
-                                            }}
-                                            onMouseLeave={(e) => {
-                                                (e.currentTarget as HTMLElement).style.backgroundColor = '#ffffff';
-                                            }}
-                                        >
-                                            {company.logoUrl && (
-                                                <img
-                                                    src={company.logoUrl}
-                                                    alt=""
-                                                    style={{
-                                                        width: '20px',
-                                                        height: '20px',
-                                                        objectFit: 'contain',
-                                                        borderRadius: '3px',
-                                                        backgroundColor: '#f0f0f0',
-                                                        flexShrink: 0
-                                                    }}
-                                                    onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
-                                                />
-                                            )}
-                                            <div style={{ fontSize: '0.95rem' }}>
-                                                <span style={{ fontWeight: 600, color: '#1976d2' }}>{company.ticker}</span>
-                                                {company.companyName && (
-                                                    <span style={{ color: '#555', marginLeft: '8px' }}>— {company.companyName}</span>
-                                                )}
-                                            </div>
-                                        </li>
-                                    );
-                                })}
-                            </ul>
-                        )}
-                    </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px' }}>
-                        <div>
-                            <label htmlFor="from" style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#444', marginBottom: '6px' }}>
-                                {t.searchLabelFrom}
-                            </label>
-                            <input
-                                type="date"
-                                name="from"
-                                id="from"
-                                value={from}
-                                onChange={(e) => setFrom(e.target.value)}
-                                style={{
-                                    width: '100%',
-                                    padding: '10px 12px',
-                                    fontSize: '0.95rem',
-                                    border: '1px solid #ccc',
-                                    borderRadius: '8px',
-                                    boxSizing: 'border-box'
-                                }}
-                            />
-                        </div>
-                        <div>
-                            <label htmlFor="to" style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#444', marginBottom: '6px' }}>
-                                {t.searchLabelTo}
-                            </label>
-                            <input
-                                type="date"
-                                name="to"
-                                id="to"
-                                value={to}
-                                onChange={(e) => setTo(e.target.value)}
-                                style={{
-                                    width: '100%',
-                                    padding: '10px 12px',
-                                    fontSize: '0.95rem',
-                                    border: '1px solid #ccc',
-                                    borderRadius: '8px',
-                                    boxSizing: 'border-box'
-                                }}
-                            />
-                        </div>
-                        <div>
-                            <label htmlFor="limit" style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#444', marginBottom: '6px' }}>
-                                {t.searchLabelLimit}
-                            </label>
-                            <input
-                                type="number"
-                                name="limit"
-                                id="limit"
-                                value={limit}
-                                onChange={(e) => setLimit(Number(e.target.value))}
-                                min="1"
-                                max="100"
-                                style={{
-                                    width: '100%',
-                                    padding: '10px 12px',
-                                    fontSize: '0.95rem',
-                                    border: '1px solid #ccc',
-                                    borderRadius: '8px',
-                                    boxSizing: 'border-box'
-                                }}
-                            />
-                        </div>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '8px' }}>
-                        <button
+                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
+                        <Button
                             type="submit"
                             id="submitBtn"
+                            variant="contained"
                             disabled={loading}
-                            style={{
-                                backgroundColor: loading ? '#90caf9' : '#1976d2',
-                                color: '#ffffff',
-                                border: 'none',
-                                borderRadius: '8px',
-                                padding: '12px 28px',
-                                fontSize: '1rem',
+                            size="large"
+                            startIcon={
+                                loading ? (
+                                    <CircularProgress size={20} color="inherit" />
+                                ) : (
+                                    <Box component="span" className="material-icons" sx={{ fontSize: 20 }}>
+                                        search
+                                    </Box>
+                                )
+                            }
+                            sx={{
+                                textTransform: 'none',
                                 fontWeight: 600,
-                                cursor: loading ? 'not-allowed' : 'pointer',
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '8px',
-                                boxShadow: '0 2px 4px rgba(25,118,210,0.3)'
+                                px: 3.5,
+                                py: 1.25,
+                                borderRadius: '8px',
+                                backgroundColor: '#1976d2',
+                                '&:hover': {
+                                    backgroundColor: '#1565c0'
+                                }
                             }}
                         >
-                            <span className="material-icons" style={{ fontSize: '20px' }}>search</span>
                             {loading ? '...' : t.searchBtn}
-                        </button>
-                    </div>
-                </div>
+                        </Button>
+                    </Box>
+                </Box>
             </form>
-        </div>
+        </Paper>
     );
 }

@@ -71,7 +71,7 @@ describe('IdeasTable and IdeaRow Components', () => {
         expect(html).toContain('85%');
 
         // Check summary row spans 2 columns
-        expect(html).toMatch(/<td colSpan="2"[^>]*>/);
+        expect(html).toMatch(/<td [^>]*colSpan="2"[^>]*>/);
 
         // Bold formatting check for Sector:, Business:, Idea:
         expect(html).toMatch(/<strong[^>]*>Sector:<\/strong>/);
