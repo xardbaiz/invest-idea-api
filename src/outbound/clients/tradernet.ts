@@ -84,6 +84,72 @@ export class TradernetProvider implements InvestmentProvider {
         }));
     }
 
+    async getPraamsStockInfoByTicker(ticker: string): Promise<{
+        risk: {
+            characteristic?: string;
+            scores: Record<string, number>;
+            factors: any[];
+        };
+        return: {
+            characteristic?: string;
+            scores: Record<string, number>;
+            factors: any[];
+        };
+    }> {
+        const data = await this.sendApiRequest("getPraamsStockInfoByTicker", { ticker });
+        const generalData = data?.generalData || {};
+        const scores = generalData.scores || {};
+        const keyFactors = generalData.keyFactors || {};
+
+        const riskKeys = ['countryRisk', 'volatility', 'stressTest', 'liquidity', 'solvency', 'other'];
+        const returnKeys = ['dividends', 'growthMom', 'valuation', 'analystView', 'performance', 'profitability'];
+
+        const riskScores: Record<string, number> = {};
+        for (const k of riskKeys) {
+            if (k in scores) riskScores[k] = scores[k];
+        }
+
+        const returnScores: Record<string, number> = {};
+        for (const k of returnKeys) {
+            if (k in scores) returnScores[k] = scores[k];
+        }
+
+        return {
+            risk: {
+                characteristic: keyFactors.risk?.characteristic,
+                scores: riskScores,
+                factors: keyFactors.risk?.factors || []
+            },
+            return: {
+                characteristic: keyFactors.return?.characteristic,
+                scores: returnScores,
+                factors: keyFactors.return?.factors || []
+            }
+        };
+    }
+
+    async getQuoteCardInfo(ticker: string): Promise<any> {
+        const data = await this.sendApiRequest("getQuoteCardInfo", { ticker });
+        return data;
+    }
+
+    private async sendApiRequest(cmd: string, params: Record<string, any>): Promise<any> {
+        const response = await fetch(`${this.apiUrl}?cmd=${cmd}`, {
+            method: "POST",
+            headers: {"Content-Type": "application/x-www-form-urlencoded"},
+            body: `q=${encodeURIComponent(JSON.stringify({
+                cmd,
+                params
+            }))}`
+        });
+
+        if (!response.ok) {
+            throw new Error(`Tradernet request failed: ${response.status} ${response.statusText}`);
+        }
+
+        return await response.json();
+    }
+
     private async fetchIdea(id: string): Promise<any> {
         const response = await fetch(this.apiUrl, {
             method: "POST",

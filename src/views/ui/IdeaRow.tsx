@@ -7,9 +7,11 @@ import {
     Link,
     Button,
     Chip,
-    Avatar
+    Avatar,
+    Collapse
 } from '@mui/material';
 import { Language, getTranslations } from './i18n/i18n.js';
+import { AnalyticsDiagrams } from './AnalyticsDiagrams.js';
 
 export interface IdeaItem {
     ticker?: string;
@@ -55,6 +57,7 @@ export function IdeaRow({ idea, index, lang = 'en' }: IdeaRowProps) {
     const btnId = `btn-${index}`;
 
     const [isExpanded, setIsExpanded] = useState(false);
+    const [showDiagrams, setShowDiagrams] = useState(false);
 
     const text = idea.summary || idea.description || '';
     const isLong = text.length > 150;
@@ -193,12 +196,54 @@ export function IdeaRow({ idea, index, lang = 'en' }: IdeaRowProps) {
                         </Box>
                     </Box>
                 </TableCell>
+
+                {/* Column 3: Analytics Diagram Button */}
+                <TableCell align="center" sx={{ padding: '12px 10px 4px 10px', verticalAlign: 'top', borderBottom: 'none' }}>
+                    <Button
+                        variant="outlined"
+                        size="small"
+                        onClick={() => setShowDiagrams(!showDiagrams)}
+                        startIcon={
+                            <Box component="span" className="material-icons" sx={{ fontSize: '18px' }}>
+                                pie_chart
+                            </Box>
+                        }
+                        sx={{
+                            fontSize: '0.75rem',
+                            fontWeight: 600,
+                            textTransform: 'none',
+                            borderRadius: '8px',
+                            px: 1.5,
+                            py: 0.75,
+                            borderColor: showDiagrams ? '#1976d2' : '#cccccc',
+                            color: showDiagrams ? '#1976d2' : '#555555',
+                            backgroundColor: showDiagrams ? '#e3f2fd' : 'transparent',
+                            '&:hover': {
+                                backgroundColor: showDiagrams ? '#bbdefb' : '#f5f5f5',
+                                borderColor: '#1976d2'
+                            }
+                        }}
+                    >
+                        {showDiagrams ? (t.btnHideDiagrams || 'Hide Diagrams') : (t.btnAnalyticsDiagrams || 'Show Analytics Diagrams')}
+                    </Button>
+                </TableCell>
             </TableRow>
+
+            {/* Asynchronous Analytics Diagrams Row */}
+            {showDiagrams && (
+                <TableRow>
+                    <TableCell colSpan={3} sx={{ p: 0, borderBottom: 'none' }}>
+                        <Collapse in={showDiagrams} timeout="auto" unmountOnExit>
+                            <AnalyticsDiagrams ticker={idea.ticker} />
+                        </Collapse>
+                    </TableCell>
+                </TableRow>
+            )}
 
             {/* Summary Row spanning full width underneath */}
             <TableRow sx={{ borderBottom: '1px solid #eee', transition: 'background-color 0.15s' }}>
                 <TableCell
-                    colSpan={2}
+                    colSpan={3}
                     sx={{
                         padding: '4px 10px 12px 10px',
                         verticalAlign: 'top',
