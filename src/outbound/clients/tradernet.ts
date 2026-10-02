@@ -134,20 +134,31 @@ export class TradernetProvider implements InvestmentProvider {
     }
 
     private async sendApiRequest(cmd: string, params: Record<string, any>): Promise<any> {
-        const response = await fetch(`${this.apiUrl}?cmd=${cmd}`, {
-            method: "POST",
-            headers: {"Content-Type": "application/x-www-form-urlencoded"},
-            body: `q=${encodeURIComponent(JSON.stringify({
-                cmd,
-                params
-            }))}`
-        });
+        try {
+            const response = await fetch(`${this.apiUrl}?cmd=${cmd}`, {
+                method: "POST",
+                headers: {"Content-Type": "application/x-www-form-urlencoded"},
+                body: `q=${encodeURIComponent(JSON.stringify({
+                    cmd,
+                    params
+                }))}`
+            });
 
-        if (!response.ok) {
-            throw new Error(`Tradernet request failed: ${response.status} ${response.statusText}`);
+            if (!response.ok) {
+                const errorMsg = `Tradernet request failed: ${response.status} ${response.statusText}`;
+                console.error(`Tradernet API Error (${cmd}):`, errorMsg);
+                throw new Error(errorMsg);
+            }
+
+            const json = await response.json();
+            if (json?.error) {
+                console.error(`Tradernet API Error (${cmd}):`, json.error, json.errMsg || '');
+            }
+            return json;
+        } catch (error: any) {
+            console.error(`Tradernet Client Error (${cmd}):`, error?.message || error);
+            throw error;
         }
-
-        return await response.json();
     }
 
     private async fetchIdea(id: string): Promise<any> {
