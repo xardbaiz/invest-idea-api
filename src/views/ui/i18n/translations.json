@@ -96,7 +96,9 @@
     "btnCollapse": "Collapse",
     "thAnalytics": "Analytics",
     "btnAnalyticsDiagrams": "Show Analytics Diagrams",
-    "btnHideDiagrams": "Hide Diagrams"
+    "btnHideDiagrams": "Hide Diagrams",
+    "analyticsError": "Error loading analytics",
+    "analyticsNoData": "Analytics data unavailable"
   },
   "ru": {
     "brandName": "Finance.xardbaiz.im",
@@ -195,6 +197,8 @@
     "btnCollapse": "Свернуть",
     "thAnalytics": "Аналитика",
     "btnAnalyticsDiagrams": "Показать аналитические диаграммы",
-    "btnHideDiagrams": "Скрыть диаграммы"
+    "btnHideDiagrams": "Скрыть диаграммы",
+    "analyticsError": "Ошибка загрузки аналитики",
+    "analyticsNoData": "Данные недоступны"
   }
 }

@@ -9,9 +9,10 @@ import {
 
 interface AnalyticsDiagramsProps {
     ticker?: string;
+    onDataLoaded?: (status: 'success' | 'error' | 'nodata') => void;
 }
 
-export function AnalyticsDiagrams({ ticker }: AnalyticsDiagramsProps) {
+export function AnalyticsDiagrams({ ticker, onDataLoaded }: AnalyticsDiagramsProps) {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [riskReturnData, setRiskReturnData] = useState<any>(null);
@@ -29,19 +30,44 @@ export function AnalyticsDiagrams({ ticker }: AnalyticsDiagramsProps) {
         setError(null);
 
         Promise.all([
-            fetch(`/api/${encodeURIComponent(ticker)}/risk-return`).then(r => r.ok ? r.json() : null),
-            fetch(`/api/${encodeURIComponent(ticker)}/recommendations`).then(r => r.ok ? r.json() : null)
+            fetch(`/api/${encodeURIComponent(ticker)}/risk-return`).then(async r => {
+                if (!r.ok) throw new Error(`HTTP ${r.status}`);
+                const res = await r.json();
+                if (res?.error) throw new Error(res.error);
+                return res;
+            }),
+            fetch(`/api/${encodeURIComponent(ticker)}/recommendations`).then(async r => {
+                if (!r.ok) throw new Error(`HTTP ${r.status}`);
+                const res = await r.json();
+                if (res?.error) throw new Error(res.error);
+                return res;
+            })
         ])
             .then(([rr, recs]) => {
                 if (!isMounted) return;
-                setRiskReturnData(rr);
-                setRecommendationsData(recs?.recommendations ? recs.recommendations : recs);
+                const recData = recs?.recommendations ? recs.recommendations : recs;
+
+                // Check if data is completely empty/zero
+                const riskScores = Object.values(rr?.risk?.scores || {});
+                const returnScores = Object.values(rr?.return?.scores || {});
+                const hasScores = riskScores.some(v => typeof v === 'number' && v > 0) || returnScores.some(v => typeof v === 'number' && v > 0);
+                const recItems = recData?.items || [];
+                const hasRecs = recItems.some((item: any) => typeof item.raw === 'number' && item.raw > 0);
+
+                if (!hasScores && !hasRecs) {
+                    onDataLoaded?.('nodata');
+                } else {
+                    setRiskReturnData(rr);
+                    setRecommendationsData(recData);
+                    onDataLoaded?.('success');
+                }
                 setLoading(false);
             })
             .catch(err => {
                 if (!isMounted) return;
                 console.error('Error loading analytics diagrams:', err);
                 setError('Failed to load analytics diagrams');
+                onDataLoaded?.('error');
                 setLoading(false);
             });
 
