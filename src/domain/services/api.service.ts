@@ -82,4 +82,20 @@ export class ApiService {
         }
         return provider.getQuoteDetails(tickers);
     }
+
+    async getRiskReturnInfo(ticker: string, providerName: string = 'tradernet'): Promise<any> {
+        const provider = this.providerRegistry.getProvider(providerName);
+        if (!provider || !provider.getPraamsStockInfoByTicker) {
+            return { risk: { scores: {}, factors: [] }, return: { scores: {}, factors: [] } };
+        }
+        return provider.getPraamsStockInfoByTicker(ticker);
+    }
+
+    async getRecommendations(ticker: string, providerName: string = 'tradernet'): Promise<any> {
+        const provider = this.providerRegistry.getProvider(providerName);
+        if (!provider || !provider.getQuoteCardInfo) {
+            return {};
+        }
+        return provider.getQuoteCardInfo(ticker);
+    }
 }

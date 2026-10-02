@@ -162,4 +162,37 @@ describe("ApiService Integration Tests", () => {
         expect(ideas).toEqual([mockIdea]);
         expect(mockRepo.findIdeasByCompany).toHaveBeenCalledWith("AAPL");
     });
+
+    it("should delegate getRiskReturnInfo and getRecommendations to provider", async () => {
+        const mockGetPraams: any = jest.fn();
+        mockGetPraams.mockResolvedValue({ risk: { scores: { volatility: 5 }, factors: [] }, return: { scores: { dividends: 2 }, factors: [] } });
+        const mockGetQuoteCard: any = jest.fn();
+        mockGetQuoteCard.mockResolvedValue({ recommendations: { title: "Buy" } });
+
+        const mockProvider = {
+            name: 'tradernet',
+            getIdeaUrl: jest.fn(),
+            getLogoByTicker: jest.fn(),
+            fetchIdeas: jest.fn(),
+            getDetails: jest.fn(),
+            getQuoteDetails: jest.fn(),
+            getPraamsStockInfoByTicker: mockGetPraams,
+            getQuoteCardInfo: mockGetQuoteCard
+        };
+
+        const registry = {
+            getProvider: jest.fn().mockReturnValue(mockProvider),
+            getIdeaUrl: jest.fn()
+        } as any;
+
+        const customApiService = new ApiService(mockRepo, aiService, mockVectorStore, registry);
+
+        const riskReturn = await customApiService.getRiskReturnInfo("APP.US");
+        expect(mockProvider.getPraamsStockInfoByTicker).toHaveBeenCalledWith("APP.US");
+        expect(riskReturn).toEqual({ risk: { scores: { volatility: 5 }, factors: [] }, return: { scores: { dividends: 2 }, factors: [] } });
+
+        const recs = await customApiService.getRecommendations("APP.US");
+        expect(mockProvider.getQuoteCardInfo).toHaveBeenCalledWith("APP.US");
+        expect(recs).toEqual({ recommendations: { title: "Buy" } });
+    });
 });
