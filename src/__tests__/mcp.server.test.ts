@@ -6,30 +6,33 @@ import http from 'node:http';
 import { ApiService } from '../domain/services/api.service.js';
 
 describe('MCP Server HTTP Transport Integration', () => {
-    let mockApiService: jest.Mocked<ApiService>;
+    let mockApiService: Record<string, any>;
     let app: Express;
     let server: http.Server;
     let serverUrl: string;
 
     beforeEach(async () => {
-        mockApiService = {
-            searchIdeas: jest.fn().mockResolvedValue([
-                {
-                    idea: {
-                        id: '1',
-                        title: 'Buy AAPL',
-                        description: 'Apple stock analysis',
-                        ticker: 'AAPL',
-                        companyName: 'Apple Inc.',
-                        provider: 'test',
-                        publishDate: '2025-01-01',
-                    },
-                    distance: 0.1,
+        const searchIdeasFn = jest.fn();
+        (searchIdeasFn as any).mockResolvedValue([
+            {
+                idea: {
+                    id: '1',
+                    title: 'Buy AAPL',
+                    description: 'Apple stock analysis',
+                    ticker: 'AAPL',
+                    companyName: 'Apple Inc.',
+                    provider: 'test',
+                    publishDate: '2025-01-01',
                 },
-            ]),
-        } as unknown as jest.Mocked<ApiService>;
+                distance: 0.1,
+            },
+        ]);
 
-        const mcpServer = getMcpServer(mockApiService);
+        mockApiService = {
+            searchIdeas: searchIdeasFn,
+        };
+
+        const mcpServer = getMcpServer(mockApiService as unknown as ApiService);
         const transport = new NodeStreamableHTTPServerTransport({
             sessionIdGenerator: undefined,
         });
