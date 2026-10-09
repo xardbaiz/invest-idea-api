@@ -5,11 +5,13 @@ import {createAiService} from "./domain/services/ai.service.js";
 import {ApiService} from "./domain/services/api.service.js";
 import {z} from "zod";
 
-export const getMcpServer = () => {
-    const repo = createRepository();
-    const vectorStore = createVectorStoreService();
-    const aiService = createAiService();
-    const apiService = new ApiService(repo, aiService, vectorStore);
+export const getMcpServer = (apiService?: ApiService) => {
+    const service = apiService ?? (() => {
+        const repo = createRepository();
+        const vectorStore = createVectorStoreService();
+        const aiService = createAiService();
+        return new ApiService(repo, aiService, vectorStore);
+    })();
 
     const server = new McpServer(
         {name: "invest-idea-api", version: "1.0.0"},
@@ -30,7 +32,7 @@ export const getMcpServer = () => {
             }),
         },
         async ({query, from, to, limit}) => {
-            const results = await apiService.searchIdeas(query, limit ?? 10, from, to);
+            const results = await service.searchIdeas(query, limit ?? 10, from, to);
             return {content: [{type: "text", text: JSON.stringify(results)}]};
         }
     );
