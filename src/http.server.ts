@@ -143,21 +143,16 @@ if (process.env.HTTP_SERVER_ENABLED === 'true') {
     }
 
     if (process.env.MCP_SERVER_HTTP_TRANSPORT_ENABLED === 'true') {
-        const mcpServer = getMcpServer();
+        const mcpServer = getMcpServer(apiService);
         const transport: NodeStreamableHTTPServerTransport = new NodeStreamableHTTPServerTransport({
             sessionIdGenerator: undefined,
         });
         await mcpServer.connect(transport);
         console.log(`MCP Stateless Streamable HTTP Server initialized`);
 
-        app.post('/mcp', async (req: any, res: any) => {
+        app.all('/mcp', async (req: any, res: any) => {
             try {
                 await transport.handleRequest(req, res, req.body);
-                res.on('close', () => {
-                    console.log('Request closed');
-                    transport.close();
-                    mcpServer.close();
-                });
             } catch (error) {
                 console.error('Error handling MCP request:', error);
                 if (!res.headersSent) {
@@ -171,20 +166,6 @@ if (process.env.HTTP_SERVER_ENABLED === 'true') {
                     });
                 }
             }
-        });
-
-        app.get('/mcp', async (req: any, res: any) => {
-            console.log('Received GET MCP request');
-            res.writeHead(405).end(
-                JSON.stringify({
-                    jsonrpc: '2.0',
-                    error: {
-                        code: -32_000,
-                        message: 'App is healthy, but method not allowed.'
-                    },
-                    id: null
-                })
-            );
         });
     }
 
