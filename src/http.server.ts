@@ -35,6 +35,36 @@ if (process.env.HTTP_SERVER_ENABLED === 'true') {
         }
     });
 
+    // GET /api/:ticker/risk-return
+    app.get(['/api/:ticker/risk-return', '/api/risk-return/:ticker'], async (req: any, res: any) => {
+        const {ticker} = req.params;
+        if (!ticker) {
+            return res.status(400).send('Missing ticker parameter');
+        }
+        try {
+            const data = await apiService.getRiskReturnInfo(ticker);
+            res.json(data);
+        } catch (e: any) {
+            console.error('GET /api/:ticker/risk-return error:', e);
+            res.status(500).send(`Error: ${e.message}`);
+        }
+    });
+
+    // GET /api/:ticker/recommendations
+    app.get(['/api/:ticker/recommendations', '/api/recommendations/:ticker'], async (req: any, res: any) => {
+        const {ticker} = req.params;
+        if (!ticker) {
+            return res.status(400).send('Missing ticker parameter');
+        }
+        try {
+            const data = await apiService.getRecommendations(ticker);
+            res.json(data);
+        } catch (e: any) {
+            console.error('GET /api/:ticker/recommendations error:', e);
+            res.status(500).send(`Error: ${e.message}`);
+        }
+    });
+
     // GET /api/companies?query=...
     app.get(['/api/companies', '/api/companies/search'], async (req: any, res: any) => {
         const {query} = req.query;

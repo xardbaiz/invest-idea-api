@@ -110,7 +110,7 @@ export function IdeasTable({ ideas, searched = false, loading = false, lang = 'e
                     <TableRow sx={{ backgroundColor: '#f5f5f5', borderBottom: '2px solid #e0e0e0' }}>
                         <TableCell
                             sx={{
-                                width: '50%',
+                                width: '38%',
                                 py: 1.5,
                                 px: 1.25,
                                 color: '#555',
@@ -125,7 +125,7 @@ export function IdeasTable({ ideas, searched = false, loading = false, lang = 'e
                         <TableCell
                             align="right"
                             sx={{
-                                width: '50%',
+                                width: '38%',
                                 py: 1.5,
                                 px: 1.25,
                                 color: '#555',
@@ -136,6 +136,21 @@ export function IdeasTable({ ideas, searched = false, loading = false, lang = 'e
                             }}
                         >
                             {t.thCurrentPrice} / {t.thTargetPrice} / {t.thRelevance}
+                        </TableCell>
+                        <TableCell
+                            align="center"
+                            sx={{
+                                width: '24%',
+                                py: 1.5,
+                                px: 1.25,
+                                color: '#555',
+                                textTransform: 'uppercase',
+                                fontSize: '0.7rem',
+                                fontWeight: 700,
+                                letterSpacing: '0.04em'
+                            }}
+                        >
+                            {t.thAnalytics || 'Analytics'}
                         </TableCell>
                     </TableRow>
                 </TableHead>
