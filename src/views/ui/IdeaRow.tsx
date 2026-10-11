@@ -14,6 +14,8 @@ import {
     TableHead,
     TableBody
 } from '@mui/material';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { Language, getTranslations } from './i18n/i18n.js';
 import { AnalyticsDiagrams } from './AnalyticsDiagrams.js';
 
@@ -38,135 +40,6 @@ interface IdeaRowProps {
     lang?: Language;
 }
 
-function formatInlineMarkdown(text: string): React.ReactNode {
-    if (!text) return text;
-    const parts = text.split(/(\*\*.*?\*\*)/g);
-    return parts.map((part, index) => {
-        if (part.startsWith('**') && part.endsWith('**')) {
-            return (
-                <Box component="strong" key={index} sx={{ fontWeight: 700, color: '#111' }}>
-                    {part.slice(2, -2)}
-                </Box>
-            );
-        }
-        return part;
-    });
-}
-
-function renderMarkdownContent(content: string): React.ReactNode {
-    if (!content) return null;
-    const lines = content.split(/\r?\n/);
-    const elements: React.ReactNode[] = [];
-
-    let i = 0;
-    while (i < lines.length) {
-        const line = lines[i].trim();
-
-        // Check for markdown table start
-        if (line.startsWith('|') && line.endsWith('|')) {
-            const tableLines: string[] = [];
-            while (i < lines.length && lines[i].trim().startsWith('|') && lines[i].trim().endsWith('|')) {
-                tableLines.push(lines[i].trim());
-                i++;
-            }
-
-            const dataRows = tableLines.filter(row => !/^\|[\s:-|-]+\|$/.test(row));
-            if (dataRows.length > 0) {
-                const headerRow = dataRows[0];
-                const headerCols = headerRow.split('|').slice(1, -1).map(c => c.trim());
-                const bodyRows = dataRows.slice(1).map(row => row.split('|').slice(1, -1).map(c => c.trim()));
-
-                elements.push(
-                    <Box key={`table-${i}`} sx={{ my: 1.5, overflowX: 'auto' }}>
-                        <Table size="small" sx={{ minWidth: 300, border: '1px solid #e0e0e0', borderRadius: '4px' }}>
-                            <TableHead sx={{ backgroundColor: '#f5f5f5' }}>
-                                <TableRow>
-                                    {headerCols.map((col, idx) => (
-                                        <TableCell key={idx} sx={{ fontWeight: 'bold', fontSize: '0.8rem', py: 0.75 }}>
-                                            {formatInlineMarkdown(col)}
-                                        </TableCell>
-                                    ))}
-                                </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                {bodyRows.map((row, rIdx) => (
-                                    <TableRow key={rIdx}>
-                                        {row.map((cell, cIdx) => (
-                                            <TableCell key={cIdx} sx={{ fontSize: '0.8rem', py: 0.75 }}>
-                                                {formatInlineMarkdown(cell)}
-                                            </TableCell>
-                                        ))}
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </Box>
-                );
-            }
-            continue;
-        }
-
-        // Headers
-        if (line.startsWith('### ')) {
-            elements.push(
-                <Typography key={`h3-${i}`} variant="subtitle2" sx={{ fontWeight: 'bold', mt: 1.5, mb: 0.5, color: '#1a237e' }}>
-                    {formatInlineMarkdown(line.substring(4))}
-                </Typography>
-            );
-            i++;
-            continue;
-        }
-        if (line.startsWith('## ')) {
-            elements.push(
-                <Typography key={`h2-${i}`} variant="subtitle1" sx={{ fontWeight: 'bold', mt: 1.5, mb: 0.5, color: '#0d47a1' }}>
-                    {formatInlineMarkdown(line.substring(3))}
-                </Typography>
-            );
-            i++;
-            continue;
-        }
-        if (line.startsWith('# ')) {
-            elements.push(
-                <Typography key={`h1-${i}`} variant="h6" sx={{ fontWeight: 'bold', mt: 1.5, mb: 0.5, color: '#0d47a1' }}>
-                    {formatInlineMarkdown(line.substring(2))}
-                </Typography>
-            );
-            i++;
-            continue;
-        }
-
-        // Bullet points
-        if (line.startsWith('- ') || line.startsWith('* ')) {
-            const listText = line.substring(2);
-            elements.push(
-                <Box key={`list-${i}`} sx={{ display: 'flex', alignItems: 'flex-start', gap: 1, ml: 1, my: 0.25 }}>
-                    <Box component="span" sx={{ color: '#1976d2', fontWeight: 'bold', lineHeight: '1.4' }}>•</Box>
-                    <Typography variant="body2" component="span" sx={{ fontSize: '0.85rem', color: '#333' }}>
-                        {formatInlineMarkdown(listText)}
-                    </Typography>
-                </Box>
-            );
-            i++;
-            continue;
-        }
-
-        // Blank lines
-        if (!line) {
-            i++;
-            continue;
-        }
-
-        // Regular paragraph
-        elements.push(
-            <Typography key={`p-${i}`} variant="body2" sx={{ fontSize: '0.85rem', color: '#333', my: 0.5 }}>
-                {formatInlineMarkdown(line)}
-            </Typography>
-        );
-        i++;
-    }
-
-    return <Box sx={{ display: 'flex', flexDirection: 'column' }}>{elements}</Box>;
-}
 
 function formatSummaryText(text: string): React.ReactNode {
     if (!text) return text;
@@ -443,7 +316,80 @@ export function IdeaRow({ idea, index, lang = 'en' }: IdeaRowProps) {
                                     {t.digestTitle || 'AI Digest'}
                                 </Typography>
                             </Box>
-                            {renderMarkdownContent(digestText)}
+                            <ReactMarkdown
+                                remarkPlugins={[remarkGfm]}
+                                components={{
+                                    h1: ({ children }) => (
+                                        <Typography variant="h6" sx={{ fontWeight: 'bold', mt: 1.5, mb: 0.5, color: '#0d47a1' }}>
+                                            {children}
+                                        </Typography>
+                                    ),
+                                    h2: ({ children }) => (
+                                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mt: 1.5, mb: 0.5, color: '#0d47a1' }}>
+                                            {children}
+                                        </Typography>
+                                    ),
+                                    h3: ({ children }) => (
+                                        <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mt: 1.5, mb: 0.5, color: '#1a237e' }}>
+                                            {children}
+                                        </Typography>
+                                    ),
+                                    p: ({ children }) => (
+                                        <Typography variant="body2" sx={{ fontSize: '0.85rem', color: '#333', my: 0.5 }}>
+                                            {children}
+                                        </Typography>
+                                    ),
+                                    strong: ({ children }) => (
+                                        <Box component="strong" sx={{ fontWeight: 700, color: '#111' }}>
+                                            {children}
+                                        </Box>
+                                    ),
+                                    ul: ({ children }) => (
+                                        <Box component="ul" sx={{ pl: 2, my: 0.5 }}>
+                                            {children}
+                                        </Box>
+                                    ),
+                                    li: ({ children }) => (
+                                        <Typography component="li" variant="body2" sx={{ fontSize: '0.85rem', color: '#333', my: 0.25 }}>
+                                            {children}
+                                        </Typography>
+                                    ),
+                                    table: ({ children }) => (
+                                        <Box sx={{ my: 1.5, overflowX: 'auto' }}>
+                                            <Table size="small" sx={{ minWidth: 300, border: '1px solid #e0e0e0', borderRadius: '4px' }}>
+                                                {children}
+                                            </Table>
+                                        </Box>
+                                    ),
+                                    thead: ({ children }) => (
+                                        <TableHead sx={{ backgroundColor: '#f5f5f5' }}>
+                                            {children}
+                                        </TableHead>
+                                    ),
+                                    tbody: ({ children }) => (
+                                        <TableBody>
+                                            {children}
+                                        </TableBody>
+                                    ),
+                                    tr: ({ children }) => (
+                                        <TableRow>
+                                            {children}
+                                        </TableRow>
+                                    ),
+                                    th: ({ children }) => (
+                                        <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', py: 0.75 }}>
+                                            {children}
+                                        </TableCell>
+                                    ),
+                                    td: ({ children }) => (
+                                        <TableCell sx={{ fontSize: '0.8rem', py: 0.75 }}>
+                                            {children}
+                                        </TableCell>
+                                    ),
+                                }}
+                            >
+                                {digestText}
+                            </ReactMarkdown>
                         </Box>
                     ) : (
                         <React.Fragment>
