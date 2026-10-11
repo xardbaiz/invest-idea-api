@@ -37,6 +37,28 @@ if (process.env.HTTP_SERVER_ENABLED === 'true') {
         }
     });
 
+    // GET /api/ideas/:id/digest
+    app.get(['/api/ideas/:id/digest', '/api/ideas/digest/:id'], async (req: any, res: any) => {
+        const {id} = req.params;
+        if (!id) {
+            return res.status(400).send('Missing idea id parameter');
+        }
+        const langParam = typeof req.query.lang === 'string' ? req.query.lang : undefined;
+        const acceptLang = langParam || req.headers['accept-language'];
+        const lang = getLanguageFromHeader(acceptLang);
+
+        try {
+            const digest = await apiService.getIdeaDigest(id, lang);
+            if (!digest) {
+                return res.status(404).send('Idea not found');
+            }
+            res.json({ digest });
+        } catch (e: any) {
+            console.error('GET /api/ideas/:id/digest error:', e);
+            res.status(500).send(`Error: ${e.message}`);
+        }
+    });
+
     // GET /api/:ticker/risk-return
     app.get(['/api/:ticker/risk-return', '/api/risk-return/:ticker'], async (req: any, res: any) => {
         const {ticker} = req.params;
@@ -148,10 +170,12 @@ if (process.env.HTTP_SERVER_ENABLED === 'true') {
             const q = idea.ticker ? quoteMap.get(idea.ticker) : undefined;
             const currentPrice = q?.bap || q?.bbp || q?.ClosePrice || q?.ltp || null;
             return {
+                id: idea.id,
                 idea,
                 ticker: idea.ticker,
                 companyName: idea.companyName,
                 summary: idea.summary || idea.description,
+                digest: idea.digest,
                 targetPrice: idea.targetPrice,
                 currentPrice,
                 url: apiService.getIdeaUrl(idea.provider, idea.id),
@@ -172,9 +196,11 @@ if (process.env.HTTP_SERVER_ENABLED === 'true') {
             const currentPrice = q?.bap || q?.bbp || q?.ClosePrice || q?.ltp || null;
             return {
                 ...r,
+                id: r.idea.id,
                 ticker: r.idea.ticker,
                 companyName: r.idea.companyName,
                 summary: r.idea.summary || r.idea.description,
+                digest: r.idea.digest,
                 targetPrice: r.idea.targetPrice,
                 currentPrice,
                 url: apiService.getIdeaUrl(r.idea.provider, r.idea.id),

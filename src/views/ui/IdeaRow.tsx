@@ -8,16 +8,24 @@ import {
     Button,
     Chip,
     Avatar,
-    Collapse
+    Collapse,
+    CircularProgress,
+    Table,
+    TableHead,
+    TableBody
 } from '@mui/material';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { Language, getTranslations } from './i18n/i18n.js';
 import { AnalyticsDiagrams } from './AnalyticsDiagrams.js';
 
 export interface IdeaItem {
+    id?: string;
     ticker?: string;
     companyName?: string;
     summary?: string;
     description?: string;
+    digest?: Record<string, string>;
     targetPrice?: number | null;
     currentPrice?: number | null;
     url?: string | null;
@@ -31,6 +39,7 @@ interface IdeaRowProps {
     index: number;
     lang?: Language;
 }
+
 
 function formatSummaryText(text: string): React.ReactNode {
     if (!text) return text;
@@ -56,9 +65,38 @@ export function IdeaRow({ idea, index, lang = 'en' }: IdeaRowProps) {
     const descId = `desc-${index}`;
     const btnId = `btn-${index}`;
 
-    const [isExpanded, setIsExpanded] = useState(false);
+    const [isSummaryExpanded, setIsSummaryExpanded] = useState(false);
+    const [isDigestExpanded, setIsDigestExpanded] = useState(false);
     const [showDiagrams, setShowDiagrams] = useState(false);
     const [analyticsStatus, setAnalyticsStatus] = useState<'idle' | 'success' | 'error' | 'nodata'>('idle');
+
+    const initialDigest = idea.digest?.[lang];
+    const [digestText, setDigestText] = useState<string | null>(initialDigest || null);
+    const [digestLoading, setDigestLoading] = useState(false);
+    const [digestError, setDigestError] = useState<string | null>(null);
+
+    const handleFetchDigest = async () => {
+        if (!idea.id) return;
+        setDigestLoading(true);
+        setDigestError(null);
+        try {
+            const res = await fetch(`/api/ideas/${idea.id}/digest?lang=${lang}`);
+            if (!res.ok) {
+                throw new Error(`HTTP ${res.status}`);
+            }
+            const data = await res.json();
+            if (data.digest) {
+                setDigestText(data.digest);
+                setIsDigestExpanded(true);
+            } else {
+                throw new Error('No digest returned');
+            }
+        } catch (e: any) {
+            setDigestError(e.message || 'Failed to load digest');
+        } finally {
+            setDigestLoading(false);
+        }
+    };
 
     const text = idea.summary || idea.description || '';
     const isLong = text.length > 150;
@@ -259,50 +297,208 @@ export function IdeaRow({ idea, index, lang = 'en' }: IdeaRowProps) {
                 </TableRow>
             )}
 
-            {/* Summary Row spanning full width underneath */}
+            {/* Summary & Digest Row spanning full width underneath */}
             <TableRow sx={{ borderBottom: '1px solid #eee', transition: 'background-color 0.15s' }}>
                 <TableCell
                     colSpan={3}
                     sx={{
-                        padding: '4px 10px 12px 10px',
+                        padding: '8px 10px 12px 10px',
                         verticalAlign: 'top',
                         lineHeight: '1.45',
-                        color: '#444',
-                        whiteSpace: 'pre-line'
+                        color: '#444'
                     }}
                 >
-                    {isLong ? (
-                        <Box>
-                            <Box component="span" id={`${descId}-short`} sx={{ display: isExpanded ? 'none' : 'inline' }}>
-                                {formatSummaryText(shortText)}{' '}
+                    {/* Summary Section */}
+                    <Box sx={{ whiteSpace: 'pre-line' }}>
+                        {isLong ? (
+                            <Box>
+                                <Box component="span" id={`${descId}-text`}>
+                                    {formatSummaryText(isSummaryExpanded ? text : shortText)}{' '}
+                                </Box>
+                                <Button
+                                    id={btnId}
+                                    onClick={() => setIsSummaryExpanded(!isSummaryExpanded)}
+                                    variant="text"
+                                    sx={{
+                                        minWidth: 'auto',
+                                        p: 0,
+                                        color: '#1976d2',
+                                        fontWeight: 'bold',
+                                        fontSize: '0.82rem',
+                                        textTransform: 'none',
+                                        textDecoration: 'underline',
+                                        verticalAlign: 'baseline',
+                                        '&:hover': {
+                                            background: 'none',
+                                            textDecoration: 'underline'
+                                        }
+                                    }}
+                                >
+                                    {isSummaryExpanded ? t.btnCollapse : t.btnExpand}
+                                </Button>
                             </Box>
-                            <Box component="span" id={`${descId}-full`} sx={{ display: isExpanded ? 'inline' : 'none' }}>
-                                {formatSummaryText(text)}{' '}
+                        ) : (
+                            <Box component="span">{formatSummaryText(text) || '—'}</Box>
+                        )}
+                    </Box>
+
+                    {/* Digest Section */}
+                    {digestText ? (
+                        <Box sx={{ mt: 1.5, p: 1.5, backgroundColor: '#f8f9fa', borderRadius: '8px', border: '1px solid #e3f2fd' }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#1565c0', display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                    <Box component="span" className="material-icons" sx={{ fontSize: '18px' }}>
+                                        auto_awesome
+                                    </Box>
+                                    {t.digestTitle || 'Detailed Idea Digest (AI)'}
+                                </Typography>
+
+                                <Button
+                                    onClick={() => setIsDigestExpanded(!isDigestExpanded)}
+                                    variant="text"
+                                    size="small"
+                                    sx={{
+                                        color: '#1565c0',
+                                        fontWeight: 'bold',
+                                        fontSize: '0.78rem',
+                                        textTransform: 'none',
+                                        textDecoration: 'underline',
+                                        '&:hover': { textDecoration: 'underline', background: 'none' }
+                                    }}
+                                >
+                                    {isDigestExpanded ? (t.btnCollapseDigest || 'Collapse Detailed Overview') : (t.btnExpandDigest || 'Expand Detailed Overview')}
+                                </Button>
                             </Box>
-                            <Button
-                                id={btnId}
-                                onClick={() => setIsExpanded(!isExpanded)}
-                                variant="text"
-                                sx={{
-                                    minWidth: 'auto',
-                                    p: 0,
-                                    color: '#1976d2',
-                                    fontWeight: 'bold',
-                                    fontSize: '0.82rem',
-                                    textTransform: 'none',
-                                    textDecoration: 'underline',
-                                    verticalAlign: 'baseline',
-                                    '&:hover': {
-                                        background: 'none',
-                                        textDecoration: 'underline'
-                                    }
-                                }}
-                            >
-                                {isExpanded ? t.btnCollapse : t.btnExpand}
-                            </Button>
+
+                            {isDigestExpanded && (
+                                <Box sx={{ mt: 1 }}>
+                                    <ReactMarkdown
+                                        remarkPlugins={[remarkGfm]}
+                                        components={{
+                                            h1: ({ children }) => (
+                                                <Typography variant="h6" sx={{ fontWeight: 'bold', mt: 1.5, mb: 0.5, color: '#0d47a1' }}>
+                                                    {children}
+                                                </Typography>
+                                            ),
+                                            h2: ({ children }) => (
+                                                <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mt: 1.5, mb: 0.5, color: '#0d47a1' }}>
+                                                    {children}
+                                                </Typography>
+                                            ),
+                                            h3: ({ children }) => (
+                                                <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mt: 1.5, mb: 0.5, color: '#1a237e' }}>
+                                                    {children}
+                                                </Typography>
+                                            ),
+                                            p: ({ children }) => (
+                                                <Typography variant="body2" sx={{ fontSize: '0.85rem', color: '#333', my: 0.5 }}>
+                                                    {children}
+                                                </Typography>
+                                            ),
+                                            strong: ({ children }) => (
+                                                <Box component="strong" sx={{ fontWeight: 700, color: '#111' }}>
+                                                    {children}
+                                                </Box>
+                                            ),
+                                            ul: ({ children }) => (
+                                                <Box component="ul" sx={{ pl: 2, my: 0.5 }}>
+                                                    {children}
+                                                </Box>
+                                            ),
+                                            li: ({ children }) => (
+                                                <Typography component="li" variant="body2" sx={{ fontSize: '0.85rem', color: '#333', my: 0.25 }}>
+                                                    {children}
+                                                </Typography>
+                                            ),
+                                            table: ({ children }) => (
+                                                <Box sx={{ my: 1.5, overflowX: 'auto' }}>
+                                                    <Table size="small" sx={{ minWidth: 300, border: '1px solid #e0e0e0', borderRadius: '4px' }}>
+                                                        {children}
+                                                    </Table>
+                                                </Box>
+                                            ),
+                                            thead: ({ children }) => (
+                                                <TableHead sx={{ backgroundColor: '#f5f5f5' }}>
+                                                    {children}
+                                                </TableHead>
+                                            ),
+                                            tbody: ({ children }) => (
+                                                <TableBody>
+                                                    {children}
+                                                </TableBody>
+                                            ),
+                                            tr: ({ children }) => (
+                                                <TableRow>
+                                                    {children}
+                                                </TableRow>
+                                            ),
+                                            th: ({ children }) => (
+                                                <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', py: 0.75 }}>
+                                                    {children}
+                                                </TableCell>
+                                            ),
+                                            td: ({ children }) => (
+                                                <TableCell sx={{ fontSize: '0.8rem', py: 0.75 }}>
+                                                    {children}
+                                                </TableCell>
+                                            ),
+                                        }}
+                                    >
+                                        {digestText}
+                                    </ReactMarkdown>
+                                </Box>
+                            )}
                         </Box>
                     ) : (
-                        <Box component="span">{formatSummaryText(text) || '—'}</Box>
+                        idea.id && (
+                            <Box sx={{ mt: 1 }}>
+                                {digestLoading ? (
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, py: 0.5 }}>
+                                        <CircularProgress size={18} />
+                                        <Typography variant="caption" sx={{ color: '#1976d2', fontWeight: 600 }}>
+                                            {t.btnDigestLoading || 'Generating Detailed Overview...'}
+                                        </Typography>
+                                    </Box>
+                                ) : digestError ? (
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, py: 0.5 }}>
+                                        <Typography variant="caption" sx={{ color: '#d32f2f', fontWeight: 600 }}>
+                                            {t.btnDigestError || 'Error loading digest. Click to retry.'}
+                                        </Typography>
+                                        <Button size="small" variant="text" onClick={handleFetchDigest} sx={{ textTransform: 'none', fontSize: '0.75rem' }}>
+                                            Retry
+                                        </Button>
+                                    </Box>
+                                ) : (
+                                    <Button
+                                        variant="outlined"
+                                        size="small"
+                                        onClick={handleFetchDigest}
+                                        startIcon={
+                                            <Box component="span" className="material-icons" sx={{ fontSize: '16px' }}>
+                                                auto_awesome
+                                            </Box>
+                                        }
+                                        sx={{
+                                            fontSize: '0.78rem',
+                                            fontWeight: 600,
+                                            textTransform: 'none',
+                                            borderRadius: '8px',
+                                            px: 1.5,
+                                            py: 0.5,
+                                            borderColor: '#90caf9',
+                                            color: '#1565c0',
+                                            backgroundColor: '#f4f8fb',
+                                            '&:hover': {
+                                                backgroundColor: '#e3f2fd',
+                                                borderColor: '#1976d2',
+                                            }
+                                        }}
+                                    >
+                                        {t.btnRequestDigest || 'Запросить детальный разбор идеи'}
+                                    </Button>
+                                )}
+                            </Box>
+                        )
                     )}
                 </TableCell>
             </TableRow>
