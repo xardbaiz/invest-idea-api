@@ -1,6 +1,8 @@
 import express, {Express} from 'express';
 import path from 'node:path';
+import fs from 'node:fs';
 import {getMcpServer} from "./mcp.factory.js";
+import {getLanguageFromHeader} from "./views/ui/i18n/i18n.js";
 import {NodeStreamableHTTPServerTransport} from "@modelcontextprotocol/node";
 import {createRepository} from "./outbound/persistence/repository.factory.js";
 import {createVectorStoreService} from "./outbound/vector/vector-store.factory.js";
@@ -17,8 +19,8 @@ if (process.env.HTTP_SERVER_ENABLED === 'true') {
     const app: Express = express();
     app.disable('x-powered-by');
 
-    // Static assets from Vite build
-    app.use(express.static(path.join(process.cwd(), 'dist', 'public')));
+    // Static assets from Vite build (do not automatically serve static index.html for root)
+    app.use(express.static(path.join(process.cwd(), 'dist', 'public'), { index: false }));
 
     // GET /api/logo/:ticker
     app.get(['/api/logo/:ticker', '/api/logos/:ticker'], (req: any, res: any) => {
@@ -121,9 +123,20 @@ if (process.env.HTTP_SERVER_ENABLED === 'true') {
         }
     });
 
-    // HTML WebUI pages served via client index.html
+    // HTML WebUI pages served via client index.html with language detection
     app.get(['/', '/ideas'], (req: any, res: any) => {
-        res.sendFile(path.join(process.cwd(), 'dist', 'public', 'index.html'));
+        const langParam = typeof req.query.lang === 'string' ? req.query.lang : undefined;
+        const acceptLang = langParam || req.headers['accept-language'];
+        const lang = getLanguageFromHeader(acceptLang);
+
+        const indexPath = path.join(process.cwd(), 'dist', 'public', 'index.html');
+        if (fs.existsSync(indexPath)) {
+            let html = fs.readFileSync(indexPath, 'utf8');
+            html = html.replace(/lang="[a-zA-Z-]+"/, `lang="${lang}"`);
+            res.setHeader('Content-Type', 'text/html; charset=utf-8');
+            return res.send(html);
+        }
+        res.sendFile(indexPath);
     });
 
     async function getCompanyIdeasWithQuotes(company: string) {

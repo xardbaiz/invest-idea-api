@@ -11,6 +11,23 @@ describe("Views and Localization Tests", () => {
         it("should return 'ru' when 'ru' is present in Accept-Language", () => {
             expect(getLanguageFromHeader("ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7")).toBe("ru");
             expect(getLanguageFromHeader("en-US,en;q=0.9,ru;q=0.8")).toBe("ru");
+            expect(getLanguageFromHeader("ru")).toBe("ru");
+        });
+    });
+
+    describe("HTML lang attribute replacement", () => {
+        it("should dynamically replace lang attribute in index.html content", () => {
+            const templateHtml = '<!DOCTYPE html><html lang="en"><head><title>Test</title></head><body><div id="root"></div></body></html>';
+            const lang = getLanguageFromHeader("ru-RU");
+            const localizedHtml = templateHtml.replace(/lang="[a-zA-Z-]+"/, `lang="${lang}"`);
+            expect(localizedHtml).toContain('<html lang="ru">');
+        });
+
+        it("should preserve 'en' when language is English", () => {
+            const templateHtml = '<!DOCTYPE html><html lang="en"><head><title>Test</title></head><body><div id="root"></div></body></html>';
+            const lang = getLanguageFromHeader("en-US");
+            const localizedHtml = templateHtml.replace(/lang="[a-zA-Z-]+"/, `lang="${lang}"`);
+            expect(localizedHtml).toContain('<html lang="en">');
         });
     });
 });
