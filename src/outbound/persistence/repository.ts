@@ -18,4 +18,6 @@ export interface Repository {
     findUniqueCompanies(query: string): Promise<CompanyInfo[]>;
 
     findIdeasByCompany(companyOrTicker: string): Promise<InvestmentIdea[]>;
+
+    updateDigest(id: string, digest: Record<string, string>): Promise<void>;
 }

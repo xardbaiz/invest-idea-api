@@ -13,6 +13,7 @@ export interface InvestmentIdeaInfo {
     currency: string;
     description: string;
     summary?: string;
+    digest?: Record<string, string>;
     publishDate?: string;
 }
 

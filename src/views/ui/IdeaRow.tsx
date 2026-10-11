@@ -8,16 +8,22 @@ import {
     Button,
     Chip,
     Avatar,
-    Collapse
+    Collapse,
+    CircularProgress,
+    Table,
+    TableHead,
+    TableBody
 } from '@mui/material';
 import { Language, getTranslations } from './i18n/i18n.js';
 import { AnalyticsDiagrams } from './AnalyticsDiagrams.js';
 
 export interface IdeaItem {
+    id?: string;
     ticker?: string;
     companyName?: string;
     summary?: string;
     description?: string;
+    digest?: Record<string, string>;
     targetPrice?: number | null;
     currentPrice?: number | null;
     url?: string | null;
@@ -30,6 +36,136 @@ interface IdeaRowProps {
     idea: IdeaItem;
     index: number;
     lang?: Language;
+}
+
+function formatInlineMarkdown(text: string): React.ReactNode {
+    if (!text) return text;
+    const parts = text.split(/(\*\*.*?\*\*)/g);
+    return parts.map((part, index) => {
+        if (part.startsWith('**') && part.endsWith('**')) {
+            return (
+                <Box component="strong" key={index} sx={{ fontWeight: 700, color: '#111' }}>
+                    {part.slice(2, -2)}
+                </Box>
+            );
+        }
+        return part;
+    });
+}
+
+function renderMarkdownContent(content: string): React.ReactNode {
+    if (!content) return null;
+    const lines = content.split(/\r?\n/);
+    const elements: React.ReactNode[] = [];
+
+    let i = 0;
+    while (i < lines.length) {
+        const line = lines[i].trim();
+
+        // Check for markdown table start
+        if (line.startsWith('|') && line.endsWith('|')) {
+            const tableLines: string[] = [];
+            while (i < lines.length && lines[i].trim().startsWith('|') && lines[i].trim().endsWith('|')) {
+                tableLines.push(lines[i].trim());
+                i++;
+            }
+
+            const dataRows = tableLines.filter(row => !/^\|[\s:-|-]+\|$/.test(row));
+            if (dataRows.length > 0) {
+                const headerRow = dataRows[0];
+                const headerCols = headerRow.split('|').slice(1, -1).map(c => c.trim());
+                const bodyRows = dataRows.slice(1).map(row => row.split('|').slice(1, -1).map(c => c.trim()));
+
+                elements.push(
+                    <Box key={`table-${i}`} sx={{ my: 1.5, overflowX: 'auto' }}>
+                        <Table size="small" sx={{ minWidth: 300, border: '1px solid #e0e0e0', borderRadius: '4px' }}>
+                            <TableHead sx={{ backgroundColor: '#f5f5f5' }}>
+                                <TableRow>
+                                    {headerCols.map((col, idx) => (
+                                        <TableCell key={idx} sx={{ fontWeight: 'bold', fontSize: '0.8rem', py: 0.75 }}>
+                                            {formatInlineMarkdown(col)}
+                                        </TableCell>
+                                    ))}
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                {bodyRows.map((row, rIdx) => (
+                                    <TableRow key={rIdx}>
+                                        {row.map((cell, cIdx) => (
+                                            <TableCell key={cIdx} sx={{ fontSize: '0.8rem', py: 0.75 }}>
+                                                {formatInlineMarkdown(cell)}
+                                            </TableCell>
+                                        ))}
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </Box>
+                );
+            }
+            continue;
+        }
+
+        // Headers
+        if (line.startsWith('### ')) {
+            elements.push(
+                <Typography key={`h3-${i}`} variant="subtitle2" sx={{ fontWeight: 'bold', mt: 1.5, mb: 0.5, color: '#1a237e' }}>
+                    {formatInlineMarkdown(line.substring(4))}
+                </Typography>
+            );
+            i++;
+            continue;
+        }
+        if (line.startsWith('## ')) {
+            elements.push(
+                <Typography key={`h2-${i}`} variant="subtitle1" sx={{ fontWeight: 'bold', mt: 1.5, mb: 0.5, color: '#0d47a1' }}>
+                    {formatInlineMarkdown(line.substring(3))}
+                </Typography>
+            );
+            i++;
+            continue;
+        }
+        if (line.startsWith('# ')) {
+            elements.push(
+                <Typography key={`h1-${i}`} variant="h6" sx={{ fontWeight: 'bold', mt: 1.5, mb: 0.5, color: '#0d47a1' }}>
+                    {formatInlineMarkdown(line.substring(2))}
+                </Typography>
+            );
+            i++;
+            continue;
+        }
+
+        // Bullet points
+        if (line.startsWith('- ') || line.startsWith('* ')) {
+            const listText = line.substring(2);
+            elements.push(
+                <Box key={`list-${i}`} sx={{ display: 'flex', alignItems: 'flex-start', gap: 1, ml: 1, my: 0.25 }}>
+                    <Box component="span" sx={{ color: '#1976d2', fontWeight: 'bold', lineHeight: '1.4' }}>•</Box>
+                    <Typography variant="body2" component="span" sx={{ fontSize: '0.85rem', color: '#333' }}>
+                        {formatInlineMarkdown(listText)}
+                    </Typography>
+                </Box>
+            );
+            i++;
+            continue;
+        }
+
+        // Blank lines
+        if (!line) {
+            i++;
+            continue;
+        }
+
+        // Regular paragraph
+        elements.push(
+            <Typography key={`p-${i}`} variant="body2" sx={{ fontSize: '0.85rem', color: '#333', my: 0.5 }}>
+                {formatInlineMarkdown(line)}
+            </Typography>
+        );
+        i++;
+    }
+
+    return <Box sx={{ display: 'flex', flexDirection: 'column' }}>{elements}</Box>;
 }
 
 function formatSummaryText(text: string): React.ReactNode {
@@ -59,6 +195,33 @@ export function IdeaRow({ idea, index, lang = 'en' }: IdeaRowProps) {
     const [isExpanded, setIsExpanded] = useState(false);
     const [showDiagrams, setShowDiagrams] = useState(false);
     const [analyticsStatus, setAnalyticsStatus] = useState<'idle' | 'success' | 'error' | 'nodata'>('idle');
+
+    const initialDigest = idea.digest?.[lang];
+    const [digestText, setDigestText] = useState<string | null>(initialDigest || null);
+    const [digestLoading, setDigestLoading] = useState(false);
+    const [digestError, setDigestError] = useState<string | null>(null);
+
+    const handleFetchDigest = async () => {
+        if (!idea.id) return;
+        setDigestLoading(true);
+        setDigestError(null);
+        try {
+            const res = await fetch(`/api/ideas/${idea.id}/digest?lang=${lang}`);
+            if (!res.ok) {
+                throw new Error(`HTTP ${res.status}`);
+            }
+            const data = await res.json();
+            if (data.digest) {
+                setDigestText(data.digest);
+            } else {
+                throw new Error('No digest returned');
+            }
+        } catch (e: any) {
+            setDigestError(e.message || 'Failed to load digest');
+        } finally {
+            setDigestLoading(false);
+        }
+    };
 
     const text = idea.summary || idea.description || '';
     const isLong = text.length > 150;
@@ -259,7 +422,7 @@ export function IdeaRow({ idea, index, lang = 'en' }: IdeaRowProps) {
                 </TableRow>
             )}
 
-            {/* Summary Row spanning full width underneath */}
+            {/* Summary / Digest Row spanning full width underneath */}
             <TableRow sx={{ borderBottom: '1px solid #eee', transition: 'background-color 0.15s' }}>
                 <TableCell
                     colSpan={3}
@@ -267,42 +430,109 @@ export function IdeaRow({ idea, index, lang = 'en' }: IdeaRowProps) {
                         padding: '4px 10px 12px 10px',
                         verticalAlign: 'top',
                         lineHeight: '1.45',
-                        color: '#444',
-                        whiteSpace: 'pre-line'
+                        color: '#444'
                     }}
                 >
-                    {isLong ? (
-                        <Box>
-                            <Box component="span" id={`${descId}-short`} sx={{ display: isExpanded ? 'none' : 'inline' }}>
-                                {formatSummaryText(shortText)}{' '}
+                    {digestText ? (
+                        <Box sx={{ my: 1, p: 1.5, backgroundColor: '#f8f9fa', borderRadius: '8px', border: '1px solid #e3f2fd' }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                                <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#1565c0', display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                    <Box component="span" className="material-icons" sx={{ fontSize: '18px' }}>
+                                        auto_awesome
+                                    </Box>
+                                    {t.digestTitle || 'AI Digest'}
+                                </Typography>
                             </Box>
-                            <Box component="span" id={`${descId}-full`} sx={{ display: isExpanded ? 'inline' : 'none' }}>
-                                {formatSummaryText(text)}{' '}
-                            </Box>
-                            <Button
-                                id={btnId}
-                                onClick={() => setIsExpanded(!isExpanded)}
-                                variant="text"
-                                sx={{
-                                    minWidth: 'auto',
-                                    p: 0,
-                                    color: '#1976d2',
-                                    fontWeight: 'bold',
-                                    fontSize: '0.82rem',
-                                    textTransform: 'none',
-                                    textDecoration: 'underline',
-                                    verticalAlign: 'baseline',
-                                    '&:hover': {
-                                        background: 'none',
-                                        textDecoration: 'underline'
-                                    }
-                                }}
-                            >
-                                {isExpanded ? t.btnCollapse : t.btnExpand}
-                            </Button>
+                            {renderMarkdownContent(digestText)}
                         </Box>
                     ) : (
-                        <Box component="span">{formatSummaryText(text) || '—'}</Box>
+                        <React.Fragment>
+                            <Box sx={{ whiteSpace: 'pre-line' }}>
+                                {isLong ? (
+                                    <Box>
+                                        <Box component="span" id={`${descId}-short`} sx={{ display: isExpanded ? 'none' : 'inline' }}>
+                                            {formatSummaryText(shortText)}{' '}
+                                        </Box>
+                                        <Box component="span" id={`${descId}-full`} sx={{ display: isExpanded ? 'inline' : 'none' }}>
+                                            {formatSummaryText(text)}{' '}
+                                        </Box>
+                                        <Button
+                                            id={btnId}
+                                            onClick={() => setIsExpanded(!isExpanded)}
+                                            variant="text"
+                                            sx={{
+                                                minWidth: 'auto',
+                                                p: 0,
+                                                color: '#1976d2',
+                                                fontWeight: 'bold',
+                                                fontSize: '0.82rem',
+                                                textTransform: 'none',
+                                                textDecoration: 'underline',
+                                                verticalAlign: 'baseline',
+                                                '&:hover': {
+                                                    background: 'none',
+                                                    textDecoration: 'underline'
+                                                }
+                                            }}
+                                        >
+                                            {isExpanded ? t.btnCollapse : t.btnExpand}
+                                        </Button>
+                                    </Box>
+                                ) : (
+                                    <Box component="span">{formatSummaryText(text) || '—'}</Box>
+                                )}
+                            </Box>
+
+                            {idea.id && (
+                                <Box sx={{ mt: 1 }}>
+                                    {digestLoading ? (
+                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, py: 0.5 }}>
+                                            <CircularProgress size={18} />
+                                            <Typography variant="caption" sx={{ color: '#1976d2', fontWeight: 600 }}>
+                                                {t.btnDigestLoading || 'Generating AI Digest...'}
+                                            </Typography>
+                                        </Box>
+                                    ) : digestError ? (
+                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, py: 0.5 }}>
+                                            <Typography variant="caption" sx={{ color: '#d32f2f', fontWeight: 600 }}>
+                                                {t.btnDigestError || 'Error loading digest. Click to retry.'}
+                                            </Typography>
+                                            <Button size="small" variant="text" onClick={handleFetchDigest} sx={{ textTransform: 'none', fontSize: '0.75rem' }}>
+                                                Retry
+                                            </Button>
+                                        </Box>
+                                    ) : (
+                                        <Button
+                                            variant="outlined"
+                                            size="small"
+                                            onClick={handleFetchDigest}
+                                            startIcon={
+                                                <Box component="span" className="material-icons" sx={{ fontSize: '16px' }}>
+                                                    auto_awesome
+                                                </Box>
+                                            }
+                                            sx={{
+                                                fontSize: '0.78rem',
+                                                fontWeight: 600,
+                                                textTransform: 'none',
+                                                borderRadius: '8px',
+                                                px: 1.5,
+                                                py: 0.5,
+                                                borderColor: '#90caf9',
+                                                color: '#1565c0',
+                                                backgroundColor: '#f4f8fb',
+                                                '&:hover': {
+                                                    backgroundColor: '#e3f2fd',
+                                                    borderColor: '#1976d2',
+                                                }
+                                            }}
+                                        >
+                                            {t.btnRequestDigest || 'Request AI Idea Digest'}
+                                        </Button>
+                                    )}
+                                </Box>
+                            )}
+                        </React.Fragment>
                     )}
                 </TableCell>
             </TableRow>

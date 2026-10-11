@@ -98,7 +98,11 @@
     "btnAnalyticsDiagrams": "Show Analytics Diagrams",
     "btnHideDiagrams": "Hide Diagrams",
     "analyticsError": "Error loading analytics",
-    "analyticsNoData": "Analytics data unavailable"
+    "analyticsNoData": "Analytics data unavailable",
+    "btnRequestDigest": "Request AI Idea Digest",
+    "btnDigestLoading": "Generating AI Digest...",
+    "btnDigestError": "Error loading digest. Click to retry.",
+    "digestTitle": "AI Idea Digest"
   },
   "ru": {
     "brandName": "Finance.xardbaiz.im",
@@ -199,6 +203,10 @@
     "btnAnalyticsDiagrams": "Показать аналитические диаграммы",
     "btnHideDiagrams": "Скрыть диаграммы",
     "analyticsError": "Ошибка загрузки аналитики",
-    "analyticsNoData": "Данные недоступны"
+    "analyticsNoData": "Данные недоступны",
+    "btnRequestDigest": "Запросить обзор деталей инвестиционной идеи",
+    "btnDigestLoading": "Генерация AI дайджеста...",
+    "btnDigestError": "Ошибка загрузки дайджеста. Нажмите для повтора.",
+    "digestTitle": "AI Дайджест"
   }
 }

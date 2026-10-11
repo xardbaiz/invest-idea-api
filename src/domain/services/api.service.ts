@@ -98,4 +98,54 @@ export class ApiService {
         }
         return provider.getQuoteCardInfo(ticker);
     }
+
+    async getIdeaDigest(ideaId: string, lang: string = 'en'): Promise<string | undefined> {
+        const idea = await this.repo.findById(ideaId);
+        if (!idea) {
+            return undefined;
+        }
+
+        if (idea.digest && idea.digest[lang]) {
+            return idea.digest[lang];
+        }
+
+        const webhookUrl = 'https://n8n.app.xardbaiz.im/webhook/BuIOXzq5LNfrt8sP/api/ideas/digests';
+        const response = await fetch(webhookUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                lang,
+                title: idea.title,
+                description: idea.description,
+            }),
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to fetch digest from webhook: status ${response.status}`);
+        }
+
+        const text = await response.text();
+        let digestMarkdown = text;
+        try {
+            const parsed = JSON.parse(text);
+            if (typeof parsed === 'string') {
+                digestMarkdown = parsed;
+            } else if (parsed && typeof parsed.digest === 'string') {
+                digestMarkdown = parsed.digest;
+            } else if (parsed && typeof parsed.text === 'string') {
+                digestMarkdown = parsed.text;
+            } else if (parsed && typeof parsed.message === 'string') {
+                digestMarkdown = parsed.message;
+            }
+        } catch {
+            // Text is raw markdown
+        }
+
+        const updatedDigest = { ...(idea.digest || {}), [lang]: digestMarkdown };
+        await this.repo.updateDigest(ideaId, updatedDigest);
+
+        return digestMarkdown;
+    }
 }
