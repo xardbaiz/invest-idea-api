@@ -139,4 +139,44 @@ describe("TradernetProvider", () => {
             fetchSpy.mockRestore();
         });
     });
+
+    describe("HMAC Authentication", () => {
+        const origEnv = process.env;
+
+        beforeEach(() => {
+            process.env = { ...origEnv };
+        });
+
+        afterEach(() => {
+            process.env = origEnv;
+        });
+
+        it("should include X-NtApi signature headers when TRADERNET_PUBLIC_KEY and TRADERNET_PRIVATE_KEY are set", async () => {
+            process.env.TRADERNET_PUBLIC_KEY = "test_pub_key";
+            process.env.TRADERNET_PRIVATE_KEY = "test_priv_key";
+
+            const fetchSpy = jest.spyOn(global, "fetch").mockResolvedValueOnce({
+                ok: true,
+                json: async () => ({ list: [] })
+            } as any);
+
+            await provider.fetchIdeas(0, 10);
+
+            expect(fetchSpy).toHaveBeenCalledWith(
+                "https://tradernet.com/api?cmd=getInvestIdeas",
+                expect.objectContaining({
+                    method: "POST",
+                    headers: expect.objectContaining({
+                        "Content-Type": "application/json",
+                        "X-NtApi-PublicKey": "test_pub_key",
+                        "X-NtApi-Timestamp": expect.any(String),
+                        "X-NtApi-Sig": expect.any(String)
+                    }),
+                    body: JSON.stringify({ cmd: "getInvestIdeas", params: { page: { skip: 0, take: 10 } } })
+                })
+            );
+
+            fetchSpy.mockRestore();
+        });
+    });
 });

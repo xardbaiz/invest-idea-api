@@ -1,3 +1,4 @@
+import {createHmac} from "node:crypto";
 import {InvestmentIdea, QuoteDetails} from "../../domain/models.js";
 import {InvestmentProvider} from "../../domain/services/investment-provider.js";
 
@@ -23,20 +24,7 @@ export class TradernetProvider implements InvestmentProvider {
     }
 
     async fetchIdeas(skip: number, take: number): Promise<InvestmentIdea[]> {
-        const response = await fetch(this.apiUrl, {
-            method: "POST",
-            headers: {"Content-Type": "application/x-www-form-urlencoded"},
-            body: `q=${encodeURIComponent(JSON.stringify({
-                cmd: "getInvestIdeas",
-                params: {page: {skip, take}}
-            }))}`
-        });
-
-        if (!response.ok) {
-            throw new Error(`Tradernet request failed: ${response.status} ${response.statusText}`);
-        }
-
-        const data = await response.json() as { list?: any[] };
+        const data = await this.sendApiRequest("getInvestIdeas", { page: { skip, take } }) as { list?: any[] };
 
         return (data.list || []).map((item: any): InvestmentIdea => ({
             id: `${item.id}`,
@@ -134,14 +122,41 @@ export class TradernetProvider implements InvestmentProvider {
     }
 
     private async sendApiRequest(cmd: string, params: Record<string, any>): Promise<any> {
+        const publicKey = process.env.TRADERNET_PUBLIC_KEY || process.env.TRADERNET_API_KEY;
+        const privateKey = process.env.TRADERNET_PRIVATE_KEY || process.env.TRADERNET_SECRET_KEY || process.env.TRADERNET_API_SECRET;
+
+        const payloadObj = { cmd, params };
+        const payloadStr = JSON.stringify(payloadObj);
+
+        const url = `${this.apiUrl}?cmd=${cmd}`;
+        let headers: Record<string, string> = {};
+        let body: string;
+
+        if (publicKey && privateKey) {
+            const timeStamp = Math.floor(Date.now() / 1000).toString();
+            const sig = createHmac("sha256", privateKey)
+                .update(payloadStr + timeStamp)
+                .digest("hex");
+
+            headers = {
+                "Content-Type": "application/json",
+                "X-NtApi-PublicKey": publicKey,
+                "X-NtApi-Timestamp": timeStamp,
+                "X-NtApi-Sig": sig,
+            };
+            body = payloadStr;
+        } else {
+            headers = {
+                "Content-Type": "application/x-www-form-urlencoded"
+            };
+            body = `q=${encodeURIComponent(payloadStr)}`;
+        }
+
         try {
-            const response = await fetch(`${this.apiUrl}?cmd=${cmd}`, {
+            const response = await fetch(url, {
                 method: "POST",
-                headers: {"Content-Type": "application/x-www-form-urlencoded"},
-                body: `q=${encodeURIComponent(JSON.stringify({
-                    cmd,
-                    params
-                }))}`
+                headers,
+                body
             });
 
             if (!response.ok) {
@@ -162,20 +177,7 @@ export class TradernetProvider implements InvestmentProvider {
     }
 
     private async fetchIdea(id: string): Promise<any> {
-        const response = await fetch(this.apiUrl, {
-            method: "POST",
-            headers: {"Content-Type": "application/x-www-form-urlencoded"},
-            body: `q=${encodeURIComponent(JSON.stringify({
-                cmd: "getInvestIdeaDetails",
-                params: {id: id},
-            }))}`
-        });
-
-        if (!response.ok) {
-            throw new Error(`Tradernet request failed: ${response.status} ${response.statusText}`);
-        }
-
-        return await response.json();
+        return await this.sendApiRequest("getInvestIdeaDetails", { id });
     }
 
     private sanitize(data?: any): string {
