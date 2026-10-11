@@ -1,12 +1,11 @@
-import {createHmac} from "node:crypto";
 import {InvestmentIdea, QuoteDetails} from "../../domain/models.js";
 import {InvestmentProvider} from "../../domain/services/investment-provider.js";
-import {RequestInit} from "node/web-globals/fetch.js";
 
 export class TradernetProvider implements InvestmentProvider {
     readonly name = 'tradernet';
     private readonly host = 'https://tradernet.com';
     private readonly apiUrl = this.host + '/api';
+    private sessionId: string | undefined;
 
     getIdeaUrl(ideaId: string): string {
         if (!ideaId) {
@@ -121,67 +120,79 @@ export class TradernetProvider implements InvestmentProvider {
         return await this.sendApiRequest("getQuoteCardInfo", {ticker}, true);
     }
 
-    private async sendApiRequest(cmd: string, params: Record<string, any>, auth: boolean = false): Promise<any> {
-        const publicKey = process.env.TRADERNET_PUBLIC_KEY || process.env.TRADERNET_API_KEY;
-        const privateKey = process.env.TRADERNET_PRIVATE_KEY || process.env.TRADERNET_SECRET_KEY || process.env.TRADERNET_API_SECRET;
+    private async fetchIdea(id: string): Promise<any> {
+        return await this.sendApiRequest("getInvestIdeaDetails", {id});
+    }
 
-        const payloadObj = { cmd, params };
-        const payloadStr = JSON.stringify(payloadObj);
+    private async auth(): Promise<any> {
+        const login = process.env.TRADERNET_LOGIN;
+        const password = process.env.TRADERNET_PASSWORD;
+        if (login && password) {
+            const data = await this.sendApiRequest("authByLogin", {
+                login,
+                password,
+                rememberMe: 1,
+                getAccounts: false,
+            })
 
-
-        let headers: Record<string, string> = {
-            "Content-Type": "application/x-www-form-urlencoded"
-        };
-        let body: string = `q=${encodeURIComponent(payloadStr)}`;
-        let url = `${this.apiUrl}?cmd=${cmd}`;
-        let request: RequestInit = {
-            method: 'POST',
-            headers,
-            body
+            if (data.logged && data.success) {
+                this.sessionId = data.SID;
+            }
         }
+    }
 
-        if (auth && publicKey && privateKey) {
-            url = `${this.apiUrl}/${cmd}`;
 
-            const timeStamp = Math.floor(Date.now() / 1000).toString();
-            const sig = createHmac("sha256", privateKey)
-                .update(payloadStr + timeStamp)
-                .digest("hex");
-
-            headers = {
-                "Content-Type": "application/json",
-                "X-NtApi-PublicKey": publicKey,
-                "X-NtApi-Timestamp": timeStamp,
-                "X-NtApi-Sig": sig,
-            };
-            request = {
-                method: 'GET',
-                headers
+    private async sendApiRequest(cmd: string, params: Record<string, any>, auth: boolean = false): Promise<any> {
+        let payloadObj = {cmd, params} as any;
+        if (auth) {
+            if (!this.sessionId) {
+                await this.auth();
+            }
+            payloadObj = {
+                ...payloadObj,
+                'SID': this.sessionId
             }
         }
 
+        let url = `${this.apiUrl}?cmd=${cmd}`;
+        let headers: Record<string, string> = {
+            "Content-Type": "application/x-www-form-urlencoded"
+        };
+        let body: string = `q=${encodeURIComponent(JSON.stringify(payloadObj))}`;
+
         try {
-            const response = await fetch(url, request);
+            const response = await fetch(url, {
+                method: 'POST',
+                headers,
+                body
+            });
 
             if (!response.ok) {
                 const errorMsg = `Tradernet request failed: ${response.status} ${response.statusText}`;
                 console.error(`Tradernet API Error (${cmd}):`, errorMsg);
+                if (auth) {
+                    this.sessionId = undefined;
+                }
                 throw new Error(errorMsg);
             }
 
             const json = await response.json();
             if (json?.error) {
+                if (auth) {
+                    this.sessionId = undefined;
+                }
                 console.error(`Tradernet API Error (${cmd}):`, json.error, json.errMsg || '');
+            }
+
+            const responseSessionId = json.SID;
+            if (auth && responseSessionId && this.sessionId !== responseSessionId) {
+                this.sessionId = json.SID;
             }
             return json;
         } catch (error: any) {
             console.error(`Tradernet Client Error (${cmd}):`, error?.message || error);
             throw error;
         }
-    }
-
-    private async fetchIdea(id: string): Promise<any> {
-        return await this.sendApiRequest("getInvestIdeaDetails", { id });
     }
 
     private sanitize(data?: any): string {
