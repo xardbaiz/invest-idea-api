@@ -12,4 +12,8 @@ export interface InvestmentProvider {
     getDetails(id: string): Promise<string | undefined>;
 
     getQuoteDetails(tickers: string[]): Promise<QuoteDetails[]>;
+
+    getPraamsStockInfoByTicker?(ticker: string): Promise<any>;
+
+    getQuoteCardInfo?(ticker: string): Promise<any>;
 }

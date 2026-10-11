@@ -93,7 +93,12 @@
     "thRelevance": "Relevance",
     "thPublishDate": "Publish Date",
     "btnExpand": "Expand",
-    "btnCollapse": "Collapse"
+    "btnCollapse": "Collapse",
+    "thAnalytics": "Analytics",
+    "btnAnalyticsDiagrams": "Show Analytics Diagrams",
+    "btnHideDiagrams": "Hide Diagrams",
+    "analyticsError": "Error loading analytics",
+    "analyticsNoData": "Analytics data unavailable"
   },
   "ru": {
     "brandName": "Finance.xardbaiz.im",
@@ -189,6 +194,11 @@
     "thRelevance": "Релевантность",
     "thPublishDate": "Дата публикации",
     "btnExpand": "Развернуть",
-    "btnCollapse": "Свернуть"
+    "btnCollapse": "Свернуть",
+    "thAnalytics": "Аналитика",
+    "btnAnalyticsDiagrams": "Показать аналитические диаграммы",
+    "btnHideDiagrams": "Скрыть диаграммы",
+    "analyticsError": "Ошибка загрузки аналитики",
+    "analyticsNoData": "Данные недоступны"
   }
 }
