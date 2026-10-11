@@ -433,7 +433,7 @@ export function LandingPage({ lang = 'en' }: LandingPageProps) {
                         </Typography>
                     </Box>
 
-                    <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: 3, mb: 6 }}>
+                    <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' }, gap: 3, mb: 6 }}>
                         <Paper elevation={0} sx={{ backgroundColor: '#171f33', p: 3, borderRadius: '12px', border: '1px solid rgba(255,255,255,0.08)' }}>
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#10b981', fontWeight: 600, mb: 1 }}>
                                 <Box component="span" className="material-icons">verified_user</Box>
@@ -443,19 +443,27 @@ export function LandingPage({ lang = 'en' }: LandingPageProps) {
                         </Paper>
 
                         <Paper elevation={0} sx={{ backgroundColor: '#171f33', p: 3, borderRadius: '12px', border: '1px solid rgba(255,255,255,0.08)' }}>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#ffb95f', fontWeight: 600, mb: 1 }}>
-                                <Box component="span" className="material-icons">dataset</Box>
-                                <Typography sx={{ color: '#ffb95f', fontWeight: 600 }}>{t.aboutFeat2Title}</Typography>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#10b981', fontWeight: 600, mb: 1 }}>
+                                <Box component="span" className="material-icons">trending_up</Box>
+                                <Typography sx={{ color: '#10b981', fontWeight: 600 }}>{t.aboutFeat2Title}</Typography>
                             </Box>
                             <Typography sx={{ color: '#bbcabf', fontSize: '0.9rem' }}>{t.aboutFeat2Desc}</Typography>
                         </Paper>
 
                         <Paper elevation={0} sx={{ backgroundColor: '#171f33', p: 3, borderRadius: '12px', border: '1px solid rgba(255,255,255,0.08)' }}>
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#10b981', fontWeight: 600, mb: 1 }}>
-                                <Box component="span" className="material-icons">manage_search</Box>
+                                <Box component="span" className="material-icons">analytics</Box>
                                 <Typography sx={{ color: '#10b981', fontWeight: 600 }}>{t.aboutFeat3Title}</Typography>
                             </Box>
                             <Typography sx={{ color: '#bbcabf', fontSize: '0.9rem' }}>{t.aboutFeat3Desc}</Typography>
+                        </Paper>
+
+                        <Paper elevation={0} sx={{ backgroundColor: '#171f33', p: 3, borderRadius: '12px', border: '1px solid rgba(255,255,255,0.08)' }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#ffb95f', fontWeight: 600, mb: 1 }}>
+                                <Box component="span" className="material-icons">query_stats</Box>
+                                <Typography sx={{ color: '#ffb95f', fontWeight: 600 }}>{t.aboutFeat4Title}</Typography>
+                            </Box>
+                            <Typography sx={{ color: '#bbcabf', fontSize: '0.9rem' }}>{t.aboutFeat4Desc}</Typography>
                         </Paper>
                     </Box>
 

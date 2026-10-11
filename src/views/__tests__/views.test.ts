@@ -1,6 +1,23 @@
-import {getLanguageFromHeader} from "../ui/i18n/i18n.js";
+import {getLanguageFromHeader, getTranslations} from "../ui/i18n/i18n.js";
 
 describe("Views and Localization Tests", () => {
+    describe("Translations completeness", () => {
+        it("should contain updated About section feature keys for EN and RU", () => {
+            const en = getTranslations("en");
+            const ru = getTranslations("ru");
+
+            expect(en.aboutFeat1Title).toBeDefined();
+            expect(en.aboutFeat2Title).toBe("Targets & Upsides Active Now");
+            expect(en.aboutFeat3Title).toBe("Analytics Diagrams & AI Digest");
+            expect(en.aboutFeat4Title).toBe("P/E & Multipliers (Coming Soon)");
+
+            expect(ru.aboutFeat1Title).toBeDefined();
+            expect(ru.aboutFeat2Title).toBe("Таргеты и апсайды сейчас");
+            expect(ru.aboutFeat3Title).toBe("Диаграммы Risk/Return и AI-дайджест");
+            expect(ru.aboutFeat4Title).toBe("P/E и мультипликаторы (В разработке)");
+        });
+    });
+
     describe("Language detection from Accept-Language header", () => {
         it("should return 'en' when header is missing or empty", () => {
             expect(getLanguageFromHeader(undefined)).toBe("en");
