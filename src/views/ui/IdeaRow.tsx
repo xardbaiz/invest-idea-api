@@ -86,6 +86,7 @@ export function IdeaRow({ idea, index, lang = 'en' }: IdeaRowProps) {
             const data = await res.json();
             if (data.digest) {
                 setDigestText(data.digest);
+                setIsExpanded(true);
             } else {
                 throw new Error('No digest returned');
             }
@@ -306,130 +307,101 @@ export function IdeaRow({ idea, index, lang = 'en' }: IdeaRowProps) {
                         color: '#444'
                     }}
                 >
-                    {digestText ? (
-                        <Box sx={{ my: 1, p: 1.5, backgroundColor: '#f8f9fa', borderRadius: '8px', border: '1px solid #e3f2fd' }}>
-                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-                                <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#1565c0', display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                    <Box component="span" className="material-icons" sx={{ fontSize: '18px' }}>
-                                        auto_awesome
+                    {isExpanded ? (
+                        /* Expanded View */
+                        <Box>
+                            {digestText ? (
+                                <Box sx={{ my: 1, p: 1.5, backgroundColor: '#f8f9fa', borderRadius: '8px', border: '1px solid #e3f2fd' }}>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                                        <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#1565c0', display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                            <Box component="span" className="material-icons" sx={{ fontSize: '18px' }}>
+                                                auto_awesome
+                                            </Box>
+                                            {t.digestTitle || 'AI Digest'}
+                                        </Typography>
                                     </Box>
-                                    {t.digestTitle || 'AI Digest'}
-                                </Typography>
-                            </Box>
-                            <ReactMarkdown
-                                remarkPlugins={[remarkGfm]}
-                                components={{
-                                    h1: ({ children }) => (
-                                        <Typography variant="h6" sx={{ fontWeight: 'bold', mt: 1.5, mb: 0.5, color: '#0d47a1' }}>
-                                            {children}
-                                        </Typography>
-                                    ),
-                                    h2: ({ children }) => (
-                                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mt: 1.5, mb: 0.5, color: '#0d47a1' }}>
-                                            {children}
-                                        </Typography>
-                                    ),
-                                    h3: ({ children }) => (
-                                        <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mt: 1.5, mb: 0.5, color: '#1a237e' }}>
-                                            {children}
-                                        </Typography>
-                                    ),
-                                    p: ({ children }) => (
-                                        <Typography variant="body2" sx={{ fontSize: '0.85rem', color: '#333', my: 0.5 }}>
-                                            {children}
-                                        </Typography>
-                                    ),
-                                    strong: ({ children }) => (
-                                        <Box component="strong" sx={{ fontWeight: 700, color: '#111' }}>
-                                            {children}
-                                        </Box>
-                                    ),
-                                    ul: ({ children }) => (
-                                        <Box component="ul" sx={{ pl: 2, my: 0.5 }}>
-                                            {children}
-                                        </Box>
-                                    ),
-                                    li: ({ children }) => (
-                                        <Typography component="li" variant="body2" sx={{ fontSize: '0.85rem', color: '#333', my: 0.25 }}>
-                                            {children}
-                                        </Typography>
-                                    ),
-                                    table: ({ children }) => (
-                                        <Box sx={{ my: 1.5, overflowX: 'auto' }}>
-                                            <Table size="small" sx={{ minWidth: 300, border: '1px solid #e0e0e0', borderRadius: '4px' }}>
-                                                {children}
-                                            </Table>
-                                        </Box>
-                                    ),
-                                    thead: ({ children }) => (
-                                        <TableHead sx={{ backgroundColor: '#f5f5f5' }}>
-                                            {children}
-                                        </TableHead>
-                                    ),
-                                    tbody: ({ children }) => (
-                                        <TableBody>
-                                            {children}
-                                        </TableBody>
-                                    ),
-                                    tr: ({ children }) => (
-                                        <TableRow>
-                                            {children}
-                                        </TableRow>
-                                    ),
-                                    th: ({ children }) => (
-                                        <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', py: 0.75 }}>
-                                            {children}
-                                        </TableCell>
-                                    ),
-                                    td: ({ children }) => (
-                                        <TableCell sx={{ fontSize: '0.8rem', py: 0.75 }}>
-                                            {children}
-                                        </TableCell>
-                                    ),
-                                }}
-                            >
-                                {digestText}
-                            </ReactMarkdown>
-                        </Box>
-                    ) : (
-                        <React.Fragment>
-                            <Box sx={{ whiteSpace: 'pre-line' }}>
-                                {isLong ? (
-                                    <Box>
-                                        <Box component="span" id={`${descId}-short`} sx={{ display: isExpanded ? 'none' : 'inline' }}>
-                                            {formatSummaryText(shortText)}{' '}
-                                        </Box>
-                                        <Box component="span" id={`${descId}-full`} sx={{ display: isExpanded ? 'inline' : 'none' }}>
-                                            {formatSummaryText(text)}{' '}
-                                        </Box>
-                                        <Button
-                                            id={btnId}
-                                            onClick={() => setIsExpanded(!isExpanded)}
-                                            variant="text"
-                                            sx={{
-                                                minWidth: 'auto',
-                                                p: 0,
-                                                color: '#1976d2',
-                                                fontWeight: 'bold',
-                                                fontSize: '0.82rem',
-                                                textTransform: 'none',
-                                                textDecoration: 'underline',
-                                                verticalAlign: 'baseline',
-                                                '&:hover': {
-                                                    background: 'none',
-                                                    textDecoration: 'underline'
-                                                }
-                                            }}
-                                        >
-                                            {isExpanded ? t.btnCollapse : t.btnExpand}
-                                        </Button>
-                                    </Box>
-                                ) : (
-                                    <Box component="span">{formatSummaryText(text) || '—'}</Box>
-                                )}
-                            </Box>
+                                    <ReactMarkdown
+                                        remarkPlugins={[remarkGfm]}
+                                        components={{
+                                            h1: ({ children }) => (
+                                                <Typography variant="h6" sx={{ fontWeight: 'bold', mt: 1.5, mb: 0.5, color: '#0d47a1' }}>
+                                                    {children}
+                                                </Typography>
+                                            ),
+                                            h2: ({ children }) => (
+                                                <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mt: 1.5, mb: 0.5, color: '#0d47a1' }}>
+                                                    {children}
+                                                </Typography>
+                                            ),
+                                            h3: ({ children }) => (
+                                                <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mt: 1.5, mb: 0.5, color: '#1a237e' }}>
+                                                    {children}
+                                                </Typography>
+                                            ),
+                                            p: ({ children }) => (
+                                                <Typography variant="body2" sx={{ fontSize: '0.85rem', color: '#333', my: 0.5 }}>
+                                                    {children}
+                                                </Typography>
+                                            ),
+                                            strong: ({ children }) => (
+                                                <Box component="strong" sx={{ fontWeight: 700, color: '#111' }}>
+                                                    {children}
+                                                </Box>
+                                            ),
+                                            ul: ({ children }) => (
+                                                <Box component="ul" sx={{ pl: 2, my: 0.5 }}>
+                                                    {children}
+                                                </Box>
+                                            ),
+                                            li: ({ children }) => (
+                                                <Typography component="li" variant="body2" sx={{ fontSize: '0.85rem', color: '#333', my: 0.25 }}>
+                                                    {children}
+                                                </Typography>
+                                            ),
+                                            table: ({ children }) => (
+                                                <Box sx={{ my: 1.5, overflowX: 'auto' }}>
+                                                    <Table size="small" sx={{ minWidth: 300, border: '1px solid #e0e0e0', borderRadius: '4px' }}>
+                                                        {children}
+                                                    </Table>
+                                                </Box>
+                                            ),
+                                            thead: ({ children }) => (
+                                                <TableHead sx={{ backgroundColor: '#f5f5f5' }}>
+                                                    {children}
+                                                </TableHead>
+                                            ),
+                                            tbody: ({ children }) => (
+                                                <TableBody>
+                                                    {children}
+                                                </TableBody>
+                                            ),
+                                            tr: ({ children }) => (
+                                                <TableRow>
+                                                    {children}
+                                                </TableRow>
+                                            ),
+                                            th: ({ children }) => (
+                                                <TableCell sx={{ fontWeight: 'bold', fontSize: '0.8rem', py: 0.75 }}>
+                                                    {children}
+                                                </TableCell>
+                                            ),
+                                            td: ({ children }) => (
+                                                <TableCell sx={{ fontSize: '0.8rem', py: 0.75 }}>
+                                                    {children}
+                                                </TableCell>
+                                            ),
+                                        }}
+                                    >
+                                        {digestText}
+                                    </ReactMarkdown>
+                                </Box>
+                            ) : (
+                                <Box sx={{ whiteSpace: 'pre-line' }}>
+                                    {formatSummaryText(text) || '—'}
+                                </Box>
+                            )}
 
-                            {idea.id && (
+                            {!digestText && idea.id && (
                                 <Box sx={{ mt: 1 }}>
                                     {digestLoading ? (
                                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, py: 0.5 }}>
@@ -478,7 +450,111 @@ export function IdeaRow({ idea, index, lang = 'en' }: IdeaRowProps) {
                                     )}
                                 </Box>
                             )}
-                        </React.Fragment>
+
+                            <Box sx={{ mt: 1 }}>
+                                <Button
+                                    id={btnId}
+                                    onClick={() => setIsExpanded(false)}
+                                    variant="text"
+                                    sx={{
+                                        minWidth: 'auto',
+                                        p: 0,
+                                        color: '#1976d2',
+                                        fontWeight: 'bold',
+                                        fontSize: '0.82rem',
+                                        textTransform: 'none',
+                                        textDecoration: 'underline',
+                                        verticalAlign: 'baseline',
+                                        '&:hover': {
+                                            background: 'none',
+                                            textDecoration: 'underline'
+                                        }
+                                    }}
+                                >
+                                    {t.btnCollapse}
+                                </Button>
+                            </Box>
+                        </Box>
+                    ) : (
+                        /* Collapsed View */
+                        <Box>
+                            <Box sx={{ whiteSpace: 'pre-line' }}>
+                                <Box component="span" id={`${descId}-short`}>
+                                    {formatSummaryText(shortText)}{' '}
+                                </Box>
+                                <Button
+                                    id={btnId}
+                                    onClick={() => setIsExpanded(true)}
+                                    variant="text"
+                                    sx={{
+                                        minWidth: 'auto',
+                                        p: 0,
+                                        color: '#1976d2',
+                                        fontWeight: 'bold',
+                                        fontSize: '0.82rem',
+                                        textTransform: 'none',
+                                        textDecoration: 'underline',
+                                        verticalAlign: 'baseline',
+                                        '&:hover': {
+                                            background: 'none',
+                                            textDecoration: 'underline'
+                                        }
+                                    }}
+                                >
+                                    {t.btnExpand}
+                                </Button>
+                            </Box>
+
+                            {!digestText && idea.id && (
+                                <Box sx={{ mt: 1 }}>
+                                    {digestLoading ? (
+                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, py: 0.5 }}>
+                                            <CircularProgress size={18} />
+                                            <Typography variant="caption" sx={{ color: '#1976d2', fontWeight: 600 }}>
+                                                {t.btnDigestLoading || 'Generating AI Digest...'}
+                                            </Typography>
+                                        </Box>
+                                    ) : digestError ? (
+                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, py: 0.5 }}>
+                                            <Typography variant="caption" sx={{ color: '#d32f2f', fontWeight: 600 }}>
+                                                {t.btnDigestError || 'Error loading digest. Click to retry.'}
+                                            </Typography>
+                                            <Button size="small" variant="text" onClick={handleFetchDigest} sx={{ textTransform: 'none', fontSize: '0.75rem' }}>
+                                                Retry
+                                            </Button>
+                                        </Box>
+                                    ) : (
+                                        <Button
+                                            variant="outlined"
+                                            size="small"
+                                            onClick={handleFetchDigest}
+                                            startIcon={
+                                                <Box component="span" className="material-icons" sx={{ fontSize: '16px' }}>
+                                                    auto_awesome
+                                                </Box>
+                                            }
+                                            sx={{
+                                                fontSize: '0.78rem',
+                                                fontWeight: 600,
+                                                textTransform: 'none',
+                                                borderRadius: '8px',
+                                                px: 1.5,
+                                                py: 0.5,
+                                                borderColor: '#90caf9',
+                                                color: '#1565c0',
+                                                backgroundColor: '#f4f8fb',
+                                                '&:hover': {
+                                                    backgroundColor: '#e3f2fd',
+                                                    borderColor: '#1976d2',
+                                                }
+                                            }}
+                                        >
+                                            {t.btnRequestDigest || 'Request AI Idea Digest'}
+                                        </Button>
+                                    )}
+                                </Box>
+                            )}
+                        </Box>
                     )}
                 </TableCell>
             </TableRow>
