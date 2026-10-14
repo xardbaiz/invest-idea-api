@@ -38,6 +38,7 @@
     "@modelcontextprotocol/node": "^2.0.0-alpha.2",
     "@modelcontextprotocol/server": "^2.0.0-alpha.2",
     "@mui/material": "^9.4.0",
+    "@mui/x-charts": "^9.15.0",
     "@qdrant/js-client-rest": "^1.13.0",
     "@supabase/supabase-js": "^2.101.1",
     "better-sqlite3": "^12.6.2",
