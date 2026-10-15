@@ -13,11 +13,43 @@ interface AnalyticsDiagramsProps {
     onDataLoaded?: (status: 'success' | 'error' | 'nodata') => void;
 }
 
+function useAnimationProgress(duration = 850) {
+    const [progress, setProgress] = useState(0);
+
+    useEffect(() => {
+        let startTime: number | null = null;
+        let animationFrameId: number;
+
+        const animate = (timestamp: number) => {
+            if (!startTime) startTime = timestamp;
+            const elapsed = timestamp - startTime;
+            const p = Math.min(elapsed / duration, 1);
+            // Ease out cubic
+            const eased = 1 - Math.pow(1 - p, 3);
+            setProgress(eased);
+
+            if (p < 1) {
+                animationFrameId = requestAnimationFrame(animate);
+            }
+        };
+
+        animationFrameId = requestAnimationFrame(animate);
+
+        return () => {
+            cancelAnimationFrame(animationFrameId);
+        };
+    }, [duration]);
+
+    return progress;
+}
+
 export function AnalyticsDiagrams({ ticker, onDataLoaded }: AnalyticsDiagramsProps) {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [riskReturnData, setRiskReturnData] = useState<any>(null);
     const [recommendationsData, setRecommendationsData] = useState<any>(null);
+
+    const animationProgress = useAnimationProgress(850);
 
     useEffect(() => {
         if (!ticker) {
@@ -120,7 +152,7 @@ export function AnalyticsDiagrams({ ticker, onDataLoaded }: AnalyticsDiagramsPro
             >
                 {/* Left: Risk / Return Radar Chart */}
                 <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
-                    {renderRiskReturnChart(riskReturnData)}
+                    {renderRiskReturnChart(riskReturnData, animationProgress)}
                 </Box>
 
                 {/* Right: Recommendations Donut Chart */}
@@ -132,7 +164,7 @@ export function AnalyticsDiagrams({ ticker, onDataLoaded }: AnalyticsDiagramsPro
     );
 }
 
-function renderRiskReturnChart(data: any) {
+function renderRiskReturnChart(data: any, animationProgress: number) {
     if (!data) return null;
 
     const risk = data.risk || {};
@@ -157,8 +189,8 @@ function renderRiskReturnChart(data: any) {
 
     const metrics = categories.map(c => c.label);
 
-    const riskData = categories.map(c => (c.series === 'risk' ? c.value : 0));
-    const returnData = categories.map(c => (c.series === 'return' ? c.value : 0));
+    const riskData = categories.map(c => (c.series === 'risk' ? c.value * animationProgress : 0));
+    const returnData = categories.map(c => (c.series === 'return' ? c.value * animationProgress : 0));
 
     return (
         <Box sx={{ width: '100%', maxWidth: 380, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
@@ -195,10 +227,11 @@ function renderRiskReturnChart(data: any) {
                         data: returnData,
                         color: '#4caf50',
                         fillArea: true,
-                        valueFormatter: (value: number | null, context: { dataIndex: number }) => {
-                            if (value === null || value === 0) return null;
+                        valueFormatter: (_val: number | null, context: { dataIndex: number }) => {
+                            const originalValue = categories[context.dataIndex]?.value || 0;
+                            if (originalValue === 0) return null;
                             const factorLabel = metrics[context.dataIndex] || '';
-                            return `${factorLabel}: ${value}`;
+                            return `${factorLabel}: ${originalValue}`;
                         }
                     },
                     {
@@ -206,10 +239,11 @@ function renderRiskReturnChart(data: any) {
                         data: riskData,
                         color: '#ef5350',
                         fillArea: true,
-                        valueFormatter: (value: number | null, context: { dataIndex: number }) => {
-                            if (value === null || value === 0) return null;
+                        valueFormatter: (_val: number | null, context: { dataIndex: number }) => {
+                            const originalValue = categories[context.dataIndex]?.value || 0;
+                            if (originalValue === 0) return null;
                             const factorLabel = metrics[context.dataIndex] || '';
-                            return `${factorLabel}: ${value}`;
+                            return `${factorLabel}: ${originalValue}`;
                         }
                     }
                 ]}
