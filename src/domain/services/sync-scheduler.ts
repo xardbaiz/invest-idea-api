@@ -73,6 +73,13 @@ export class SyncScheduler {
                 }
 
                 const target = existing ?? idea;
+
+                // Ignore speculative option ideas
+                if (target.companyName.includes("CALL OPTION") || target.companyName.includes("PUT OPTION") || target.ticker.startsWith("+")) {
+                    console.log("Skipping speculative option idea", idea.id);
+                    continue;
+                }
+
                 const ideaText = `${target.title}\n${target.description}`;
 
                 if (!target.summary) {
