@@ -228,10 +228,9 @@ function renderRiskReturnChart(data: any, animationProgress: number) {
                         color: '#4caf50',
                         fillArea: true,
                         valueFormatter: (_val: number | null, context: { dataIndex: number }) => {
-                            const originalValue = categories[context.dataIndex]?.value || 0;
-                            if (originalValue === 0) return null;
-                            const factorLabel = metrics[context.dataIndex] || '';
-                            return `${factorLabel}: ${originalValue}`;
+                            const cat = categories[context.dataIndex];
+                            if (!cat || cat.series !== 'return' || !cat.value) return null;
+                            return `${cat.label}: ${cat.value}`;
                         }
                     },
                     {
@@ -240,10 +239,9 @@ function renderRiskReturnChart(data: any, animationProgress: number) {
                         color: '#ef5350',
                         fillArea: true,
                         valueFormatter: (_val: number | null, context: { dataIndex: number }) => {
-                            const originalValue = categories[context.dataIndex]?.value || 0;
-                            if (originalValue === 0) return null;
-                            const factorLabel = metrics[context.dataIndex] || '';
-                            return `${factorLabel}: ${originalValue}`;
+                            const cat = categories[context.dataIndex];
+                            if (!cat || cat.series !== 'risk' || !cat.value) return null;
+                            return `${cat.label}: ${cat.value}`;
                         }
                     }
                 ]}
