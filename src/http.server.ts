@@ -10,7 +10,8 @@ import {createAiService} from "./domain/services/ai.service.js";
 import {ApiService} from "./domain/services/api.service.js";
 import 'dotenv/config';
 
-if (process.env.HTTP_SERVER_ENABLED === 'true') {
+const isHttpServerEnabled = process.env.HTTP_SERVER_ENABLED !== 'false';
+if (isHttpServerEnabled) {
     const repo = createRepository();
     const vectorStore = createVectorStoreService();
     const aiService = createAiService();
