@@ -193,14 +193,31 @@ function renderRiskReturnChart(data: any) {
                     {
                         label: 'Return',
                         data: returnData,
-                        color: '#4caf50'
+                        color: '#4caf50',
+                        fillArea: true,
+                        valueFormatter: (value: number | null, context: { dataIndex: number }) => {
+                            if (value === null || value === 0) return null;
+                            const factorLabel = metrics[context.dataIndex] || '';
+                            return `${factorLabel}: ${value}`;
+                        }
                     },
                     {
                         label: 'Risk',
                         data: riskData,
-                        color: '#ef5350'
+                        color: '#ef5350',
+                        fillArea: true,
+                        valueFormatter: (value: number | null, context: { dataIndex: number }) => {
+                            if (value === null || value === 0) return null;
+                            const factorLabel = metrics[context.dataIndex] || '';
+                            return `${factorLabel}: ${value}`;
+                        }
                     }
                 ]}
+                sx={{
+                    '& .MuiRadarChart-seriesArea': {
+                        fillOpacity: 0.45
+                    }
+                }}
             />
         </Box>
     );
