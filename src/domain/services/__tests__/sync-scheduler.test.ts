@@ -1,5 +1,5 @@
 import {SyncScheduler} from "../sync-scheduler.js";
-import {OpenAiService} from "../ai.service.js";
+import {AiService} from "../ai.service.js";
 import {InvestmentProvider} from "../investment-provider.js";
 import {Repository} from "../../../outbound/persistence/repository.js";
 import {VectorStoreService} from "../../../outbound/vector/qdrant.service.js";
@@ -7,11 +7,15 @@ import {jest} from "@jest/globals";
 import {InvestmentIdea} from "../../models.js";
 import {ProviderRegistry} from "../provider.registry.js";
 
+// Read the prefix at run time so the test does not depend on how the module was first evaluated.
+const embeddingSourcePrefix = process.env.EMBEDDING_SOURCE_PREFIX ?? '';
+const embedded = (text: string) => embeddingSourcePrefix + text;
+
 describe("SyncScheduler Integration Tests", () => {
     let syncScheduler: SyncScheduler;
     let mockRepo: jest.Mocked<Repository>;
     let mockVectorStore: jest.Mocked<VectorStoreService>;
-    let aiService: OpenAiService;
+    let mockAiService: jest.Mocked<AiService>;
     let mockProvider: jest.Mocked<InvestmentProvider>;
     let mockProviderRegistry: jest.Mocked<ProviderRegistry>;
 
@@ -30,18 +34,10 @@ describe("SyncScheduler Integration Tests", () => {
             searchSimilar: jest.fn(),
         } as unknown as jest.Mocked<VectorStoreService>;
 
-        aiService = new OpenAiService("test-key", "https://api.openai.com/v1");
-        // @ts-ignore
-        aiService.openai = {
-            embeddings: {
-                create: jest.fn(),
-            },
-            chat: {
-                completions: {
-                    create: jest.fn(),
-                },
-            },
-        };
+        mockAiService = {
+            generateEmbedding: jest.fn(),
+            generateSummary: jest.fn(),
+        } as unknown as jest.Mocked<AiService>;
 
         mockProvider = {
             name: "tradernet",
@@ -57,7 +53,7 @@ describe("SyncScheduler Integration Tests", () => {
         } as unknown as jest.Mocked<ProviderRegistry>;
 
         mockProviderRegistry.getProviders.mockReturnValue([mockProvider]);
-        syncScheduler = new SyncScheduler(mockRepo, mockVectorStore, aiService, mockProviderRegistry);
+        syncScheduler = new SyncScheduler(mockRepo, mockVectorStore, mockAiService, mockProviderRegistry);
     });
 
     afterEach(() => {
@@ -82,14 +78,8 @@ describe("SyncScheduler Integration Tests", () => {
         mockProvider.getDetails.mockResolvedValue("Some details");
         mockVectorStore.hasEmbedding.mockResolvedValue(false);
 
-        // @ts-ignore
-        aiService.openai.chat.completions.create.mockResolvedValue({
-            choices: [{message: {content: "Sector: Tech\nBusiness: Apple\nIdea: Buy"}}]
-        });
-        // @ts-ignore
-        aiService.openai.embeddings.create.mockResolvedValue({
-            data: [{embedding: [0.1, 0.2]}]
-        });
+        mockAiService.generateSummary.mockResolvedValue("Sector: Tech\nBusiness: Apple\nIdea: Buy");
+        mockAiService.generateEmbedding.mockResolvedValue([0.1, 0.2]);
 
         // @ts-ignore
         const processed = await syncScheduler.syncAndEmbed(1);
@@ -134,8 +124,7 @@ describe("SyncScheduler Integration Tests", () => {
         const processed = await syncScheduler.syncAndEmbed(1);
 
         expect(processed).toBe(1);
-        // @ts-ignore
-        expect(aiService.openai.embeddings.create).not.toHaveBeenCalled();
+        expect(mockAiService.generateEmbedding).not.toHaveBeenCalled();
         expect(mockVectorStore.saveEmbedding).toHaveBeenCalledWith("tradernet_123", "Sector: Tech\nBusiness: Apple\nIdea: Buy", "2023-01-01");
     });
 
@@ -162,10 +151,8 @@ describe("SyncScheduler Integration Tests", () => {
 
         expect(processed).toBe(1);
         expect(mockRepo.upsert).not.toHaveBeenCalled();
-        // @ts-ignore
-        expect(aiService.openai.chat.completions.create).not.toHaveBeenCalled();
-        // @ts-ignore
-        expect(aiService.openai.embeddings.create).not.toHaveBeenCalled();
+        expect(mockAiService.generateSummary).not.toHaveBeenCalled();
+        expect(mockAiService.generateEmbedding).not.toHaveBeenCalled();
         expect(mockVectorStore.saveEmbedding).not.toHaveBeenCalled();
     });
 });
