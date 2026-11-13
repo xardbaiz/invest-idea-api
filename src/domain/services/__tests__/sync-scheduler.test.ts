@@ -1,16 +1,20 @@
 import {SyncScheduler} from "../sync-scheduler.js";
-import {GenkitAiService} from "../ai.service.js";
+import {AiService} from "../ai.service.js";
 import {TradernetClient} from "../../../outbound/clients/tradernet.js";
 import {Repository} from "../../../outbound/persistence/repository.js";
 import {VectorStoreService} from "../../../outbound/vector/qdrant.service.js";
 import {jest} from "@jest/globals";
 import {InvestmentIdea} from "../../models.js";
 
+// Read the prefix at run time so the test does not depend on how the module was first evaluated.
+const embeddingSourcePrefix = process.env.EMBEDDING_SOURCE_PREFIX ?? '';
+const embedded = (text: string) => embeddingSourcePrefix + text;
+
 describe("SyncScheduler Integration Tests", () => {
     let syncScheduler: SyncScheduler;
     let mockRepo: jest.Mocked<Repository>;
     let mockVectorStore: jest.Mocked<VectorStoreService>;
-    let mockAiService: jest.Mocked<GenkitAiService>;
+    let mockAiService: jest.Mocked<AiService>;
     let mockTradernetClient: jest.Mocked<TradernetClient>;
 
     beforeEach(() => {
@@ -31,7 +35,7 @@ describe("SyncScheduler Integration Tests", () => {
         mockAiService = {
             generateEmbedding: jest.fn(),
             generateSummary: jest.fn(),
-        } as unknown as jest.Mocked<GenkitAiService>;
+        } as unknown as jest.Mocked<AiService>;
 
         mockTradernetClient = {
             fetchIdeas: jest.fn(),
@@ -72,7 +76,7 @@ describe("SyncScheduler Integration Tests", () => {
         expect(processed).toBe(1);
         expect(idea.summary).toBe("Sector: Tech\nBusiness: Apple\nIdea: Buy");
         expect(mockRepo.upsert).toHaveBeenCalledWith(idea);
-        expect(mockAiService.generateEmbedding).toHaveBeenCalledWith("Sector: Tech\nBusiness: Apple\nIdea: Buy");
+        expect(mockAiService.generateEmbedding).toHaveBeenCalledWith(embedded("Sector: Tech\nBusiness: Apple\nIdea: Buy"));
         expect(mockVectorStore.saveEmbedding).toHaveBeenCalledWith("tradernet_123", "Sector: Tech\nBusiness: Apple\nIdea: Buy", [0.1, 0.2], "2023-01-01");
     });
 

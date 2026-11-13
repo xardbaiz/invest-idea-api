@@ -1,12 +1,9 @@
-import { genkit, Genkit } from 'genkit';
-import { googleAI, textEmbedding004, gemini15Flash } from '@genkit-ai/googleai';
-import { openAI, textEmbedding3Small, gpt4oMini } from 'genkitx-openai';
+import OpenAI from 'openai';
 import 'dotenv/config';
-import { EMBEDDING_DIMENSION } from "../constants.js";
-import { ChatMessage } from "../models.js";
+import {EMBEDDING_DIMENSION} from "../constants.js";
+import {ChatMessage} from "../models.js";
 
 const systemRole = 'system';
-const assistantRole = 'assistant';
 const userRole = 'user';
 
 export interface TopicSuggestion {
@@ -15,100 +12,77 @@ export interface TopicSuggestion {
     count: number;
 }
 
-export class GenkitAiService {
-    private readonly ai: Genkit;
-    private readonly embeddingModelName: string;
-    private readonly llmModelName: string;
+export interface AiService {
+    generateEmbedding(text: string, model?: string): Promise<number[]>;
 
-    constructor(ai: Genkit, embeddingModelName: string, llmModelName: string) {
-        this.ai = ai;
-        this.embeddingModelName = embeddingModelName;
-        this.llmModelName = llmModelName;
+    generateSummary(messages: ChatMessage[], input: string): Promise<string>;
+}
+
+/**
+ * Talks to any OpenAI-compatible endpoint. Provider routing (Gemini, local models, aggregators, ...)
+ * is a concern of whatever sits behind OPENAI_API_URL, so this service never branches on a provider name.
+ */
+export class OpenAiCompatibleAiService implements AiService {
+    private readonly client: OpenAI;
+    private readonly llmModel: string;
+    private readonly embeddingModel: string;
+    private readonly embeddingDimensions?: number;
+
+    constructor(
+        apiKey: string,
+        baseURL: string,
+        llmModel: string,
+        embeddingModel?: string,
+        embeddingDimensions?: number,
+    ) {
+        this.client = new OpenAI({apiKey, baseURL});
+        this.llmModel = llmModel;
+        this.embeddingModel = embeddingModel ?? process.env.OPENAI_EMBEDDING_MODEL ?? llmModel;
+        this.embeddingDimensions = embeddingDimensions;
     }
 
-    async generateEmbedding(text: string): Promise<number[]> {
-        const result = await this.ai.embed({
-            embedder: this.embeddingModelName,
-            content: text,
-            options: {
-                dimensions: EMBEDDING_DIMENSION,
-            },
+    async generateEmbedding(text: string, model?: string): Promise<number[]> {
+        const response = await this.client.embeddings.create({
+            model: model ?? this.embeddingModel,
+            input: text,
+            // Only send `dimensions` when explicitly configured: many OpenAI-compatible
+            // routers reject unknown request fields.
+            ...(this.embeddingDimensions ? {dimensions: this.embeddingDimensions} : {}),
+            encoding_format: "float",
         });
-        if (Array.isArray(result) && result.length > 0 && Array.isArray(result[0].embedding)) {
-            return result[0].embedding;
-        }
-        return (result as any)?.embedding ?? [];
+        return response.data[0].embedding;
     }
 
     async generateSummary(messages: ChatMessage[], input: string): Promise<string> {
-        const systemMessage = messages.find(m => m.role === systemRole);
-        const conversationMessages = messages.filter(m => m.role !== systemRole);
-
-        const promptMessages: Array<{ role: 'user' | 'model'; content: Array<{ text: string }> }> = [
-            ...conversationMessages.map(m => ({
-                role: (m.role === assistantRole ? 'model' : userRole) as 'user' | 'model',
-                content: [{ text: m.content }],
-            })),
-            {
-                role: 'user' as const,
-                content: [{ text: input }],
-            },
+        const openAiMessages = [
+            ...messages
+                .filter(m => m.role !== systemRole || m.content)
+                .map(m => ({role: m.role, content: m.content})),
+            {role: `${userRole}` as const, content: input},
         ];
 
-        const response = await this.ai.generate({
-            model: this.llmModelName,
-            system: systemMessage?.content,
-            messages: promptMessages,
-            config: {
-                temperature: 0.3,
-            },
+        const response = await this.client.chat.completions.create({
+            model: this.llmModel,
+            temperature: 0.3,
+            messages: openAiMessages,
         });
-
-        return response.text?.trim() ?? '';
-    }
-
-    static createAiService(): GenkitAiService {
-        return createAiService();
+        return response?.choices?.[0]?.message?.content?.trim() ?? '';
     }
 }
 
-function normalizeModelName(modelEnv?: string, defaultModel?: string): { provider?: string; model: string } {
-    const raw = modelEnv ?? defaultModel ?? '';
-    if (!raw) return { model: '' };
-
-    if (raw.startsWith('gemini/')) {
-        return { provider: 'gemini', model: raw.replace(/^gemini\//, 'googleai/') };
+export function createAiService(): AiService {
+    const model = process.env.OPENAI_MODEL;
+    if (!model) {
+        throw new Error("OPENAI_MODEL environment variable is required");
     }
-    if (raw.startsWith('openai/')) {
-        return { provider: 'openai', model: raw };
+
+    const apiKey = process.env.OPENAI_API_KEY ?? '';
+    const baseURL = process.env.OPENAI_API_URL ?? process.env.OPENAI_BASE_URL;
+    if (!baseURL) {
+        throw new Error("OPENAI_API_URL environment variable is required");
     }
-    return { model: raw };
-}
 
-export function createAiService(): GenkitAiService {
-    const llmEnv = process.env.LLM_MODEL;
-    const embEnv = process.env.EMBEDDING_MODEL;
+    const embeddingDimensions = process.env.EMBEDDING_DIMENSION ? EMBEDDING_DIMENSION : undefined;
 
-    const normLlm = normalizeModelName(llmEnv);
-    const normEmb = normalizeModelName(embEnv);
-
-    const detectedProvider = normLlm.provider ?? normEmb.provider;
-    const provider = (detectedProvider ?? process.env.AI_PROVIDER ?? (process.env.GEMINI_API_KEY ? 'gemini' : 'openai')).toLowerCase();
-
-    const isGemini = provider === 'gemini';
-
-    const plugins = isGemini
-        ? [googleAI({ apiKey: process.env.GEMINI_API_KEY ?? '' })]
-        : [openAI({
-            apiKey: process.env.OPENAI_API_KEY ?? process.env.LMSTUDIO_API_KEY ?? 'lmstudio',
-            baseURL: process.env.OPENAI_BASE_URL ?? process.env.LMSTUDIO_BASE_URL ?? 'http://127.0.0.1:1234/v1',
-        })];
-
-    const defaultEmbedding = isGemini ? textEmbedding004.name : textEmbedding3Small.name;
-    const defaultLlm = isGemini ? gemini15Flash.name : gpt4oMini.name;
-
-    const embeddingModel = normEmb.model || (isGemini ? process.env.GEMINI_EMBEDDING_MODEL : undefined) || defaultEmbedding;
-    const llmModel = normLlm.model || (isGemini ? process.env.GEMINI_LLM_MODEL : undefined) || defaultLlm;
-
-    return new GenkitAiService(genkit({ plugins }), embeddingModel, llmModel);
+    return new OpenAiCompatibleAiService(apiKey, baseURL, model, undefined, embeddingDimensions);
 }
