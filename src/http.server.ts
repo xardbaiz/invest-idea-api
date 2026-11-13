@@ -1,26 +1,27 @@
 import express, {Express} from 'express';
 import path from 'node:path';
+import fs from 'node:fs';
 import {getMcpServer} from "./mcp.factory.js";
+import {getLanguageFromHeader} from "./views/ui/i18n/i18n.js";
 import {NodeStreamableHTTPServerTransport} from "@modelcontextprotocol/node";
 import {createRepository} from "./outbound/persistence/repository.factory.js";
 import {createVectorStoreService} from "./outbound/vector/vector-store.factory.js";
 import {createAiService} from "./domain/services/ai.service.js";
 import {ApiService} from "./domain/services/api.service.js";
-import {ProviderUrlService} from "./domain/services/provider-url.service.js";
 import 'dotenv/config';
 
-if (process.env.HTTP_SERVER_ENABLED === 'true') {
+const isHttpServerEnabled = process.env.HTTP_SERVER_ENABLED !== 'false';
+if (isHttpServerEnabled) {
     const repo = createRepository();
     const vectorStore = createVectorStoreService();
     const aiService = createAiService();
     const apiService = new ApiService(repo, aiService, vectorStore);
-    const providerUrlService = new ProviderUrlService();
 
     const app: Express = express();
     app.disable('x-powered-by');
 
-    // Static assets from Vite build
-    app.use(express.static(path.join(process.cwd(), 'dist', 'public')));
+    // Static assets from Vite build (do not automatically serve static index.html for root)
+    app.use(express.static(path.join(process.cwd(), 'dist', 'public'), { index: false }));
 
     // GET /api/logo/:ticker
     app.get(['/api/logo/:ticker', '/api/logos/:ticker'], (req: any, res: any) => {
@@ -33,6 +34,58 @@ if (process.env.HTTP_SERVER_ENABLED === 'true') {
             res.json({url: logoUrl});
         } catch (e: any) {
             console.error('GET /api/logo/:ticker error:', e);
+            res.status(500).send(`Error: ${e.message}`);
+        }
+    });
+
+    // GET /api/ideas/:id/digest
+    app.get(['/api/ideas/:id/digest', '/api/ideas/digest/:id'], async (req: any, res: any) => {
+        const {id} = req.params;
+        if (!id) {
+            return res.status(400).send('Missing idea id parameter');
+        }
+        const langParam = typeof req.query.lang === 'string' ? req.query.lang : undefined;
+        const acceptLang = langParam || req.headers['accept-language'];
+        const lang = getLanguageFromHeader(acceptLang);
+
+        try {
+            const digest = await apiService.getIdeaDigest(id, lang);
+            if (!digest) {
+                return res.status(404).send('Idea not found');
+            }
+            res.json({ digest });
+        } catch (e: any) {
+            console.error('GET /api/ideas/:id/digest error:', e);
+            res.status(500).send(`Error: ${e.message}`);
+        }
+    });
+
+    // GET /api/:ticker/risk-return
+    app.get(['/api/:ticker/risk-return', '/api/risk-return/:ticker'], async (req: any, res: any) => {
+        const {ticker} = req.params;
+        if (!ticker) {
+            return res.status(400).send('Missing ticker parameter');
+        }
+        try {
+            const data = await apiService.getRiskReturnInfo(ticker);
+            res.json(data);
+        } catch (e: any) {
+            console.error('GET /api/:ticker/risk-return error:', e);
+            res.status(500).send(`Error: ${e.message}`);
+        }
+    });
+
+    // GET /api/:ticker/recommendations
+    app.get(['/api/:ticker/recommendations', '/api/recommendations/:ticker'], async (req: any, res: any) => {
+        const {ticker} = req.params;
+        if (!ticker) {
+            return res.status(400).send('Missing ticker parameter');
+        }
+        try {
+            const data = await apiService.getRecommendations(ticker);
+            res.json(data);
+        } catch (e: any) {
+            console.error('GET /api/:ticker/recommendations error:', e);
             res.status(500).send(`Error: ${e.message}`);
         }
     });
@@ -93,9 +146,20 @@ if (process.env.HTTP_SERVER_ENABLED === 'true') {
         }
     });
 
-    // HTML WebUI pages served via client index.html
+    // HTML WebUI pages served via client index.html with language detection
     app.get(['/', '/ideas'], (req: any, res: any) => {
-        res.sendFile(path.join(process.cwd(), 'dist', 'public', 'index.html'));
+        const langParam = typeof req.query.lang === 'string' ? req.query.lang : undefined;
+        const acceptLang = langParam || req.headers['accept-language'];
+        const lang = getLanguageFromHeader(acceptLang);
+
+        const indexPath = path.join(process.cwd(), 'dist', 'public', 'index.html');
+        if (fs.existsSync(indexPath)) {
+            let html = fs.readFileSync(indexPath, 'utf8');
+            html = html.replace(/lang="[a-zA-Z-]+"/, `lang="${lang}"`);
+            res.setHeader('Content-Type', 'text/html; charset=utf-8');
+            return res.send(html);
+        }
+        res.sendFile(indexPath);
     });
 
     async function getCompanyIdeasWithQuotes(company: string) {
@@ -107,13 +171,15 @@ if (process.env.HTTP_SERVER_ENABLED === 'true') {
             const q = idea.ticker ? quoteMap.get(idea.ticker) : undefined;
             const currentPrice = q?.bap || q?.bbp || q?.ClosePrice || q?.ltp || null;
             return {
+                id: idea.id,
                 idea,
                 ticker: idea.ticker,
                 companyName: idea.companyName,
                 summary: idea.summary || idea.description,
+                digest: idea.digest,
                 targetPrice: idea.targetPrice,
                 currentPrice,
-                url: providerUrlService.getIdeaUrl(idea.provider, idea.id),
+                url: apiService.getIdeaUrl(idea.provider, idea.id),
                 logoUrl: idea.ticker ? apiService.getLogoByTicker(idea.ticker) : null,
                 publishDate: idea.publishDate,
                 similarity: null,
@@ -131,12 +197,14 @@ if (process.env.HTTP_SERVER_ENABLED === 'true') {
             const currentPrice = q?.bap || q?.bbp || q?.ClosePrice || q?.ltp || null;
             return {
                 ...r,
+                id: r.idea.id,
                 ticker: r.idea.ticker,
                 companyName: r.idea.companyName,
                 summary: r.idea.summary || r.idea.description,
+                digest: r.idea.digest,
                 targetPrice: r.idea.targetPrice,
                 currentPrice,
-                url: providerUrlService.getIdeaUrl(r.idea.provider, r.idea.id),
+                url: apiService.getIdeaUrl(r.idea.provider, r.idea.id),
                 logoUrl: r.idea.ticker ? apiService.getLogoByTicker(r.idea.ticker) : null,
                 publishDate: r.idea.publishDate,
                 similarity: typeof r.distance === 'number' ? (1 - r.distance) : null,
@@ -145,21 +213,16 @@ if (process.env.HTTP_SERVER_ENABLED === 'true') {
     }
 
     if (process.env.MCP_SERVER_HTTP_TRANSPORT_ENABLED === 'true') {
-        const mcpServer = getMcpServer();
+        const mcpServer = getMcpServer(apiService);
         const transport: NodeStreamableHTTPServerTransport = new NodeStreamableHTTPServerTransport({
             sessionIdGenerator: undefined,
         });
         await mcpServer.connect(transport);
         console.log(`MCP Stateless Streamable HTTP Server initialized`);
 
-        app.post('/mcp', async (req: any, res: any) => {
+        app.all('/mcp', async (req: any, res: any) => {
             try {
                 await transport.handleRequest(req, res, req.body);
-                res.on('close', () => {
-                    console.log('Request closed');
-                    transport.close();
-                    mcpServer.close();
-                });
             } catch (error) {
                 console.error('Error handling MCP request:', error);
                 if (!res.headersSent) {
@@ -173,20 +236,6 @@ if (process.env.HTTP_SERVER_ENABLED === 'true') {
                     });
                 }
             }
-        });
-
-        app.get('/mcp', async (req: any, res: any) => {
-            console.log('Received GET MCP request');
-            res.writeHead(405).end(
-                JSON.stringify({
-                    jsonrpc: '2.0',
-                    error: {
-                        code: -32_000,
-                        message: 'App is healthy, but method not allowed.'
-                    },
-                    id: null
-                })
-            );
         });
     }
 

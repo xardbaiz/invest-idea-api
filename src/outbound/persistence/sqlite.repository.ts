@@ -29,21 +29,35 @@ export class SqlLiteIdeaRepository implements Repository {
         } catch {
             // Column already exists
         }
+        try {
+            this.db.exec(`ALTER TABLE ideas ADD COLUMN digest TEXT`);
+        } catch {
+            // Column already exists
+        }
     }
 
     async upsert(idea: InvestmentIdea) {
+        const digestJson = idea.digest ? JSON.stringify(idea.digest) : null;
         this.db.prepare(`
-            INSERT INTO ideas (id, provider, ticker, company_name, title, target_price, currency, description, summary,
+            INSERT INTO ideas (id, provider, ticker, company_name, title, target_price, currency, description, summary, digest,
                                publish_date)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(id) DO UPDATE SET description  = excluded.description,
                                           target_price = excluded.target_price,
-                                          summary      = excluded.summary
+                                          summary      = excluded.summary,
+                                          digest       = excluded.digest
         `).run(
             idea.id, idea.provider, idea.ticker, idea.companyName,
             idea.title, idea.targetPrice, idea.currency,
-            idea.description, idea.summary ?? null, idea.publishDate
+            idea.description, idea.summary ?? null, digestJson, idea.publishDate
         );
+    }
+
+    async updateDigest(id: string, digest: Record<string, string>): Promise<void> {
+        const digestJson = JSON.stringify(digest);
+        this.db.prepare(`
+            UPDATE ideas SET digest = ? WHERE id = ?
+        `).run(digestJson, id);
     }
 
     async findById(id: string): Promise<InvestmentIdea | undefined> {
@@ -113,6 +127,14 @@ export class SqlLiteIdeaRepository implements Repository {
     }
 
     private toIdea(row: any): InvestmentIdea {
+        let digest: Record<string, string> | undefined = undefined;
+        if (row.digest) {
+            try {
+                digest = typeof row.digest === 'string' ? JSON.parse(row.digest) : row.digest;
+            } catch {
+                digest = undefined;
+            }
+        }
         return {
             id: row.id,
             provider: row.provider,
@@ -121,6 +143,7 @@ export class SqlLiteIdeaRepository implements Repository {
             title: row.title,
             description: row.description,
             summary: row.summary ?? undefined,
+            digest,
             targetPrice: row.target_price,
             currency: row.currency,
             publishDate: row.publish_date,

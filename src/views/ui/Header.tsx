@@ -1,5 +1,6 @@
 import React from 'react';
-import {getTranslations, Language} from './i18n/i18n.js';
+import { Box, Typography } from '@mui/material';
+import { getTranslations, Language } from './i18n/i18n.js';
 
 interface HeaderProps {
     lang?: Language;
@@ -8,23 +9,28 @@ interface HeaderProps {
 export function Header({ lang = 'en' }: HeaderProps) {
     const t = getTranslations(lang);
     return (
-        <div style={{ textAlign: 'center', margin: '24px 0 32px 0' }}>
-            <h1 style={{
-                fontSize: '2rem',
-                fontWeight: 500,
-                margin: '0 0 8px 0',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                color: '#ffffff'
-            }}>
-                <span className="material-icons" style={{ fontSize: '36px', color: '#1976d2' }}>lightbulb</span>
+        <Box sx={{ textAlign: 'center', my: { xs: 3, md: 4 } }}>
+            <Typography
+                variant="h1"
+                sx={{
+                    fontSize: { xs: '1.75rem', sm: '2rem' },
+                    fontWeight: 500,
+                    mb: 1,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 1,
+                    color: '#ffffff'
+                }}
+            >
+                <Box component="span" className="material-icons" sx={{ fontSize: '36px', color: '#1976d2' }}>
+                    lightbulb
+                </Box>
                 {t.ideasPageTitle}
-            </h1>
-            <p style={{margin: 0, color: '#cfcfcf', fontSize: '1rem'}}>
+            </Typography>
+            <Typography variant="body1" sx={{ color: '#cfcfcf', fontSize: '1rem' }}>
                 {t.ideasPageSubtitle}
-            </p>
-        </div>
+            </Typography>
+        </Box>
     );
 }

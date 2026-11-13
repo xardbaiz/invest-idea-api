@@ -22,10 +22,20 @@ export class SupabaseIdeaRepository implements Repository {
             currency: idea.currency,
             description: idea.description,
             summary: idea.summary,
+            digest: idea.digest ?? null,
             publish_date: idea.publishDate,
         }, {onConflict: 'id'});
 
         if (error) throw new Error(`Supabase upsert of idea ${idea.id} failed: ${error.message}`);
+    }
+
+    async updateDigest(id: string, digest: Record<string, string>): Promise<void> {
+        const {error} = await this.client
+            .from(IDEAS_TABLE)
+            .update({ digest })
+            .eq('id', id);
+
+        if (error) throw new Error(`Supabase updateDigest of idea ${id} failed: ${error.message}`);
     }
 
     async findById(id: string): Promise<InvestmentIdea | undefined> {
@@ -104,6 +114,10 @@ export class SupabaseIdeaRepository implements Repository {
     }
 
     private toIdea(row: any): InvestmentIdea {
+        let digest: Record<string, string> | undefined = undefined;
+        if (row.digest) {
+            digest = typeof row.digest === 'string' ? JSON.parse(row.digest) : row.digest;
+        }
         return {
             id: row.id,
             provider: row.provider,
@@ -112,6 +126,7 @@ export class SupabaseIdeaRepository implements Repository {
             title: row.title,
             description: row.description,
             summary: row.summary ?? undefined,
+            digest,
             targetPrice: row.target_price,
             currency: row.currency,
             publishDate: row.publish_date,

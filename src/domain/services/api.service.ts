@@ -2,19 +2,27 @@ import {AiService} from "./ai.service.js";
 import {CompanyInfo, Repository} from "../../outbound/persistence/repository.js";
 import {VectorStoreService} from "../../outbound/vector/qdrant.service.js";
 import {InvestmentIdea, QuoteDetails, SearchResult} from "../models.js";
-import {TradernetClient} from "../../outbound/clients/tradernet.js";
+import {createDefaultProviderRegistry, ProviderRegistry} from "./provider.registry.js";
 
 export class ApiService {
     constructor(
         private readonly repo: Repository,
         private readonly aiService: AiService,
         private readonly vectorStore: VectorStoreService,
-        private readonly tradernetClient: TradernetClient = new TradernetClient(),
+        private readonly providerRegistry: ProviderRegistry = createDefaultProviderRegistry(),
     ) {
     }
 
-    getLogoByTicker(ticker: string): string {
-        return this.tradernetClient.getLogoByTicker(ticker);
+    getIdeaUrl(providerName?: string, ideaId?: string): string {
+        return this.providerRegistry.getIdeaUrl(providerName, ideaId);
+    }
+
+    getLogoByTicker(ticker: string, providerName: string = 'tradernet'): string {
+        const provider = this.providerRegistry.getProvider(providerName);
+        if (!provider) {
+            return '';
+        }
+        return provider.getLogoByTicker(ticker);
     }
 
     async searchCompanies(query: string): Promise<CompanyInfo[]> {
@@ -67,7 +75,77 @@ export class ApiService {
         });
     }
 
-    async getQuoteDetails(tickers: string[]): Promise<QuoteDetails[]> {
-        return this.tradernetClient.getQuoteDetails(tickers);
+    async getQuoteDetails(tickers: string[], providerName: string = 'tradernet'): Promise<QuoteDetails[]> {
+        const provider = this.providerRegistry.getProvider(providerName);
+        if (!provider) {
+            return [];
+        }
+        return provider.getQuoteDetails(tickers);
+    }
+
+    async getRiskReturnInfo(ticker: string, providerName: string = 'tradernet'): Promise<any> {
+        const provider = this.providerRegistry.getProvider(providerName);
+        if (!provider || !provider.getPraamsStockInfoByTicker) {
+            return { risk: { scores: {}, factors: [] }, return: { scores: {}, factors: [] } };
+        }
+        return provider.getPraamsStockInfoByTicker(ticker);
+    }
+
+    async getRecommendations(ticker: string, providerName: string = 'tradernet'): Promise<any> {
+        const provider = this.providerRegistry.getProvider(providerName);
+        if (!provider || !provider.getQuoteCardInfo) {
+            return {};
+        }
+        return provider.getQuoteCardInfo(ticker);
+    }
+
+    async getIdeaDigest(ideaId: string, lang: string = 'en'): Promise<string | undefined> {
+        const idea = await this.repo.findById(ideaId);
+        if (!idea) {
+            return undefined;
+        }
+
+        if (idea.digest && idea.digest[lang]) {
+            return idea.digest[lang];
+        }
+
+        const webhookUrl = 'https://n8n.app.xardbaiz.im/webhook/BuIOXzq5LNfrt8sP/api/ideas/digests';
+        const response = await fetch(webhookUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                lang,
+                title: idea.title,
+                description: idea.description,
+            }),
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to fetch digest from webhook: status ${response.status}`);
+        }
+
+        const text = await response.text();
+        let digestMarkdown = text;
+        try {
+            const parsed = JSON.parse(text);
+            if (typeof parsed === 'string') {
+                digestMarkdown = parsed;
+            } else if (parsed && typeof parsed.digest === 'string') {
+                digestMarkdown = parsed.digest;
+            } else if (parsed && typeof parsed.text === 'string') {
+                digestMarkdown = parsed.text;
+            } else if (parsed && typeof parsed.message === 'string') {
+                digestMarkdown = parsed.message;
+            }
+        } catch {
+            // Text is raw markdown
+        }
+
+        const updatedDigest = { ...(idea.digest || {}), [lang]: digestMarkdown };
+        await this.repo.updateDigest(ideaId, updatedDigest);
+
+        return digestMarkdown;
     }
 }

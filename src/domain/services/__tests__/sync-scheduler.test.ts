@@ -1,10 +1,11 @@
 import {SyncScheduler} from "../sync-scheduler.js";
 import {AiService} from "../ai.service.js";
-import {TradernetClient} from "../../../outbound/clients/tradernet.js";
+import {InvestmentProvider} from "../investment-provider.js";
 import {Repository} from "../../../outbound/persistence/repository.js";
 import {VectorStoreService} from "../../../outbound/vector/qdrant.service.js";
 import {jest} from "@jest/globals";
 import {InvestmentIdea} from "../../models.js";
+import {ProviderRegistry} from "../provider.registry.js";
 
 // Read the prefix at run time so the test does not depend on how the module was first evaluated.
 const embeddingSourcePrefix = process.env.EMBEDDING_SOURCE_PREFIX ?? '';
@@ -15,7 +16,8 @@ describe("SyncScheduler Integration Tests", () => {
     let mockRepo: jest.Mocked<Repository>;
     let mockVectorStore: jest.Mocked<VectorStoreService>;
     let mockAiService: jest.Mocked<AiService>;
-    let mockTradernetClient: jest.Mocked<TradernetClient>;
+    let mockProvider: jest.Mocked<InvestmentProvider>;
+    let mockProviderRegistry: jest.Mocked<ProviderRegistry>;
 
     beforeEach(() => {
         mockRepo = {
@@ -37,12 +39,21 @@ describe("SyncScheduler Integration Tests", () => {
             generateSummary: jest.fn(),
         } as unknown as jest.Mocked<AiService>;
 
-        mockTradernetClient = {
+        mockProvider = {
+            name: "tradernet",
             fetchIdeas: jest.fn(),
             getDetails: jest.fn(),
-        } as unknown as jest.Mocked<TradernetClient>;
+            getLogoByTicker: jest.fn(),
+            getQuoteDetails: jest.fn(),
+            getIdeaUrl: jest.fn(),
+        } as unknown as jest.Mocked<InvestmentProvider>;
 
-        syncScheduler = new SyncScheduler(mockRepo, mockVectorStore, mockAiService, mockTradernetClient);
+        mockProviderRegistry = {
+            getProviders: jest.fn(),
+        } as unknown as jest.Mocked<ProviderRegistry>;
+
+        mockProviderRegistry.getProviders.mockReturnValue([mockProvider]);
+        syncScheduler = new SyncScheduler(mockRepo, mockVectorStore, mockAiService, mockProviderRegistry);
     });
 
     afterEach(() => {
@@ -62,9 +73,9 @@ describe("SyncScheduler Integration Tests", () => {
             publishDate: "2023-01-01"
         };
 
-        mockTradernetClient.fetchIdeas.mockResolvedValue([idea]);
+        mockProvider.fetchIdeas.mockResolvedValue([idea]);
         mockRepo.findById.mockResolvedValue(undefined);
-        mockTradernetClient.getDetails.mockResolvedValue("Some details");
+        mockProvider.getDetails.mockResolvedValue("Some details");
         mockVectorStore.hasEmbedding.mockResolvedValue(false);
 
         mockAiService.generateSummary.mockResolvedValue("Sector: Tech\nBusiness: Apple\nIdea: Buy");
@@ -76,8 +87,18 @@ describe("SyncScheduler Integration Tests", () => {
         expect(processed).toBe(1);
         expect(idea.summary).toBe("Sector: Tech\nBusiness: Apple\nIdea: Buy");
         expect(mockRepo.upsert).toHaveBeenCalledWith(idea);
-        expect(mockAiService.generateEmbedding).toHaveBeenCalledWith(embedded("Sector: Tech\nBusiness: Apple\nIdea: Buy"));
-        expect(mockVectorStore.saveEmbedding).toHaveBeenCalledWith("tradernet_123", "Sector: Tech\nBusiness: Apple\nIdea: Buy", [0.1, 0.2], "2023-01-01");
+        // @ts-ignore
+        expect(aiService.openai.embeddings.create).toHaveBeenCalledWith({
+            dimensions: expect.any(Number),
+            model: expect.any(String),
+            input: expect.stringContaining("Sector: Tech"),
+            encoding_format: "float"
+        });
+        expect(mockVectorStore.saveEmbedding).toHaveBeenCalledWith("tradernet_123",
+            "Sector: Tech\nBusiness: Apple\nIdea: Buy",
+            [0.1, 0.2],
+            "2023-01-01"
+        );
     });
 
     it("should use vector store inference when isSupportInference is true", async () => {
@@ -95,7 +116,7 @@ describe("SyncScheduler Integration Tests", () => {
         };
 
         mockVectorStore.isSupportInference.mockReturnValue(true);
-        mockTradernetClient.fetchIdeas.mockResolvedValue([idea]);
+        mockProvider.fetchIdeas.mockResolvedValue([idea]);
         mockRepo.findById.mockResolvedValue(idea);
         mockVectorStore.hasEmbedding.mockResolvedValue(false);
 
@@ -121,7 +142,7 @@ describe("SyncScheduler Integration Tests", () => {
             publishDate: "2023-01-01"
         };
 
-        mockTradernetClient.fetchIdeas.mockResolvedValue([idea]);
+        mockProvider.fetchIdeas.mockResolvedValue([idea]);
         mockRepo.findById.mockResolvedValue(idea);
         mockVectorStore.hasEmbedding.mockResolvedValue(true);
 

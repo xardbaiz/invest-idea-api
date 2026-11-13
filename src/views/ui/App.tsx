@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { ThemeProvider, Box, Link } from '@mui/material';
 import { Header } from './Header.js';
-import { SearchForm, CompanyEntry } from './SearchForm.js';
+import { SearchForm, CompanyEntry, getDefaultFromDate, getDefaultToDate } from './SearchForm.js';
 import { IdeasTable } from './IdeasTable.js';
 import { IdeaItem } from './IdeaRow.js';
 import { Language, getTranslations } from './i18n/i18n.js';
+import { theme } from './theme.js';
 
 interface AppProps {
     query?: string;
@@ -26,9 +28,12 @@ export function App({
 }: AppProps) {
     const t = getTranslations(lang);
 
+    const defaultFrom = getDefaultFromDate();
+    const defaultTo = getDefaultToDate();
+
     const [query, setQuery] = useState(initialQuery);
-    const [from, setFrom] = useState(initialFrom);
-    const [to, setTo] = useState(initialTo);
+    const [from, setFrom] = useState(initialFrom || defaultFrom);
+    const [to, setTo] = useState(initialTo || defaultTo);
     const [limit, setLimit] = useState(initialLimit);
     const [ideas, setIdeas] = useState<IdeaItem[]>(initialIdeas);
     const [searched, setSearched] = useState(initialSearched);
@@ -54,13 +59,23 @@ export function App({
         }
     }, []);
 
+    useEffect(() => {
+        if (initialQuery && initialIdeas.length === 0) {
+            fetchIdeas({
+                query: initialQuery,
+                from: initialFrom || defaultFrom,
+                to: initialTo || defaultTo,
+                limit: initialLimit
+            });
+        }
+    }, [initialQuery, initialFrom, initialTo, initialLimit, initialIdeas.length, defaultFrom, defaultTo, fetchIdeas]);
+
     const handleSearch = (params: { query: string; from: string; to: string; limit: number }) => {
         setQuery(params.query);
         setFrom(params.from);
         setTo(params.to);
         setLimit(params.limit);
 
-        // Update URL query parameters seamlessly
         if (typeof window !== 'undefined' && window.history) {
             const url = new URL(window.location.href);
             url.searchParams.set('query', params.query);
@@ -103,32 +118,35 @@ export function App({
     };
 
     return (
-        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '32px 16px', fontFamily: 'Roboto, Arial, sans-serif' }}>
-            <div style={{ marginBottom: '16px' }}>
-                <a href="/" style={{ color: '#1976d2', textDecoration: 'none', fontWeight: 500, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                    <span className="material-icons" style={{ fontSize: '18px' }}>arrow_back</span>
-                    {t.navHome}
-                </a>
-            </div>
+        <ThemeProvider theme={theme}>
+            <Box sx={{ maxWidth: '1200px', margin: '0 auto', padding: '16px 8px', fontFamily: 'Roboto, Arial, sans-serif', boxSizing: 'border-box' }}>
+                <Box sx={{ marginBottom: '16px' }}>
+                    <Link href="/" underline="none" sx={{ color: '#1976d2', fontWeight: 500, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                        <Box component="span" className="material-icons" sx={{ fontSize: '18px' }}>arrow_back</Box>
+                        {t.navHome}
+                    </Link>
+                </Box>
 
-            <Header lang={lang} />
+                <Header lang={lang} />
 
-            <SearchForm
-                query={query}
-                from={from}
-                to={to}
-                limit={limit}
-                lang={lang}
-                onSearch={handleSearch}
-                onSelectCompany={handleSelectCompany}
-                loading={loading}
-            />
+                <SearchForm
+                    query={query}
+                    from={from}
+                    to={to}
+                    limit={limit}
+                    lang={lang}
+                    onSearch={handleSearch}
+                    onSelectCompany={handleSelectCompany}
+                    loading={loading}
+                />
 
-            <IdeasTable
-                ideas={ideas}
-                searched={searched}
-                lang={lang}
-            />
-        </div>
+                <IdeasTable
+                    ideas={ideas}
+                    searched={searched}
+                    loading={loading}
+                    lang={lang}
+                />
+            </Box>
+        </ThemeProvider>
     );
 }

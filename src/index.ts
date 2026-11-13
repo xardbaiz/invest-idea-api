@@ -28,6 +28,7 @@ if (process.env.MCP_SERVER_STDIO_TRANSPORT_ENABLED === 'true') {
     }
 }
 
-if (process.env.HTTP_SERVER_ENABLED === 'true') {
+const isHttpServerEnabled = process.env.HTTP_SERVER_ENABLED !== 'false';
+if (isHttpServerEnabled) {
     await import('./http.server.js');
 }

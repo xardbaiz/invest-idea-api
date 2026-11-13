@@ -19,6 +19,7 @@ describe("ApiService Integration Tests", () => {
             findTitlesByDateRange: jest.fn(),
             findUniqueCompanies: jest.fn(),
             findIdeasByCompany: jest.fn(),
+            updateDigest: jest.fn(),
         } as unknown as jest.Mocked<Repository>;
 
         mockVectorStore = {
@@ -138,5 +139,93 @@ describe("ApiService Integration Tests", () => {
         const ideas = await apiService.getIdeasByCompany("AAPL");
         expect(ideas).toEqual([mockIdea]);
         expect(mockRepo.findIdeasByCompany).toHaveBeenCalledWith("AAPL");
+    });
+
+    it("should delegate getRiskReturnInfo and getRecommendations to provider", async () => {
+        const mockGetPraams: any = jest.fn();
+        mockGetPraams.mockResolvedValue({ risk: { scores: { volatility: 5 }, factors: [] }, return: { scores: { dividends: 2 }, factors: [] } });
+        const mockGetQuoteCard: any = jest.fn();
+        mockGetQuoteCard.mockResolvedValue({ recommendations: { title: "Buy" } });
+
+        const mockProvider = {
+            name: 'tradernet',
+            getIdeaUrl: jest.fn(),
+            getLogoByTicker: jest.fn(),
+            fetchIdeas: jest.fn(),
+            getDetails: jest.fn(),
+            getQuoteDetails: jest.fn(),
+            getPraamsStockInfoByTicker: mockGetPraams,
+            getQuoteCardInfo: mockGetQuoteCard
+        };
+
+        const registry = {
+            getProvider: jest.fn().mockReturnValue(mockProvider),
+            getIdeaUrl: jest.fn()
+        } as any;
+
+        const customApiService = new ApiService(mockRepo, aiService, mockVectorStore, registry);
+
+        const riskReturn = await customApiService.getRiskReturnInfo("APP.US");
+        expect(mockProvider.getPraamsStockInfoByTicker).toHaveBeenCalledWith("APP.US");
+        expect(riskReturn).toEqual({ risk: { scores: { volatility: 5 }, factors: [] }, return: { scores: { dividends: 2 }, factors: [] } });
+
+        const recs = await customApiService.getRecommendations("APP.US");
+        expect(mockProvider.getQuoteCardInfo).toHaveBeenCalledWith("APP.US");
+        expect(recs).toEqual({ recommendations: { title: "Buy" } });
+    });
+
+    it("should return existing digest from DB if present for given language", async () => {
+        const idea: InvestmentIdea = {
+            id: "1", provider: "tradernet", ticker: "AAPL", companyName: "Apple Inc.",
+            title: "Title", description: "Desc", targetPrice: 200, currency: "USD", publishDate: "2023-01-01",
+            digest: { ru: "# Дайджест RU", en: "# Digest EN" }
+        };
+        mockRepo.findById.mockResolvedValue(idea);
+
+        const fetchSpy = jest.spyOn(global, "fetch");
+
+        const digestRu = await apiService.getIdeaDigest("1", "ru");
+        expect(digestRu).toBe("# Дайджест RU");
+        expect(fetchSpy).not.toHaveBeenCalled();
+
+        fetchSpy.mockRestore();
+    });
+
+    it("should fetch digest from webhook if not present in DB and save it to DB", async () => {
+        const idea: InvestmentIdea = {
+            id: "1", provider: "tradernet", ticker: "AAPL", companyName: "Apple Inc.",
+            title: "Title", description: "Desc", targetPrice: 200, currency: "USD", publishDate: "2023-01-01"
+        };
+        mockRepo.findById.mockResolvedValue(idea);
+
+        const mockResponse = {
+            ok: true,
+            text: (jest.fn() as any).mockResolvedValue("# Webhook Markdown Digest")
+        };
+        const fetchSpy = jest.spyOn(global, "fetch").mockResolvedValue(mockResponse as any);
+
+        const digest = await apiService.getIdeaDigest("1", "en");
+
+        expect(digest).toBe("# Webhook Markdown Digest");
+        expect(fetchSpy).toHaveBeenCalledWith(
+            "https://n8n.app.xardbaiz.im/webhook/BuIOXzq5LNfrt8sP/api/ideas/digests",
+            expect.objectContaining({
+                method: "POST",
+                body: JSON.stringify({
+                    lang: "en",
+                    title: "Title",
+                    description: "Desc"
+                })
+            })
+        );
+        expect(mockRepo.updateDigest).toHaveBeenCalledWith("1", { en: "# Webhook Markdown Digest" });
+
+        fetchSpy.mockRestore();
+    });
+
+    it("should return undefined if idea is not found when getting digest", async () => {
+        mockRepo.findById.mockResolvedValue(undefined);
+        const digest = await apiService.getIdeaDigest("unknown", "ru");
+        expect(digest).toBeUndefined();
     });
 });
