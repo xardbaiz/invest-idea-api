@@ -163,7 +163,7 @@ describe("ApiService Integration Tests", () => {
             getIdeaUrl: jest.fn()
         } as any;
 
-        const customApiService = new ApiService(mockRepo, aiService, mockVectorStore, registry);
+        const customApiService = new ApiService(mockRepo, mockAiService, mockVectorStore, registry);
 
         const riskReturn = await customApiService.getRiskReturnInfo("APP.US");
         expect(mockProvider.getPraamsStockInfoByTicker).toHaveBeenCalledWith("APP.US");
